@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FFmpeg 输出</title>
+</head>
+<style>
+    #ffmpegOutput {
+    height: 100%;  /* 或根据需要调整高度 */
+    overflow-y: scroll;  /* 强制显示滚动条 */
+    white-space: pre-wrap;  /* 保持空白格式并自动换行 */
+}
+</style>
+<body>
+    <pre id="ffmpegOutput"></pre>
+    <script>
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.on('ffmpeg-output', (event, message) => {
+            const outputElement = document.getElementById('ffmpegOutput');
+            const atBottom = outputElement.scrollHeight - outputElement.clientHeight <= outputElement.scrollTop + 1;
+
+            // 创建一个新的 div 来放置每条新的消息
+            const messageElement = document.createElement('div');
+            messageElement.textContent = message;
+            outputElement.appendChild(messageElement);
+
+            // 如果已经在底部，添加新内容后滚动到底部
+            if (atBottom) {
+                messageElement.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    </script>
+</body>
+</html>

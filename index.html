@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Kurisu</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+    <h1>克里斯缇娜助手</h1>
+    <div class="input-container">
+        <input type="file" id="fileInput">
+    </div>
+    <br><br>
+    <input type="text" id="userInput" placeholder="哼！在这里说！想让我做什么？">
+    <button id="confirmButton" onclick="sendRequest()">确认任务（只需要按一次）</button>
+    <!-- 添加一个新按钮来打开输出目录 -->
+    <button onclick="openOutputDir()">打开输出目录</button>
+
+    <br><br>
+    <!-- 进度条 -->
+    <div class="progress-container">
+        <progress id="progressBar" value="0" max="100"></progress>
+        <span id="progressText">0%</span> <!-- 新增的显示进度百分比的元素 -->
+        <div id="statusText"></div>
+    </div>
+    <div id="version-text">ver0.0.1</div>
+    <script src="core.js"></script>
+</body>
+
+</html>
