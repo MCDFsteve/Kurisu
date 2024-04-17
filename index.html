@@ -7,25 +7,73 @@
 </head>
 
 <body>
-    <h1>克里斯缇娜助手</h1>
-    <div class="input-container">
-        <input type="file" id="fileInput">
+    <div class="container">
+        <div class="left-panel">
+            <div class="input-container">
+                <label for="fileInput" id="dragDropArea">
+                    <img src="icons/upload.png" alt="Upload">
+                    <input type="file" id="fileInput" style="display: none;" onchange="updateFileName() " multiple>
+                </label>
+                <span class="file-input-text" id="fileLabel">点击/拖放上传文件</span>
+            </div>
+            <!-- 图像按钮容器 -->
+            <div class="icon-container">
+                <img src="icons/dark.png" alt="切换深色模式" class="icon-button">
+                <img src="icons/settings.png" alt="设置" class="icon-button">
+                <img src="icons/terminal.png" alt="控制台" class="icon-button">
+                <img src="icons/about.png" alt="关于" class="icon-button">
+            </div>
+        </div>
+        <div class="right-panel">
+            <input type="text" id="userInput" placeholder="哼！在这里说！想让我做什么？">
+            <br><br>
+            <button id="confirmButton" onclick="sendRequest()">执行当前任务</button>
+            <button onclick="openOutputDir()">打开输出目录</button>
+            <br><br>
+            <div class="progress-container">
+                <progress id="progressBar" value="0" max="100"></progress>
+                <span id="progressText">0%</span>
+                <div id="statusText"></div>
+            </div>
+            <div id="version-text">ver0.0.3</div>
+        </div>
     </div>
-    <br><br>
-    <input type="text" id="userInput" placeholder="哼！在这里说！想让我做什么？">
-    <button id="confirmButton" onclick="sendRequest()">确认任务（只需要按一次）</button>
-    <!-- 添加一个新按钮来打开输出目录 -->
-    <button onclick="openOutputDir()">打开输出目录</button>
-
-    <br><br>
-    <!-- 进度条 -->
-    <div class="progress-container">
-        <progress id="progressBar" value="0" max="100"></progress>
-        <span id="progressText">0%</span> <!-- 新增的显示进度百分比的元素 -->
-        <div id="statusText"></div>
-    </div>
-    <div id="version-text">ver0.0.1</div>
     <script src="core.js"></script>
+    <script>
+        function updateFileName() {
+            var input = document.getElementById('fileInput');
+            var fileLabel = document.getElementById('fileLabel');
+            if (input.files.length > 0) {
+                var filePaths = Array.from(input.files).map(file => file.name);  // Assume you want the name; adjust if you need full paths
+                var filePathsString = filePaths.join(', ');
+                fileLabel.textContent = filePathsString; // 显示所有选中文件的路径
+            } else {
+                fileLabel.textContent = '点击/拖放上传文件'; // 如果没有文件，则显示默认文本
+            }
+        }
+
+
+        // 添加拖拽事件监听器
+        var dragDropArea = document.getElementById('dragDropArea');
+        dragDropArea.addEventListener('dragover', function (event) {
+            event.preventDefault(); // 阻止默认行为
+            dragDropArea.style.backgroundColor = '#ccc'; // 可选：拖拽时改变背景色
+        });
+
+        dragDropArea.addEventListener('dragleave', function (event) {
+            dragDropArea.style.backgroundColor = ''; // 可选：恢复背景色
+        });
+
+        dragDropArea.addEventListener('drop', function (event) {
+            event.preventDefault();
+            var files = event.dataTransfer.files;
+            if (files.length > 0) {
+                var file = files[0];
+                document.getElementById('fileInput').files = files; // 设置文件到 input
+                updateFileName(); // 更新显示的文件名
+            }
+        });
+    </script>
 </body>
 
 </html>
