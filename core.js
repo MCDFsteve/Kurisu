@@ -6,9 +6,24 @@ function openOutputDir() {
 // 获取文件输入元素和文本元素
 var fileInput = document.getElementById('fileInput');
 var uploadButtonText = document.getElementById('uploadButtonText');
-
+ipcRenderer.on('platform-info', (event, { isMac }) => {
+    if (isMac) {
+      const styleSheet = document.createElement('style');
+      styleSheet.textContent = `
+        .left-panel {
+          background-color: initial !important;
+        }
+        @media (prefers-color-scheme: dark) {
+          .left-panel {
+            background-color: initial !important;
+          }
+        }
+      `;
+      document.head.appendChild(styleSheet);
+    }
+  });
 // 监听文件选择的变化
-fileInput.addEventListener('change', function() {
+fileInput.addEventListener('change', function () {
     // 检查是否选择了文件
     if (fileInput.files.length > 0) {
         // 获取第一个文件的名字
@@ -53,10 +68,10 @@ document.addEventListener('DOMContentLoaded', function () {
     // 初始化按钮状态
     updateButtonState();
 });
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const terminalButton = document.querySelector('img[alt="控制台"]'); // 通过 alt 文本选择 terminal 按钮
     if (terminalButton) {
-        terminalButton.addEventListener('click', function() {
+        terminalButton.addEventListener('click', function () {
             ipcRenderer.send('open-terminal-window'); // 发送事件到主进程
         });
     }
@@ -68,14 +83,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
+function updateProgress(progress) {
+    const progressBar = document.getElementById('progressBar');
+    const progressPercentage = document.getElementById('progressPercentage');  // HTML中用于显示百分比的元素
+
+    progressBar.style.width = progress + '%';  // 更新进度条的宽度
+    progressPercentage.textContent = progress.toFixed(0) + '%';  // 更新HTML中的百分比显示
+    if (progress === 100){
+        progressPercentage.textContent = progress.toFixed(0) + '%'+'处理成功';
+    }
+}
 
 function sendRequest() {
     const fileInput = document.getElementById('fileInput');
     const userInput = document.getElementById('userInput');
     const confirmButton = document.getElementById('confirmButton');
     const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    const statusText = document.getElementById('statusText');
 
     if (fileInput.files.length === 0) {
         console.error('No file selected');
@@ -86,26 +109,19 @@ function sendRequest() {
     const filePathsString = filePaths.join(', ');
 
     progressBar.value = 0;
-    progressText.textContent = '0%';
-    statusText.innerText = '';
     confirmButton.disabled = true;
     confirmButton.style.opacity = 0.5;
 
     const userCommand = userInput.value;
     ipcRenderer.on('update-progress', (event, progress) => {
-        const progressBar = document.getElementById('progressBar');
-        const progressText = document.getElementById('progressText');
-        const statusText = document.getElementById('statusText');
-    
-        progressBar.value = progress;
-        progressText.textContent = progress.toFixed(0) + '%';  // 更新文本显示进度百分比
+        updateProgress(progress);  // 使用新函数来更新进度条
     
         if (progress === 100) {
-            statusText.innerText = '处理完成';
             confirmButton.disabled = false;  // 仅在完成时启用按钮
             confirmButton.style.opacity = 1;
         }
     });
+    
     ipcRenderer.invoke('generate-ffmpeg-command', filePathsString, userCommand)
         .then(command => {
             console.log("Received ffmpeg command:", command); // Debug: 打印接收到的命令
@@ -143,9 +159,9 @@ function executeCommandsSequentially(commands, index) {
 function simulateProgress(startProgress) {
     let progress = Math.max(startProgress, progressBar.value);
     const intervalId = setInterval(() => {
-            progress += 1; // 每次增加 1%
-            progressBar.value = progress;
-            progressText.textContent = `${progress}%`;
+        progress += 1; // 每次增加 1%
+        progressBar.value = progress;
+        progressText.textContent = `${progress}%`;
     }, 1000); // 每 2000 毫秒（2 秒）增加一次进度
 }
 
@@ -166,4 +182,12 @@ function executeFFmpegCommand(command) {
         });
     });
 }
+function adjustInputHeight() {
+    var topPanel = document.querySelector('.top-panel');
+    var userInput = document.getElementById('userInput');
+    userInput.style.height = (topPanel.clientHeight - 60) + 'px'; // 减去一些内边距
+}
 
+// 在页面加载和窗口大小变化时调整输入框高度
+window.onload = adjustInputHeight;
+window.onresize = adjustInputHeight;

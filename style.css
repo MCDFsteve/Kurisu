@@ -1,42 +1,28 @@
 /* 全局样式 */
-html, body {
+html,
+body {
     height: 100%;
-    margin: 0; /* 移除默认的边距 */
-    padding: 0; /* 移除默认的内边距 */
+    margin: 0;
+    /* 移除默认的边距 */
+    padding: 0;
+    /* 移除默认的内边距 */
 }
 
 /* 主体容器样式，确保填满整个视窗 */
 .main-container {
     display: flex;
-    height: 100vh; /* 设置为视窗的高度 */
+    height: 100vh;
+    /* 设置为视窗的高度 */
     margin: 0;
 }
 
-/* 侧边栏样式 */
-.sidebar {
-    flex: 1; /* 占据1份空间 */
-    background-color: rgba(0, 0, 0, 0.1);
-    color: white;
-    height: 100vh; /* 设置为视窗的高度 */
-    padding: 20px;
-    box-sizing: border-box; /* 确保内边距和边框的宽度被包含在width内 */
-}
-
-/* 内容区样式 */
-.content {
-    flex: 2; /* 占据剩余的2份空间 */
-    background-color: #fff;
-    box-shadow: 4px 0 4px rgba(0, 0, 0, 0.9);
-    padding: 20px;
-    box-sizing: border-box; /* 确保内边距和边框的宽度被包含在width内 */
-}
-
-
 /* 按钮和列表容器样式 */
-.top-buttons, .list-container {
+.top-buttons,
+.list-container {
     clear: both;
     padding-top: 20px;
 }
+
 h1 {
     text-align: center;
     color: #333;
@@ -49,67 +35,150 @@ h1 {
 
 .left-panel {
     width: 30%;
-    border-right: 1px solid rgb(213, 213, 213); /* 竖黑线 */
     padding: 20px;
-    background-color: #f2f2f2; /* 稍灰的背景色 */
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* 保持顶部和底部内容分离 */
-    height: 100%; /* 充满整个侧边栏高度 */
+    justify-content: space-between;
+    /* 保持顶部和底部内容分离 */
+    height: 100%;
+    /* 充满整个侧边栏高度 */
     box-sizing: border-box;
+    background-color: #303030;
     -webkit-app-region: drag;
 }
+@media (prefers-color-scheme: dark) {
+    .left-panel {
+        background-color: #303030;
+    }
+}
 .icon-container {
-    width: 100%; 
+    width: 100%;
     display: flex;
-    align-items: center; /* 水平居中对齐图标 */
-    justify-content: flex-start; /* 从左侧开始排列图标 */
+    align-items: center;
+    /* 水平居中对齐图标 */
+    justify-content: flex-start;
+    /* 从左侧开始排列图标 */
     position: absolute;
-    bottom: 0.5%; /* 定位到底部 */
-    left: 0; /* 定位到最左边 */
+    bottom: 0.5%;
+    /* 定位到底部 */
+    left: 0;
+    /* 定位到最左边 */
 }
 
 .icon-button {
-    width: 25px; /* 或者你想要的尺寸 */
+    width: 25px;
+    /* 或者你想要的尺寸 */
     height: 25px;
     cursor: pointer;
-    transition: filter 0.3s; /* 平滑过渡效果 */
-    filter: invert(50%); 
+    transition: filter 0.3s;
+    /* 平滑过渡效果 */
+    filter: invert(50%);
     margin: 0 5px;
     -webkit-app-region: no-drag;
     user-select: none;
 }
+
 .icon-button:hover {
-    filter: invert(70%); /* 鼠标悬停时反色 */
+    filter: invert(70%);
+    /* 鼠标悬停时反色 */
 }
+
+@media (prefers-color-scheme: dark) {
+    .icon-button:hover {
+        filter: invert(20%);
+    }
+}
+
 .input-container label {
     display: inline-block;
-    width: 150px; /* 正方形尺寸 */
+    width: 150px;
+    /* 正方形尺寸 */
     height: 150px;
     border-radius: 15px;
-    background-color: rgba(200, 200, 200, 0.5); /* 圆角矩形的初始背景色 */
+    background-color: rgba(206, 206, 206, 0.5);
+    /* 圆角矩形的初始背景色 */
     backdrop-filter: blur(5px);
-    box-shadow: 0 2px 2px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 2px rgba(0, 0, 0, 0.3);
     cursor: pointer;
     position: relative;
     overflow: hidden;
-    transition: background-color 0.3s; /* 添加过渡效果 */
+    transition: background-color 0.3s;
+    /* 添加过渡效果 */
     -webkit-app-region: no-drag;
 }
 
+@media (prefers-color-scheme: dark) {
+    .input-container label {
+        box-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+        background-color: rgba(112, 112, 112, 0.5);
+    }
+}
+
 .input-container label:hover {
-    background-color: rgba(150, 150, 150, 0.5); /* 鼠标悬停时更灰的背景色 */
+    background-color: rgba(150, 150, 150, 0.5);
+    /* 鼠标悬停时更灰的背景色 */
 }
 
-
-.right-panel {
-    width: 70%;
+.top-space {
+    display: flex;
+    flex-direction: column; /* 修改为列布局以使内容垂直排列 */
+    align-items: flex-start; /* 子元素靠左对齐 */
+    width: 100%; /* 确保占满父容器宽度 */
+    align-items: flex-start; /* 子元素向左对齐 */
+}
+.input-button-container {
+    display: flex;
+    width: 100%; /* 容器宽度全占 */
+    align-items: center; /* 水平居中对齐 */
+}
+.top-panel {
     padding: 20px;
+    height:30%;
+    overflow: hidden;
+    /* 竖黑线 */
 }
-
+.right-panel{
+    width: 70%;
+    background-color: #fff;
+    border-left: 1px solid rgb(213, 213, 213);
+    overflow: hidden;
+}
+@media (prefers-color-scheme: dark) {
+    .right-panel {
+        border-left: 1px solid rgb(0, 0, 0);
+        /* 竖黑线 */
+        background-color: #1b1b1b;
+    }
+}
+.center-panel {
+    padding: 20px;
+    border-top: 1px solid rgb(213, 213, 213);
+    height:45%;
+    overflow: auto;
+    /* 竖黑线 */
+}
+@media (prefers-color-scheme: dark) {
+    .center-panel {
+        border-top: 1px solid rgb(0, 0, 0);
+    }
+}
+.bottom-panel {
+    padding: 20px;
+    height:5%;
+    overflow: auto;
+    border-top: 1px solid rgb(213, 213, 213);
+    /* 竖黑线 */
+    
+}
+@media (prefers-color-scheme: dark) {
+    .bottom-panel {
+        border-top: 1px solid rgb(0, 0, 0);
+    }
+}
 .progress-container {
     margin-bottom: 20px;
 }
+
 .input-container {
     position: relative;
     width: 100%;
@@ -134,11 +203,21 @@ h1 {
 }
 
 .file-input-text {
-    width: 120px; /* 宽度与矩形相同 */
+    width: 120px;
+    /* 宽度与矩形相同 */
     text-align: center;
     color: black;
-    margin-top: 10px; /* 与矩形间隔一定距离 */
+    margin-top: 10px;
+    /* 与矩形间隔一定距离 */
     user-select: none;
+    opacity: 0.9;
+}
+
+@media (prefers-color-scheme: dark) {
+    .file-input-text {
+        color: #dcdcdc;
+        background-color: transparent;
+    }
 }
 
 #version-text {
@@ -150,9 +229,17 @@ h1 {
     font-size: 12px;
     /* 字体大小 */
 }
+
+@media (prefers-color-scheme: dark) {
+    #version-text {
+        color: #dcdcdc;
+    }
+}
+
 #fileInput {
-    width: 100%; /* 调整输入文件框的宽度 */
-    height:100%;
+    width: 100%;
+    /* 调整输入文件框的宽度 */
+    height: 100%;
     padding: 0px;
     border: none;
     border-radius: 0px;
@@ -166,53 +253,131 @@ h1 {
 }
 
 #userInput {
-    width: calc(130% - 40%); /* 调整用户输入框的宽度 */
-    padding: 10px;
-    margin-top: 10px;
+    flex: 1; /* 输入框占据多余空间 */
+    margin-right: 20px; /* 右侧间距 */
+    width: calc(100% - 20px); /* 调整输入框宽度为容器宽度减去右侧间隔 */
+    margin-bottom: 10px; /* 输入框下方留出间隔 */
     border: none;
     border-radius: 10px;
-    background-color: rgba(255, 255, 255, 0.8);
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+    background-color: rgba(227, 227, 227, 0.8);
+    color: #3f3f3f;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.4);
     font-size: 16px;
+    top: 5px; /* 距离父元素顶部的距离 */
+    left: 5px; /* 距离父元素左侧的距离 */
+    text-align: left; /* 文本左对齐 */
+    vertical-align: top;
     outline: none;
+    padding: 10px; /* 确保有空间显示进度条 */
+    z-index: 2; /* 确保输入框在进度条之上 */
+}
+#userInput::placeholder {
+    position: absolute; /* 设置提示文本为绝对定位 */
+    top: 5px; /* 距离父元素顶部的距离 */
+    left: 5px; /* 距离父元素左侧的距离 */
+    text-align: left; /* 文本左对齐 */
+    vertical-align: top; /* 文本顶部对齐 */
+}
+@media (prefers-color-scheme: dark) {
+    #userInput {
+        background-color: rgba(54, 54, 54, 0.8);
+        box-shadow: 0px 1px 1px rgba(255, 255, 255, 0.4);
+        color: #dfdfdf;
+    }
+}
+.progress-container {
+    position: absolute; /* 使用绝对定位 */
+    left: 30%;
+    width: 70%;
+    bottom: 0; /* 紧贴底部 */
+    height: 60%; /* 调整高度以包括文本显示 */
+    background-color: transparent; /* 背景透明 */
+    display: flex; /* 使用flex布局 */
+    flex-direction: column-reverse; /* 使文本在进度条上方显示 */
+    align-items: center; /* 水平居中对齐 */
+    justify-content: flex-end; /* 将内容对齐到容器的底部 */
 }
 
+.progress-line {
+    height: 2px; /* 进度条高度为2px */
+    background-color: blue; /* 进度条颜色为蓝色 */
+    width: 0%; /* 初始宽度为0 */
+    transition: width 0.5s ease-in-out; /* 平滑过渡效果 */
+}
+
+#progressPercentage {
+    position: absolute; /* 使用绝对定位 */
+    top: 0; /* 定位到容器顶部 */
+    width: 100%; /* 宽度为100% */
+    text-align: center; /* 文本居中 */
+    color: rgb(63, 63, 63); /* 文本颜色为黑色 */
+    margin-top: 5px; /* 为了视觉效果稍微提上一点 */
+}
+@media (prefers-color-scheme: dark) {
+    #progressPercentage {
+        color: #adadad;
+    }
+}
+.button-container {
+    margin-top: 10px;
+    flex-shrink: 0; /* 防止按钮容器缩小 */
+    display: flex; /* 使用flex布局 */
+    flex-direction: column; /* 垂直排列按钮 */
+    align-items: flex-start; /* 按钮左对齐 */
+}
+.button-container button {
+    margin-bottom: 10px; /* 按钮之间的间距 */
+    text-align: center;
+}
 button {
     padding: 10px 20px;
     border: none;
     border-radius: 10px;
-    background-color: #007bff;
+    background-color: #131313;
     color: #fff;
     font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.4);
     user-select: none;
 }
 
+@media (prefers-color-scheme: dark) {
+    button {
+        background-color: #444444;
+        color: #b8b8b8;
+        box-shadow: 0px 1px 1px rgba(255, 255, 255, 0.4);
+    }
+}
+
 button:hover {
-    background-color: #0056b3;
+    background-color: #484848;
 }
 
-.progress-container {
-    width: 100%;
-    text-align: center;
+@media (prefers-color-scheme: dark) {
+    button:hover {
+        background-color: #2e2e2e;
+    }
 }
-
+@media (prefers-color-scheme: dark) {
+    #progressBar {
+        color: #565656;
+    }
+}
+#progressText,
 #statusText {
-    font-size: 16px;
-}
-.progress-container {
-    display: flex;
-    align-items: center;
+    margin-left: 10px;
+    color: #000000;
 }
 
-#progressBar {
-    width: 80%;  
+@media (prefers-color-scheme: dark) {
+
+    #progressText,
+    #statusText {
+        color: #e0e0e0;
+    }
 }
 
-#progressText, #statusText {
-    margin-left: 10px;  
-}
 /* 添加到 style.css 中 */
 .main-container {
     display: flex;

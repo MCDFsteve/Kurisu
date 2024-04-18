@@ -1,6 +1,7 @@
 {
   "main": "main.js",
   "dependencies": {
+    "@electron/remote": "^2.1.2",
     "axios": "^1.6.8",
     "ffmpeg": "^0.0.4"
   },

@@ -1,8 +1,9 @@
 process.env.PYTHONIOENCODING = 'utf8';
-const { app, BrowserWindow, ipcMain, shell, Menu, globalShortcut } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Menu, globalShortcut, nativeTheme } = require('electron');
 const axios = require('axios');
 const path = require('path');
 const exec = require('child_process').exec;
+const os = require('os');
 const outputPath = path.join(__dirname, 'outputs');
 function getFFmpegPath() {
     switch (process.platform) {
@@ -108,13 +109,19 @@ function createOutputWindow() {
         height: 300,
         icon: path.join(__dirname, 'window_icon.png'),
         show: false,
+        vibrancy: 'sidebar',
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
         }
     });
     outputWindow.setMenu(null);
+    let isMac = os.platform() === 'darwin'; // 判断是否是 macOS
     outputWindow.loadFile('ffmpeg_output.html');
+    // 将操作系统和主题模式信息发送到渲染进程
+    outputWindow.webContents.on('did-finish-load', () => {
+        outputWindow.webContents.send('platform-info', { isMac });
+    });
     outputWindow.on('close', (event) => {
         if (app.isQuitting) {
             // 允许窗口关闭
@@ -186,12 +193,18 @@ function createWindow() {
         height: 600,
         icon: path.join(__dirname, 'window_icon.png'),
         titleBarStyle: 'hiddenInset',
+        vibrancy: 'sidebar',
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
         }
     });
+    let isMac = os.platform() === 'darwin'; // 判断是否是 macOS
     mainWindow.loadFile('index.html');
+    // 将操作系统和主题模式信息发送到渲染进程
+    mainWindow.webContents.on('did-finish-load', () => {
+        mainWindow.webContents.send('platform-info', { isMac });
+    });
     if (process.platform !== 'darwin') {
         mainWindow.setMenu(null); // 在非 macOS 平台隐藏菜单栏
     } else {

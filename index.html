@@ -25,18 +25,29 @@
             </div>
         </div>
         <div class="right-panel">
-            <input type="text" id="userInput" placeholder="哼！在这里说！想让我做什么？">
-            <br><br>
-            <button id="confirmButton" onclick="sendRequest()">执行当前任务</button>
-            <button onclick="openOutputDir()">打开输出目录</button>
-            <br><br>
-            <div class="progress-container">
-                <progress id="progressBar" value="0" max="100"></progress>
-                <span id="progressText">0%</span>
-                <div id="statusText"></div>
+            <div class="top-panel">
+                <div class="top-space">
+                    <div class="input-button-container">
+                        <input type="text" id="userInput" placeholder="哼！在这里说！想让我做什么？">
+                        <div id="progressFrame"></div> <!-- 新的进度条容器 -->
+                        <div class="button-container">
+                            <button id="confirmButton" onclick="sendRequest()">执行当前任务</button>
+                            <button onclick="openOutputDir()">打开输出目录</button>
+                        </div>
+                    </div>
+                    <div class="progress-container">
+                        <span id="progressPercentage">0%</span>
+                        <div class="progress-line" id="progressBar"></div>
+                    </div>
+                </div>
             </div>
-            <div id="version-text">ver0.0.3</div>
+            <div class="center-panel">
+            </div>
+            <div class="bottom-panel">
+            </div>
+            <div id="version-text">ver0.0.4</div>
         </div>
+
     </div>
     <script src="core.js"></script>
     <script>

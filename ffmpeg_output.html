@@ -9,12 +9,35 @@
     height: 100%;  /* 或根据需要调整高度 */
     overflow-y: scroll;  /* 强制显示滚动条 */
     white-space: pre-wrap;  /* 保持空白格式并自动换行 */
+    background-color: #ffffff;
+    color:#000000;
 }
+@media (prefers-color-scheme: dark) {
+    #ffmpegOutput {
+    color:#ffffff;
+    background-color: #000000;
+}
+  }
 </style>
 <body>
     <pre id="ffmpegOutput"></pre>
     <script>
         const { ipcRenderer } = require('electron');
+        ipcRenderer.on('platform-info', (event, { isMac }) => {
+    if (isMac) {
+      const styleSheet = document.createElement('style');
+      styleSheet.textContent = `
+        #ffmpegOutput {
+            background-color: initial !important;
+        }
+        @media (prefers-color-scheme: dark) {
+            #ffmpegOutput {
+            background-color: initial !important;
+        }
+      `;
+      document.head.appendChild(styleSheet);
+    }
+  });
         ipcRenderer.on('ffmpeg-output', (event, message) => {
             const outputElement = document.getElementById('ffmpegOutput');
             const atBottom = outputElement.scrollHeight - outputElement.clientHeight <= outputElement.scrollTop + 1;
