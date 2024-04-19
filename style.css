@@ -5,6 +5,7 @@ body {
     margin: 0;
     /* 移除默认的边距 */
     padding: 0;
+    overflow: hidden;
     /* 移除默认的内边距 */
 }
 
@@ -46,11 +47,13 @@ h1 {
     background-color: #303030;
     -webkit-app-region: drag;
 }
+
 @media (prefers-color-scheme: dark) {
     .left-panel {
         background-color: #303030;
     }
 }
+
 .icon-container {
     width: 100%;
     display: flex;
@@ -121,28 +124,36 @@ h1 {
 
 .top-space {
     display: flex;
-    flex-direction: column; /* 修改为列布局以使内容垂直排列 */
-    align-items: flex-start; /* 子元素靠左对齐 */
-    width: 100%; /* 确保占满父容器宽度 */
-    align-items: flex-start; /* 子元素向左对齐 */
+    flex-direction: column;
+    /* 修改为列布局以使内容垂直排列 */
+    align-items: flex-start;
+    /* 子元素靠左对齐 */
+    width: 100%;
+    /* 确保占满父容器宽度 */
+    align-items: flex-start;
+    /* 子元素向左对齐 */
 }
+
 .input-button-container {
     display: flex;
-    width: 100%; /* 容器宽度全占 */
-    align-items: center; /* 水平居中对齐 */
+    width: 100%;
+    /* 容器宽度全占 */
+    align-items: flex-start;
+    position: relative;
 }
+
 .top-panel {
     padding: 20px;
-    height:30%;
-    overflow: hidden;
+    height: 30%;
     /* 竖黑线 */
 }
-.right-panel{
+
+.right-panel {
     width: 70%;
     background-color: #fff;
     border-left: 1px solid rgb(213, 213, 213);
-    overflow: hidden;
 }
+
 @media (prefers-color-scheme: dark) {
     .right-panel {
         border-left: 1px solid rgb(0, 0, 0);
@@ -150,31 +161,30 @@ h1 {
         background-color: #1b1b1b;
     }
 }
+
 .center-panel {
     padding: 20px;
-    border-top: 1px solid rgb(213, 213, 213);
-    height:45%;
-    overflow: auto;
+    height: 45%;
+    top: 35%;
+    overflow-y: scroll;
+    z-index: 3;
     /* 竖黑线 */
-}
-@media (prefers-color-scheme: dark) {
-    .center-panel {
-        border-top: 1px solid rgb(0, 0, 0);
-    }
 }
 .bottom-panel {
     padding: 20px;
-    height:5%;
+    height: 25%;
     overflow: auto;
     border-top: 1px solid rgb(213, 213, 213);
     /* 竖黑线 */
-    
+
 }
+
 @media (prefers-color-scheme: dark) {
     .bottom-panel {
         border-top: 1px solid rgb(0, 0, 0);
     }
 }
+
 .progress-container {
     margin-bottom: 20px;
 }
@@ -206,7 +216,7 @@ h1 {
     width: 120px;
     /* 宽度与矩形相同 */
     text-align: center;
-    color: black;
+    color: rgb(88, 88, 88);
     margin-top: 10px;
     /* 与矩形间隔一定距离 */
     user-select: none;
@@ -232,7 +242,7 @@ h1 {
 
 @media (prefers-color-scheme: dark) {
     #version-text {
-        color: #dcdcdc;
+        color: #cbcbcb;
     }
 }
 
@@ -253,31 +263,35 @@ h1 {
 }
 
 #userInput {
-    flex: 1; /* 输入框占据多余空间 */
-    margin-right: 20px; /* 右侧间距 */
-    width: calc(100% - 20px); /* 调整输入框宽度为容器宽度减去右侧间隔 */
-    margin-bottom: 10px; /* 输入框下方留出间隔 */
+    flex: 1;
+    /* 输入框占据多余空间 */
+    margin-right: 20px;
+    /* 右侧间距 */
+    width: calc(100% - 20px);
+    /* 调整输入框宽度为容器宽度减去右侧间隔 */
+    margin-bottom: 10px;
+    /* 输入框下方留出间隔 */
     border: none;
     border-radius: 10px;
     background-color: rgba(227, 227, 227, 0.8);
     color: #3f3f3f;
     box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.4);
     font-size: 16px;
-    top: 5px; /* 距离父元素顶部的距离 */
-    left: 5px; /* 距离父元素左侧的距离 */
-    text-align: left; /* 文本左对齐 */
+    top: 5px;
+    /* 距离父元素顶部的距离 */
+    left: 5px;
+    /* 距离父元素左侧的距离 */
+    text-align: left;
+    /* 文本左对齐 */
     vertical-align: top;
     outline: none;
-    padding: 10px; /* 确保有空间显示进度条 */
-    z-index: 2; /* 确保输入框在进度条之上 */
+    padding: 10px;
+    /* 确保有空间显示进度条 */
+    resize: none;
+    z-index: 2;
+    /* 确保输入框在进度条之上 */
 }
-#userInput::placeholder {
-    position: absolute; /* 设置提示文本为绝对定位 */
-    top: 5px; /* 距离父元素顶部的距离 */
-    left: 5px; /* 距离父元素左侧的距离 */
-    text-align: left; /* 文本左对齐 */
-    vertical-align: top; /* 文本顶部对齐 */
-}
+
 @media (prefers-color-scheme: dark) {
     #userInput {
         background-color: rgba(54, 54, 54, 0.8);
@@ -285,50 +299,105 @@ h1 {
         color: #dfdfdf;
     }
 }
-.progress-container {
-    position: absolute; /* 使用绝对定位 */
+#center-bar {
+    position: absolute;
+    /* 使用绝对定位 */
+    pointer-events: none;
     left: 30%;
     width: 70%;
-    bottom: 0; /* 紧贴底部 */
-    height: 60%; /* 调整高度以包括文本显示 */
-    background-color: transparent; /* 背景透明 */
-    display: flex; /* 使用flex布局 */
-    flex-direction: column-reverse; /* 使文本在进度条上方显示 */
-    align-items: center; /* 水平居中对齐 */
-    justify-content: flex-end; /* 将内容对齐到容器的底部 */
+    top: 35%;
+    /* 紧贴底部 */
+    display: flex;
+    /* 使用flex布局 */
+    flex-direction: column-reverse;
+    /* 使文本在进度条上方显示 */
+    align-items: center;
+    /* 水平居中对齐 */
+    justify-content: flex-end;
+    /* 将内容对齐到容器的底部 */
+    z-index: 1;
+    height: 1px;
+    /* 进度条高度为2px */
+    background-color: rgb(213, 213, 213);
+    /* 进度条颜色为蓝色 */
+}
+@media (prefers-color-scheme: dark) {
+    #center-bar {
+        background-color: rgb(0, 0, 0);
+    }
+}
+.progress-container {
+    position: absolute;
+    /* 使用绝对定位 */
+    pointer-events: none;
+    left: 30%;
+    width: 70%;
+    top: 35%;
+    /* 紧贴底部 */
+    height: 15%;
+    /* 调整高度以包括文本显示 */
+    background-color: transparent;
+    /* 背景透明 */
+    display: flex;
+    /* 使用flex布局 */
+    flex-direction: column-reverse;
+    /* 使文本在进度条上方显示 */
+    align-items: center;
+    /* 水平居中对齐 */
+    justify-content: flex-end;
+    /* 将内容对齐到容器的底部 */
+    z-index: 3;
 }
 
 .progress-line {
-    height: 2px; /* 进度条高度为2px */
-    background-color: blue; /* 进度条颜色为蓝色 */
-    width: 0%; /* 初始宽度为0 */
-    transition: width 0.5s ease-in-out; /* 平滑过渡效果 */
+    height: 2px;
+    /* 进度条高度为2px */
+    background-color: blue;
+    /* 进度条颜色为蓝色 */
+    width: 0%;
+    /* 初始宽度为0 */
+    transition: width 0.5s ease-in-out;
+    /* 平滑过渡效果 */
 }
 
 #progressPercentage {
-    position: absolute; /* 使用绝对定位 */
-    top: 0; /* 定位到容器顶部 */
-    width: 100%; /* 宽度为100% */
-    text-align: center; /* 文本居中 */
-    color: rgb(63, 63, 63); /* 文本颜色为黑色 */
-    margin-top: 5px; /* 为了视觉效果稍微提上一点 */
+    position: absolute;
+    /* 使用绝对定位 */
+    top: 0;
+    /* 定位到容器顶部 */
+    width: 100%;
+    /* 宽度为100% */
+    text-align: center;
+    /* 文本居中 */
+    color: rgb(63, 63, 63);
+    /* 文本颜色为黑色 */
+    margin-top: 5px;
+    /* 为了视觉效果稍微提上一点 */
 }
+
 @media (prefers-color-scheme: dark) {
     #progressPercentage {
         color: #adadad;
     }
 }
+
 .button-container {
-    margin-top: 10px;
-    flex-shrink: 0; /* 防止按钮容器缩小 */
-    display: flex; /* 使用flex布局 */
-    flex-direction: column; /* 垂直排列按钮 */
-    align-items: flex-start; /* 按钮左对齐 */
+    flex-shrink: 0;
+    /* 防止按钮容器缩小 */
+    display: flex;
+    /* 使用flex布局 */
+    flex-direction: column;
+    /* 垂直排列按钮 */
+    align-items: flex-start;
+    /* 按钮左对齐 */
 }
+
 .button-container button {
-    margin-bottom: 10px; /* 按钮之间的间距 */
+    margin-bottom: 10px;
+    /* 按钮之间的间距 */
     text-align: center;
 }
+
 button {
     padding: 10px 20px;
     border: none;
@@ -342,8 +411,66 @@ button {
     user-select: none;
 }
 
+.selected-message {
+    background-color: rgba(227, 227, 227, 0.8);
+    color: #737373;
+    display: flex;
+    /* 应用flex布局 */
+    justify-content: space-between;
+    /* 两端对齐，项目之间的间隔都相等 */
+    align-items: center;
+    padding: 5px 10px;
+    margin: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.4);
+    user-select: none;
+    /* 防止文本被选中复制 */
+    white-space: nowrap; /* 防止文本换行 */
+    overflow: hidden; /* 隐藏溢出的文本 */
+    text-overflow: ellipsis; 
+    min-width: 0;
+}
+.selected-message span {
+    flex-grow: 1; /* 让文本占据大部分空间 */
+    white-space: nowrap; /* 防止文本换行 */
+    overflow: hidden; /* 隐藏溢出的文本 */
+    text-overflow: ellipsis; /* 使用省略号 */
+    margin-right: 10px; /* 保持与其他内容的间距 */
+}
+.delete-icon {
+    width: 16px;
+    /* 设置图标宽度 */
+    height: 16px;
+    /* 设置图标高度 */
+    cursor: pointer;
+    opacity: 0;
+}
+
+.selected-message:hover .delete-icon {
+    opacity: 1;
+    /* 当鼠标悬停在 .selected-message 上时，设置子元素的透明度为 1 */
+}
+
+.bottom-tips {
+    display: flex;
+    padding: 5px;
+    color: #000000;
+    /* 根据需要更改颜色 */
+    margin-bottom: 2px;
+    /* 添加一点底部间距 */
+}
+
+.selected-message:hover .message-tips {
+    opacity: 1;
+    /* 当鼠标悬停在 .selected-message 上时，设置子元素的透明度为 1 */
+}
+
 @media (prefers-color-scheme: dark) {
-    button {
+
+    button,
+    .selected-message {
         background-color: #444444;
         color: #b8b8b8;
         box-shadow: 0px 1px 1px rgba(255, 255, 255, 0.4);
@@ -354,16 +481,26 @@ button:hover {
     background-color: #484848;
 }
 
+.selected-message:hover {
+    background-color: #484848;
+    color: #fff;
+}
+
 @media (prefers-color-scheme: dark) {
-    button:hover {
+
+    button:hover,
+    .selected-message:hover {
         background-color: #2e2e2e;
+        color: #fff;
     }
 }
+
 @media (prefers-color-scheme: dark) {
     #progressBar {
         color: #565656;
     }
 }
+
 #progressText,
 #statusText {
     margin-left: 10px;
@@ -381,4 +518,18 @@ button:hover {
 /* 添加到 style.css 中 */
 .main-container {
     display: flex;
+}
+/* bottom-panel.css */
+.bottom-tips {
+    padding: 10px;
+    background-color: transparent; /* 浅灰色背景 */
+    color: #838383;               /* 深色文字 */
+    font-size: 12px;           /* 文字大小 */
+    margin: 10px;     
+    opacity: 1;   
+}
+@media (prefers-color-scheme: dark) {
+    .bottom-tips {
+        color: #c5c5c5;
+    }
 }
