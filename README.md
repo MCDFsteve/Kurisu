@@ -6,4 +6,5 @@
 然后点击按钮们等待进度条完成就行。
 运用了chatgpt和ffmpeg的对接。
 请多多尝试。
-![image](https://github.com/MCDFsteve/Kurisu/assets/71605531/86a59c0e-1500-43bf-83a9-3a90851af0d9)
+<img width="800" alt="image" src="https://github.com/MCDFsteve/Kurisu/assets/71605531/8c91fed4-2212-4e01-9125-be1010937982">
+
