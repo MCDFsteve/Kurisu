@@ -17,26 +17,27 @@ console.error = function (...args) {
     originalError.apply(console, args);
 };
 function saveInput() {
-    const userInput = document.getElementById('userInput').value;
+    const userInput = document.getElementById('userInput').value.trim();  // 获取用户输入并去除两边空白
+    if (!userInput) {
+        console.error('输入不能为空');
+        return;  // 如果输入为空，则不执行任何操作
+    }
     const timestamp = new Date().toISOString();
     const newEntry = {
         timestamp: timestamp,
         message: userInput
     };
 
-    const filePath = path.join(__dirname, 'messages', 'message.json');
-
-    // 先读取当前的文件内容
     fs.readFile(filePath, {encoding: 'utf8'}, (readErr, data) => {
         if (readErr) {
-            if (readErr.code === 'ENOENT') {  // 文件不存在，创建新文件
+            if (readErr.code === 'ENOENT') {  // 文件不存在时，创建新文件
                 console.log('文件不存在，创建新文件');
                 fs.writeFile(filePath, JSON.stringify([newEntry], null, 2), writeErr => {
                     if (writeErr) {
                         console.error('创建新文件时出错:', writeErr);
-                        return;
+                    } else {
+                        console.log('首条消息保存成功！');
                     }
-                    console.log('消息保存成功！');
                 });
             } else {
                 console.error('读取文件时出错:', readErr);
@@ -44,16 +45,16 @@ function saveInput() {
             return;
         }
 
-        // 文件存在，解析 JSON，追加数据，然后重新写入
+        // 文件存在，解析 JSON 并将新条目添加到数组开头
         try {
-            const messages = JSON.parse(data);  // 将字符串解析为JSON对象
-            messages.push(newEntry);  // 将新消息添加到数组中
+            const messages = JSON.parse(data);
+            messages.unshift(newEntry);  // 添加到数组的开始
             fs.writeFile(filePath, JSON.stringify(messages, null, 2), writeErr => {
                 if (writeErr) {
                     console.error('写入文件时出错:', writeErr);
-                    return;
+                } else {
+                    console.log('消息添加到文件顶部成功！');
                 }
-                console.log('消息追加保存成功！');
             });
         } catch (parseErr) {
             console.error('解析 JSON 时出错:', parseErr);
@@ -63,7 +64,7 @@ function saveInput() {
 
 document.getElementById('saveButton').addEventListener('click', saveInput);
 function loadMessages() {
-    fs.readFile(filePath, {encoding: 'utf8'}, (err, data) => {
+    fs.readFile(filePath, { encoding: 'utf8' }, (err, data) => {
         if (err) {
             console.error('读取文件时出错:', err);
             return;
@@ -71,46 +72,10 @@ function loadMessages() {
         displayMessages(JSON.parse(data));
     });
 }
-function displayMessages(messages) {
-    const container = document.getElementById('messageContainer');
-    const bottomPanel = document.getElementsByClassName('bottom-panel')[0];  // 获取底部面板的引用
-    container.innerHTML = ''; // 清空现有内容
-    messages.forEach((message, index) => {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'selected-message';
-
-        const textSpan = document.createElement('span'); // 创建文本容器
-        textSpan.textContent = message.message;
-        messageDiv.appendChild(textSpan);
-        if (message.tips) {
-            messageDiv.addEventListener('mouseover', () => {
-                bottomPanel.textContent = message.tips;  
-                bottomPanel.className = 'bottom-tips'; // 应用新的 CSS 类
-            });
-            messageDiv.addEventListener('mouseout', () => {
-                bottomPanel.textContent = '';  
-                bottomPanel.className = ''; // 移除 CSS 类
-            });
-        }
-        if (!message.tips) {
-            const deleteButton = document.createElement('img');
-            deleteButton.src = 'icons/delete.png';
-            deleteButton.className = 'delete-icon';
-            deleteButton.onclick = function(event) {
-                event.stopPropagation(); // 防止点击按钮时触发消息选择
-                deleteMessage(index);
-            };
-            messageDiv.appendChild(deleteButton);
-        }
-
-        messageDiv.onclick = () => selectMessage(message, messages);
-        container.appendChild(messageDiv);
-    });
-}
 
 function deleteMessage(index) {
     // 读取当前的文件内容
-    fs.readFile(filePath, {encoding: 'utf8'}, (readErr, data) => {
+    fs.readFile(filePath, { encoding: 'utf8' }, (readErr, data) => {
         if (readErr) {
             console.error('读取文件时出错:', readErr);
             return;
@@ -136,13 +101,18 @@ function selectMessage(selectedMessage, messages) {
         userInput.value = selectedMessage.message; // 将选中的文本放入输入框
     } else {
         console.error('找不到用户输入框元素');
+        return;
     }
 
     // 重新排序消息
     const newMessages = messages.filter(m => m !== selectedMessage);
     newMessages.unshift(selectedMessage); // 将选中的消息加到数组前面
 
-    // 重新写入文件并更新显示
+    // 更新并重新绑定事件
+    updateMessagesAndBindEvents(newMessages);
+}
+
+function updateMessagesAndBindEvents(newMessages) {
     fs.writeFile(filePath, JSON.stringify(newMessages, null, 2), err => {
         if (err) {
             console.error('更新文件时出错:', err);
@@ -152,6 +122,66 @@ function selectMessage(selectedMessage, messages) {
         }
     });
 }
+
+function displayMessages(messages) {
+    const container = document.getElementById('messageContainer');
+    const bottomPanel = document.getElementsByClassName('bottom-panel')[0];
+
+    // 首先清空现有内容和移除现有的所有事件监听器
+    container.innerHTML = '';
+
+    // 重新绑定事件监听器
+    container.addEventListener('mouseover', function (event) {
+        if (event.target.closest('.selected-message')) {
+            const messageDiv = event.target.closest('.selected-message');
+            const tips = messageDiv.dataset.tips;
+            if (tips) {
+                bottomPanel.textContent = tips;
+                bottomPanel.className = 'bottom-tips';
+                console.log('Tips on hover:', tips);
+            }
+        }
+    });
+
+    container.addEventListener('mouseout', function (event) {
+        if (event.target.closest('.selected-message')) {
+            bottomPanel.textContent = '';
+            bottomPanel.className = '';
+        }
+    });
+
+    messages.forEach((message, index) => {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'selected-message';
+        messageDiv.dataset.tips = message.tips || ''; // 存储tips在元素上，方便访问
+
+        const textSpan = document.createElement('span');
+        textSpan.textContent = message.message;
+        messageDiv.appendChild(textSpan);
+
+        messageDiv.onclick = () => selectMessage(message, messages);
+
+        if (!message.tips) {
+            const deleteButton = document.createElement('img');
+            deleteButton.src = 'icons/delete.png';
+            deleteButton.className = 'delete-icon';
+            deleteButton.onclick = function (event) {
+                event.stopPropagation(); // 防止点击按钮时触发消息选择
+                deleteMessage(index);
+            };
+            messageDiv.appendChild(deleteButton);
+        }
+
+        container.appendChild(messageDiv);
+    });
+}
+
+// 调用这个函数以初始化消息显示并绑定事件
+document.addEventListener('DOMContentLoaded', () => {
+    loadMessages(); // 初始加载消息
+    watchFileChanges(); // 开始监视文件变化
+});
+
 function watchFileChanges() {
     fs.watch(filePath, (eventType, filename) => {
         if (filename && eventType === 'change') {
@@ -173,8 +203,8 @@ var fileInput = document.getElementById('fileInput');
 var uploadButtonText = document.getElementById('uploadButtonText');
 ipcRenderer.on('platform-info', (event, { isMac }) => {
     if (isMac) {
-      const styleSheet = document.createElement('style');
-      styleSheet.textContent = `
+        const styleSheet = document.createElement('style');
+        styleSheet.textContent = `
         .left-panel {
           background-color: initial !important;
         }
@@ -184,9 +214,9 @@ ipcRenderer.on('platform-info', (event, { isMac }) => {
           }
         }
       `;
-      document.head.appendChild(styleSheet);
+        document.head.appendChild(styleSheet);
     }
-  });
+});
 // 监听文件选择的变化
 fileInput.addEventListener('change', function () {
     // 检查是否选择了文件
@@ -218,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateButtonState() {
         // 检查文件是否已上传并且输入框中有文字
-        if (fileInput.files.length > 0 ) {
+        if (fileInput.files.length > 0) {
             confirmButton.disabled = false;
             saveButton.disabled = false;
             confirmButton.style.opacity = 1;
@@ -253,17 +283,67 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-function updateProgress(progress) {
-    const progressBar = document.getElementById('progressBar');
-    const progressPercentage = document.getElementById('progressPercentage');  // HTML中用于显示百分比的元素
+ipcRenderer.on('ffmpeg-error', (event, message) => {
+    console.error(message); // 可以在控制台输出错误信息
+    updateProgress(100, true); // 更新进度条为100%并显示错误信息
+});
+let hideTextTimeout;  // 用于隐藏文本的定时器
 
-    progressBar.style.width = progress + '%';  // 更新进度条的宽度
-    progressPercentage.textContent = progress.toFixed(0) + '%';  // 更新HTML中的百分比显示
-    if (progress === 100){
-        progressPercentage.textContent = progress.toFixed(0) + '%'+'处理成功';
+function updateProgress(progress, errorMessage = null) {
+    const confirmButton = document.getElementById('confirmButton');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressPercentage');
+    const progressLine = document.getElementById('progressBar');  // 确保这里是进度条的ID
+
+    // 清除之前可能设置的定时器
+    clearTimeout(hideTextTimeout);
+
+    // 根据错误状态更新进度条和文本
+    if (errorMessage) {
+        progressText.textContent = errorMessage + " 请查看控制台";
+        progressLine.style.backgroundColor = 'rgb(211, 105, 105)';  // 错误时显示红色
+        progressBar.style.width = '100%';
+        confirmButton.disabled = false;  // 仅在完成时启用按钮
+        confirmButton.style.opacity = 1;
+        // 设置定时器来隐藏文本和重置进度条颜色
+        hideTextTimeout = setTimeout(() => {
+            progressText.style.opacity = '0';  // 逐渐隐藏文本
+
+            setTimeout(() => {
+                progressText.textContent = '';  // 清空文本内容
+                if (error) {
+                    progressLine.style.backgroundColor = '';  // 如果是错误状态，重置进度条颜色
+                }
+            }, 500);  // 等待透明度过渡完成后执行
+        }, 10000);  // 3秒后开始隐藏文本
+    } else {
+        progressBar.style.width = progress + '%';
+        progressText.textContent = progress.toFixed(0) + '%';
+        progressLine.style.backgroundColor = 'rgb(105, 131, 211)';  // 重置颜色为默认或成功颜色
+        if (progress === 100) {
+            progressText.textContent = '100% 处理成功';  // Success message
+            // 设置定时器来隐藏文本和重置进度条颜色
+            hideTextTimeout = setTimeout(() => {
+                progressText.style.opacity = '0';  // 逐渐隐藏文本
+
+                setTimeout(() => {
+                    progressText.textContent = '';  // 清空文本内容
+                    if (error) {
+                        progressLine.style.backgroundColor = '';  // 如果是错误状态，重置进度条颜色
+                    }
+                }, 500);  // 等待透明度过渡完成后执行
+            }, 10000);  // 3秒后开始隐藏文本
+        }
     }
+
+    // 确保文本可见
+    progressText.style.opacity = '1';
 }
 
+// 确保在主进程或处理错误逻辑的地方调用此函数时，传递正确的错误状态
+ipcRenderer.on('ffmpeg-error', (event, message) => {
+    updateProgress(100, message); // 接收错误信息并更新UI
+});
 function sendRequest() {
     const fileInput = document.getElementById('fileInput');
     const userInput = document.getElementById('userInput');
@@ -285,13 +365,13 @@ function sendRequest() {
     const userCommand = userInput.value;
     ipcRenderer.on('update-progress', (event, progress) => {
         updateProgress(progress);  // 使用新函数来更新进度条
-    
+
         if (progress === 100) {
             confirmButton.disabled = false;  // 仅在完成时启用按钮
             confirmButton.style.opacity = 1;
         }
     });
-    
+
     ipcRenderer.invoke('generate-ffmpeg-command', filePathsString, userCommand)
         .then(command => {
             console.log("Received ffmpeg command:", command); // Debug: 打印接收到的命令
