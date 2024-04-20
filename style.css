@@ -44,7 +44,7 @@ h1 {
     height: 100%;
     /* 充满整个侧边栏高度 */
     box-sizing: border-box;
-    background-color: #303030;
+    background-color: rgba(227, 227, 227, 0.8);
     -webkit-app-region: drag;
 }
 
@@ -161,27 +161,58 @@ h1 {
         background-color: #1b1b1b;
     }
 }
+/* 设置滚动条的宽度和轨道颜色 */
+::-webkit-scrollbar {
+    width: 8px;
+    /* 或任何您希望的宽度 */
+    background-color: transparent;
+    /* 滚动条轨道颜色 */
+}
 
+/* 设置滚动条滑块的颜色 */
+::-webkit-scrollbar-thumb {
+    background-color: rgba(64, 64, 64, 0.4);
+    /* 滚动条滑块颜色 */
+    border-radius: 6px;
+    /* 如果需要，可以设置圆角 */
+}
+
+/* 设置当鼠标悬停在滚动条滑块上时的颜色 */
+::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(130, 130, 130, 0.4);
+    /* 滚动条滑块悬停颜色 */
+}
+
+@media (prefers-color-scheme: dark) {
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(198, 198, 198, 0.4);
+    }
+}
+@media (prefers-color-scheme: dark) {
+    ::-webkit-scrollbar-thumb {
+        background-color: rgba(134, 134, 134, 0.4);
+    }
+}
 .center-panel {
     padding: 20px;
     height: 45%;
     top: 35%;
     overflow-y: scroll;
     z-index: 3;
+    border-bottom: 1px solid rgb(213, 213, 213);
     /* 竖黑线 */
 }
 .bottom-panel {
     padding: 20px;
     height: 25%;
     overflow: auto;
-    border-top: 1px solid rgb(213, 213, 213);
     /* 竖黑线 */
 
 }
 
 @media (prefers-color-scheme: dark) {
-    .bottom-panel {
-        border-top: 1px solid rgb(0, 0, 0);
+    .center-panel {
+        border-bottom: 1px solid rgb(0, 0, 0);
     }
 }
 
@@ -315,7 +346,7 @@ h1 {
     /* 水平居中对齐 */
     justify-content: flex-end;
     /* 将内容对齐到容器的底部 */
-    z-index: 1;
+    z-index: 5;
     height: 1px;
     /* 进度条高度为2px */
     background-color: rgb(213, 213, 213);
@@ -324,6 +355,33 @@ h1 {
 @media (prefers-color-scheme: dark) {
     #center-bar {
         background-color: rgb(0, 0, 0);
+    }
+}
+#center-bar-wall {
+    position: absolute;
+    /* 使用绝对定位 */
+    pointer-events: none;
+    left: 30%;
+    width: 70%;
+    top: 33.5%;
+    height:3%;
+    /* 紧贴底部 */
+    display: flex;
+    /* 使用flex布局 */
+    flex-direction: column-reverse;
+    /* 使文本在进度条上方显示 */
+    align-items: center;
+    /* 水平居中对齐 */
+    justify-content: flex-end;
+    /* 将内容对齐到容器的底部 */
+    z-index: 4;
+    /* 进度条高度为2px */
+    background-color: rgb(255, 255, 255);
+    /* 进度条颜色为蓝色 */
+}
+@media (prefers-color-scheme: dark) {
+    #center-bar-wall {
+        background-color: #1b1b1b;
     }
 }
 .progress-container {
@@ -346,20 +404,22 @@ h1 {
     /* 水平居中对齐 */
     justify-content: flex-end;
     /* 将内容对齐到容器的底部 */
-    z-index: 3;
+    z-index: 6;
 }
 
 .progress-line {
     height: 2px;
     /* 进度条高度为2px */
-    background-color: blue;
+    background-color: rgb(105, 131, 211);
     /* 进度条颜色为蓝色 */
     width: 0%;
     /* 初始宽度为0 */
     transition: width 0.5s ease-in-out;
     /* 平滑过渡效果 */
 }
-
+.progress-bar-error {
+    background-color: rgb(211, 105, 105); /* 错误时的红色背景 */
+}
 #progressPercentage {
     position: absolute;
     /* 使用绝对定位 */
@@ -372,6 +432,7 @@ h1 {
     color: rgb(63, 63, 63);
     /* 文本颜色为黑色 */
     margin-top: 5px;
+    transition: opacity 0.5s ease-out;
     /* 为了视觉效果稍微提上一点 */
 }
 
@@ -505,6 +566,7 @@ button:hover {
 #statusText {
     margin-left: 10px;
     color: #000000;
+    transition: opacity 0.5s ease-out;
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,10 +1,60 @@
 process.env.PYTHONIOENCODING = 'utf8';
 const { app, BrowserWindow, ipcMain, shell, Menu, globalShortcut, nativeTheme } = require('electron');
 const axios = require('axios');
+const fs = require('fs');
 const path = require('path');
 const exec = require('child_process').exec;
 const os = require('os');
 const outputPath = path.join(__dirname, 'outputs');
+const messagesPath = path.join(__dirname, 'messages', 'message.json');
+const defaultPath = path.join(__dirname, 'messages', 'default.json');
+function syncMessagesWithDefault() {
+    // 读取两个文件的内容
+    fs.readFile(messagesPath, { encoding: 'utf8' }, (err, messageData) => {
+        if (err) {
+            console.error('读取message文件时出错:', err);
+            return;
+        }
+        fs.readFile(defaultPath, { encoding: 'utf8' }, (err, defaultData) => {
+            if (err) {
+                console.error('读取default文件时出错:', err);
+                return;
+            }
+
+            const messages = JSON.parse(messageData);
+            const defaults = JSON.parse(defaultData);
+            const messagesById = new Map(messages.map(msg => [msg.id, msg]));
+            let updated = false;
+
+            // 同步默认数据到消息列表
+            defaults.forEach(def => {
+                const correspondingMessage = messagesById.get(def.id);
+                if (!correspondingMessage || correspondingMessage.message !== def.message || correspondingMessage.tips !== def.tips) {
+                    if (correspondingMessage) {
+                        // 更新存在的消息
+                        correspondingMessage.message = def.message;
+                        correspondingMessage.tips = def.tips;
+                    } else {
+                        // 添加新的消息
+                        messages.push(def);
+                    }
+                    updated = true;
+                }
+            });
+
+            // 如果有更新，重新写入message文件
+            if (updated) {
+                fs.writeFile(messagesPath, JSON.stringify(messages, null, 2), err => {
+                    if (err) {
+                        console.error('写入更新的messages文件时出错:', err);
+                    } else {
+                        console.log('messages文件已更新');
+                    }
+                });
+            }
+        });
+    });
+}
 ipcMain.on('console-log', (event, args) => {
     console.log(...args);
 });
@@ -123,7 +173,7 @@ function createOutputWindow() {
         }
     });
     outputWindow.setMenu(null);
-    let isMac = os.platform() === 'darwin'; // 判断是否是 macOS
+    let isMac = process.platform === 'darwin'; // 判断是否是 macOS
     outputWindow.loadFile('ffmpeg_output.html');
     // 将操作系统和主题模式信息发送到渲染进程
     outputWindow.webContents.on('did-finish-load', () => {
@@ -141,33 +191,39 @@ function createOutputWindow() {
     });
 }
 function handleFFmpegCommand(win, command, totalDuration) {
-    const options = {
-        encoding: 'utf8'
-    };
+    const options = { encoding: 'utf8' };
     const process = exec(command, options);
+
     process.stderr.on('data', (data) => {
-        // 使用正则表达式匹配时间戳信息
-        const match = /time=(\d{2}:\d{2}:\d{2}\.\d{2})/.exec(data);
-        if (match) {
-            const currentTime = parseTime(match[1]);
-            const progress = (currentTime / totalDuration) * 100;
-            win.webContents.send('update-progress', progress);
-        };
+        // 在这里可以添加额外的错误日志处理
         if (outputWindow) {
             outputWindow.webContents.send('ffmpeg-output', data.toString());
         }
     });
+
     process.on('exit', (code) => {
+        if (code !== 0) {
+            console.error(`FFmpeg process exited with code ${code}`);
+            win.webContents.send('ffmpeg-error', `100% 处理失败：code ${code}`);
+        } else {
+            win.webContents.send('update-progress', 100);
+        }
         if (outputWindow) {
             outputWindow.webContents.send('ffmpeg-output', `FFmpeg process exited with code ${code}`);
         }
     });
+
     process.on('close', (code) => {
-        win.webContents.send('update-progress', 100); // 处理完成时进度设置为100%
+        if (code !== 0) {
+            win.webContents.send('ffmpeg-error', `100% 处理失败：code ${code}`);
+        }
     });
 }
+
+
 app.whenReady().then(() => {
     process.env.PYTHONIOENCODING = 'utf8'; // 强制使用 UTF-8 编码
+    syncMessagesWithDefault();
     if (process.platform === 'darwin') {
         globalShortcut.register('Command+Q', () => {
             app.quit();
@@ -206,7 +262,7 @@ function createWindow() {
             contextIsolation: false
         }
     });
-    let isMac = os.platform() === 'darwin'; // 判断是否是 macOS
+    let isMac = process.platform === 'darwin'; // 判断是否是 macOS
     mainWindow.loadFile('index.html');
     // 将操作系统和主题模式信息发送到渲染进程
     mainWindow.webContents.on('did-finish-load', () => {
