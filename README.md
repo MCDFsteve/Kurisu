@@ -7,5 +7,6 @@
 运用了chatgpt和ffmpeg的对接。
 请多多尝试。
 ### macOS用户请注意，直接运行程序会提示已损坏，请在终端输入sudo xattr -dr com.apple.quarantine 程序.app的运行路径（可以从访达拖放），输入密码以后就能正常打开了
-<img width="800" alt="image" src="https://github.com/MCDFsteve/Kurisu/assets/71605531/8c91fed4-2212-4e01-9125-be1010937982">
+![image](https://github.com/MCDFsteve/Kurisu/assets/71605531/80471021-e4bc-4d7d-85f4-577081b39fa2)
+
 
