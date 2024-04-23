@@ -1,15 +1,56 @@
 {
+  "name": "kurisu",
+  "productName": "kurisu",
+  "version": "0.2.0",
+  "description": "助手～",
   "main": "main.js",
   "dependencies": {
     "@electron/remote": "^2.1.2",
+    "asar": "^3.2.0",
     "axios": "^1.6.8",
-    "ffmpeg": "^0.0.4"
+    "ffmpeg": "^0.0.4",
+    "fs-extra": "^11.2.0"
   },
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "win": "electron-builder --win --x64",
+    "woa": "electron-builder --win --arm64",
+    "mac": "electron-builder --mac"
   },
+  "build": {
+    "appId": "com.dfsteve.kurisu",
+    "asar": false,
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "identity": null
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "zip"
+      ],
+      "icon": "icon.ico",
+      "extraResources": [
+        "assets"
+      ],
+      "nsis": {
+        "oneClick": false,
+        "perMachine": true, 
+        "allowToChangeInstallationDirectory": true 
+      }
+    }
+  },
+  "keywords": [],
+  "author": "DFsteve",
+  "license": "GPLv2",
   "devDependencies": {
     "electron": "^29.3.0",
+    "electron-builder": "^24.13.3",
     "electron-packager": "^17.1.2"
   }
 }

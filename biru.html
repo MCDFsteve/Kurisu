@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>关于Kurisu</title>
+    <style>
+        #biruui {
+            background-color: #ffffff;
+        }
+
+        body {
+            color: #292929;
+        }
+
+        .section {
+            color: #595959;
+            margin-bottom: 10px;
+        }
+
+        .section h1 {
+            color: #363636;
+        }
+
+        .section h2 {
+            color: #434343;
+        }
+
+        .section a {
+            color: rgb(135, 135, 135);
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            #biruui {
+                background-color: #202020;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            body {
+                color: #ffffff;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+
+            .section h1,
+            .section h2 {
+                color: #ffffff;
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .section {
+                color: #d3d3d3;
+            }
+        }
+
+        /* 设置滚动条的宽度和轨道颜色 */
+        ::-webkit-scrollbar {
+            width: 8px;
+            /* 或任何您希望的宽度 */
+            background-color: transparent;
+            /* 滚动条轨道颜色 */
+        }
+
+        /* 设置滚动条滑块的颜色 */
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(40, 40, 40, 0.4);
+            /* 滚动条滑块颜色 */
+            border-radius: 6px;
+            /* 如果需要，可以设置圆角 */
+        }
+
+        /* 设置当鼠标悬停在滚动条滑块上时的颜色 */
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(80, 80, 80, 0.4);
+            /* 滚动条滑块悬停颜色 */
+        }
+
+        @media (prefers-color-scheme: dark) {
+            ::-webkit-scrollbar-thumb:hover {
+                background-color: rgba(198, 198, 198, 0.4);
+            }
+        }
+
+        @media (prefers-color-scheme: dark) {
+            ::-webkit-scrollbar-thumb {
+                background-color: rgba(134, 134, 134, 0.4);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <pre id="biruui"></pre>
+    <h1>关于 Kurisu</h1>
+    <p>作者：戴夫邻居史蒂夫DFsteve。</p>
+    <div class="section">
+        <h2>鸣谢</h2>
+        <p>感谢所有给予支持和鼓励的朋友们。特别鸣谢以下开源项目：</p>
+        <ul>
+            <li><a href="https://electronjs.org/" target="_blank" class="externalLink">Electron</a> - 使我能够使用 Web 技术构建桌面应用。</li>
+            <li><a href="https://ffmpeg.org/" target="_blank" class="externalLink">FFmpeg</a> - 一个完整的、跨平台的解决方案，用于记录、转换数字音频和视频流。</li>
+        </ul>
+        <p>本程序是基于 <strong>GNU General Public License version 2 (GPLv2)</strong> 开源的。</p>
+    </div>
+    <div class="section">
+        <h2>Bilibili</h2>
+        <p>查看我的上传和动态，更新建议和bug提出也可以通过这里联系我。</p>
+        <a href="https://space.bilibili.com/381681555" class="externalLink">戴夫邻居史蒂夫DFsteve的哔哩哔哩空间</a>
+    </div>
+    <div class="section">
+        <h2>GitHub</h2>
+        <p>您可以在我的 GitHub 页面上找到我的项目和代码。</p>
+        <a href="https://github.com/MCDFsteve/Kurisu" class="externalLink">https://github.com/MCDFsteve/Kurisu</a>
+    </div>
+
+    <div class="section">
+        <h2>个人博客</h2>
+        <p>阅读我的文章，获取更多技术分享和生活点滴。</p>
+        <a href="https://www.dfsteve.top" class="externalLink">https://www.dfsteve.top</a>
+    </div>
+
+    <div class="section">
+        <h2>赞助</h2>
+        <p>如果您觉得我的作品对您有帮助，可以考虑赞助支持。</p>
+        <a href="https://www.dfsteve.top/wp-content/uploads/2024/04/6426F436D4470C5A534692002525D9D8.jpg" class="externalLink">赞助链接</a>
+    </div>
+    <script>
+        const { ipcRenderer } = require('electron');
+        const { shell } = require('electron');
+
+        // 获取所有需要在系统默认浏览器中打开的超链接
+        const externalLinks = document.querySelectorAll('.externalLink');
+
+        // 为每个超链接添加点击事件处理程序
+        externalLinks.forEach(link => {
+            link.addEventListener('click', (event) => {
+                event.preventDefault(); // 阻止默认行为
+
+                const href = link.getAttribute('href');
+                shell.openExternal(href); // 在系统默认浏览器中打开链接
+            });
+        });
+        ipcRenderer.on('platform-info', (event, { isMac }) => {
+            if (isMac) {
+                const styleSheet = document.createElement('style');
+                styleSheet.textContent = `
+                #biruui {
+            background-color: initial !important;
+        }
+        @media (prefers-color-scheme: dark) {
+            #biruui {
+            background-color: initial !important;
+        }
+    }
+      `;
+                document.head.appendChild(styleSheet);
+            }
+        });
+    </script>
+</body>
+
+</html>

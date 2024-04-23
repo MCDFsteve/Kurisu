@@ -46,43 +46,45 @@ h1 {
     box-sizing: border-box;
     background-color: rgba(227, 227, 227, 0.8);
     -webkit-app-region: drag;
+    border-right: 1px solid rgb(213, 213, 213);
 }
 
 @media (prefers-color-scheme: dark) {
     .left-panel {
         background-color: #303030;
+        border-right: 1px solid rgb(0, 0, 0);
     }
 }
 
 .icon-container {
     width: 100%;
-    display: flex;
     align-items: center;
     /* 水平居中对齐图标 */
     justify-content: flex-start;
     /* 从左侧开始排列图标 */
     position: absolute;
-    bottom: 0.5%;
+    bottom: 1%;
     /* 定位到底部 */
-    left: 0;
+    left: 1%;
     /* 定位到最左边 */
 }
-
 .icon-button {
-    width: 25px;
+    width: 20px;
     /* 或者你想要的尺寸 */
-    height: 25px;
+    height: 20px;
     cursor: pointer;
-    transition: filter 0.3s;
+    transition: filter 0.3s, transform 0.3s; 
     /* 平滑过渡效果 */
-    filter: invert(50%);
-    margin: 0 5px;
+    filter: invert(40%);
     -webkit-app-region: no-drag;
     user-select: none;
 }
 
 .icon-button:hover {
     filter: invert(70%);
+    width:25px;
+    height:25px;
+    transform: scale(1.25); 
     /* 鼠标悬停时反色 */
 }
 
@@ -151,13 +153,10 @@ h1 {
 .right-panel {
     width: 70%;
     background-color: #fff;
-    border-left: 1px solid rgb(213, 213, 213);
 }
 
 @media (prefers-color-scheme: dark) {
     .right-panel {
-        border-left: 1px solid rgb(0, 0, 0);
-        /* 竖黑线 */
         background-color: #1b1b1b;
     }
 }
@@ -244,7 +243,7 @@ h1 {
 }
 
 .file-input-text {
-    width: 120px;
+    width: 110%;
     /* 宽度与矩形相同 */
     text-align: center;
     color: rgb(88, 88, 88);
@@ -252,6 +251,10 @@ h1 {
     /* 与矩形间隔一定距离 */
     user-select: none;
     opacity: 0.9;
+    /* 防止文本被选中复制 */
+    overflow: hidden; /* 隐藏溢出的文本 */
+    text-overflow: ellipsis; 
+    min-width: 0;
 }
 
 @media (prefers-color-scheme: dark) {

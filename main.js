@@ -1,60 +1,119 @@
 process.env.PYTHONIOENCODING = 'utf8';
-const { app, BrowserWindow, ipcMain, shell, Menu, globalShortcut, nativeTheme } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, Menu, globalShortcut, dialog, } = require('electron');
 const axios = require('axios');
-const fs = require('fs');
+const fs = require('fs-extra');
 const path = require('path');
 const exec = require('child_process').exec;
 const os = require('os');
-const outputPath = path.join(__dirname, 'outputs');
-const messagesPath = path.join(__dirname, 'messages', 'message.json');
-const defaultPath = path.join(__dirname, 'messages', 'default.json');
+// 定义原始 messages 文件夹的路径
+const originalMessagesPath = path.join(__dirname, 'messages');
+const originaldefaultPath = path.join(__dirname, 'messages', 'default.json');
+// 定义目标路径，即用户下载文件夹下的 kurisu 文件夹
+const downloadsPath = path.join(os.homedir(), 'Downloads');
+const kurisuPath = path.join(downloadsPath, 'kurisu');
+const messagesFolderPath = path.join(kurisuPath, 'messages');
+const messagesPath = path.join(messagesFolderPath, 'message.json');
+const defaultPath = path.join(messagesFolderPath, 'default.json');
+const targetMessagesPath = path.join(kurisuPath, 'messages');
+function moveMessagesToKurisu() {
+
+    // 创建 kurisu 目录如果它不存在
+    if (!fs.existsSync(kurisuPath)) {
+        fs.mkdirSync(kurisuPath, { recursive: true });
+        console.log('Kurisu directory created at:', kurisuPath);
+    }
+
+    // 检查目标 messages 目录是否已存在
+    if (!fs.existsSync(targetMessagesPath)) {
+        // 将 messages 文件夹复制到目标路径
+        fs.copySync(originalMessagesPath, targetMessagesPath);
+        console.log('Messages directory moved to:', targetMessagesPath);
+    } else {
+        console.log('Messages directory already exists at:', targetMessagesPath);
+    }
+    // 直接复制 default.json 文件到目标目录，覆盖已有文件
+    const sourceDefaultJson = path.join(originalMessagesPath, 'default.json');
+    const targetDefaultJson = path.join(targetMessagesPath, 'default.json');
+    fs.copyFileSync(sourceDefaultJson, targetDefaultJson);
+    console.log('Default settings file copied to:', targetDefaultJson);
+}
+function createOutputDirectory() {
+    const downloadsPath = path.join(os.homedir(), 'Downloads');
+    const outputPath = path.join(downloadsPath, 'kurisu', 'outputs');
+
+    // 检查目录是否存在，如果不存在，则创建它
+    if (!fs.existsSync(outputPath)) {
+        fs.mkdirSync(outputPath, { recursive: true });
+        console.log('Output directory created at:', outputPath);
+    } else {
+        console.log('Output directory already exists at:', outputPath);
+    }
+
+    return outputPath;
+}
 function syncMessagesWithDefault() {
-    // 读取两个文件的内容
-    fs.readFile(messagesPath, { encoding: 'utf8' }, (err, messageData) => {
-        if (err) {
-            console.error('读取message文件时出错:', err);
-            return;
-        }
-        fs.readFile(defaultPath, { encoding: 'utf8' }, (err, defaultData) => {
+    // 检查 message.json 文件是否存在
+    if (!fs.existsSync(messagesPath)) {
+        // 如果不存在，从 default.json 读取内容并创建 message.json
+        fs.readFile(originaldefaultPath, { encoding: 'utf8' }, (err, defaultData) => {
             if (err) {
-                console.error('读取default文件时出错:', err);
+                console.error('读取 default.json 文件时出错:', err);
                 return;
             }
-
-            const messages = JSON.parse(messageData);
-            const defaults = JSON.parse(defaultData);
-            const messagesById = new Map(messages.map(msg => [msg.id, msg]));
-            let updated = false;
-
-            // 同步默认数据到消息列表
-            defaults.forEach(def => {
-                const correspondingMessage = messagesById.get(def.id);
-                if (!correspondingMessage || correspondingMessage.message !== def.message || correspondingMessage.tips !== def.tips) {
-                    if (correspondingMessage) {
-                        // 更新存在的消息
-                        correspondingMessage.message = def.message;
-                        correspondingMessage.tips = def.tips;
-                    } else {
-                        // 添加新的消息
-                        messages.push(def);
-                    }
-                    updated = true;
+            // 将 default.json 的内容写入新创建的 message.json
+            fs.writeFile(messagesPath, defaultData, { encoding: 'utf8' }, (err) => {
+                if (err) {
+                    console.error('创建 message.json 文件时出错:', err);
+                } else {
+                    console.log('message.json 文件已创建并初始化');
                 }
             });
+        });
+    } else {
+        // 如果文件已存在，执行现有的同步逻辑
+        fs.readFile(messagesPath, { encoding: 'utf8' }, (err, messageData) => {
+            if (err) {
+                console.error('读取 message.json 文件时出错:', err);
+                return;
+            }
+            fs.readFile(defaultPath, { encoding: 'utf8' }, (err, defaultData) => {
+                if (err) {
+                    console.error('读取 default.json 文件时出错:', err);
+                    return;
+                }
 
-            // 如果有更新，重新写入message文件
-            if (updated) {
-                fs.writeFile(messagesPath, JSON.stringify(messages, null, 2), err => {
-                    if (err) {
-                        console.error('写入更新的messages文件时出错:', err);
-                    } else {
-                        console.log('messages文件已更新');
+                const messages = JSON.parse(messageData);
+                const defaults = JSON.parse(defaultData);
+                const messagesById = new Map(messages.map(msg => [msg.id, msg]));
+                let updated = false;
+
+                defaults.forEach(def => {
+                    const correspondingMessage = messagesById.get(def.id);
+                    if (!correspondingMessage || correspondingMessage.message !== def.message || correspondingMessage.tips !== def.tips) {
+                        if (correspondingMessage) {
+                            correspondingMessage.message = def.message;
+                            correspondingMessage.tips = def.tips;
+                        } else {
+                            messages.push(def);
+                        }
+                        updated = true;
                     }
                 });
-            }
+
+                if (updated) {
+                    fs.writeFile(messagesPath, JSON.stringify(messages, null, 2), (err) => {
+                        if (err) {
+                            console.error('写入更新的 message.json 文件时出错:', err);
+                        } else {
+                            console.log('message.json 文件已更新');
+                        }
+                    });
+                }
+            });
         });
-    });
+    }
 }
+
 ipcMain.on('console-log', (event, args) => {
     console.log(...args);
 });
@@ -63,15 +122,16 @@ ipcMain.on('console-error', (event, args) => {
     console.error(...args);
 });
 function getFFmpegPath() {
-    switch (process.platform) {
-        case 'darwin':
-            return path.join(__dirname, 'ffmpeg/ffmpeg_mac/ffmpeg');
-        case 'win32':
-            return path.join(__dirname, 'ffmpeg/ffmpeg_win/bin/ffmpeg.exe');
-        default:
-            throw new Error('Unsupported platform');
+    if (process.platform === 'darwin') {
+        return path.join(__dirname, 'ffmpeg', 'ffmpeg_mac', 'ffmpeg');
+    } else if (process.platform === 'win32') {
+        return path.join(__dirname, 'ffmpeg', 'ffmpeg_win', 'bin', 'ffmpeg.exe');
+    } else {
+        throw new Error('Unsupported platform');
     }
 }
+const outputPath = createOutputDirectory();
+
 ipcMain.on('open-output-directory', () => {
     shell.openPath(outputPath).then(() => {
         console.log('Output directory opened successfully');
@@ -107,13 +167,20 @@ function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
         }
     })
         .then(response => {
-            const command = response.data.choices[0].message.content;
+            let command = response.data.choices[0].message.content;
+            command = command.replace(/\\\\/g, "\\");
+            const ffmpegExecutablePath = getFFmpegPath();
+            command = command.replace(/ffmpeg/g, ffmpegExecutablePath);
             console.log('Received ffmpeg command:', command);
+            if (outputWindow) {
+                outputWindow.webContents.send('ffmpeg-output', 'Received ffmpeg command: ' + command);
+            }
             return command;
         })
         .catch(error => {
-            console.error('Error generating ffmpeg command:', error);
-            throw error;
+            clearInterval(dotsInterval);
+            progressText.textContent = '连接失败，请检查网络环境';
+            progressBar.style.backgroundColor = 'rgb(211, 105, 105)'; // 红色进度条
         });
 }
 
@@ -126,7 +193,7 @@ function getCurrentTimestamp() {
         now.getMinutes().toString().padStart(2, '0') +
         now.getSeconds().toString().padStart(2, '0');
 }
-const totalDuration = 600; // 假设视频总时长是600秒
+let totalDuration = 600; // 假设视频总时长是600秒
 
 // 确保关闭窗口时清理引用
 app.on('window-all-closed', () => {
@@ -190,12 +257,46 @@ function createOutputWindow() {
         }
     });
 }
+function getMediaDuration(filePath, callback) {
+    const ffmpegExecutablePath = getFFmpegPath();  // 获取正确的ffmpeg路径
+    const command = `"${ffmpegExecutablePath}" -i "${filePath}" 2>&1`;
+    exec(command, (error, stdout, stderr) => {
+        if (error) {
+            console.error('Error executing ffmpeg:', error);
+            return callback(error, null);
+        }
+
+        // 使用正则表达式从 stderr 中提取时长
+        const durationPattern = /Duration: (\d{2}:\d{2}:\d{2}\.\d{2})/;
+        const match = durationPattern.exec(stderr);
+        if (match && match[1]) {
+            const duration = parseTime(match[1]);
+            callback(null, duration);
+        } else {
+            callback(new Error('Duration not found'), null);
+        }
+    });
+}
 function handleFFmpegCommand(win, command, totalDuration) {
     const options = { encoding: 'utf8' };
     const process = exec(command, options);
 
     process.stderr.on('data', (data) => {
+        const dataString = data.toString();
+        // 提取和更新持续时间
+        const durationMatch = dataString.match(/Duration: (\d{2}:\d{2}:\d{2}\.\d{2})/);
+        if (durationMatch) {
+            totalDuration = parseTime(durationMatch[1]);
+            console.log('Total Duration:', totalDuration);  // 打印总持续时间
+        }
         // 在这里可以添加额外的错误日志处理
+        const match = /time=(\d{2}:\d{2}:\d{2}\.\d{2})/.exec(data);
+        if (match) {
+            const currentTime = parseTime(match[1]);
+            const progress = (currentTime / totalDuration) * 100;
+            console.log('Total Duration:', progress);
+            win.webContents.send('update-progress', progress);
+        };
         if (outputWindow) {
             outputWindow.webContents.send('ffmpeg-output', data.toString());
         }
@@ -223,13 +324,16 @@ function handleFFmpegCommand(win, command, totalDuration) {
 
 app.whenReady().then(() => {
     process.env.PYTHONIOENCODING = 'utf8'; // 强制使用 UTF-8 编码
+
     syncMessagesWithDefault();
     if (process.platform === 'darwin') {
         globalShortcut.register('Command+Q', () => {
             app.quit();
         });
     }
+    moveMessagesToKurisu();
     createOutputWindow();
+    createBiruWindow()
     createWindow();
 });
 function parseTime(timeStr) {
@@ -242,6 +346,11 @@ const menuTemplate = [
     {
         label: '菜单',
         submenu: [
+            {
+                label: '关于',
+                click: () =>
+                    showBiruWindow()
+            },
             {
                 label: '控制台',
                 click: () =>
@@ -281,6 +390,33 @@ function createWindow() {
         app.quit(); // 结束应用程序
     });
 }
+let biruWindow;
+function createBiruWindow() {
+    biruWindow = new BrowserWindow({
+        width: 500,
+        height: 400,
+        icon: path.join(__dirname, 'window_icon.png'),
+        show: false,
+        alwaysOnTop: true,
+        vibrancy: 'sidebar',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        }
+    });
+    biruWindow.setMenu(null);
+    biruWindow.loadFile('biru.html');
+    biruWindow.on('close', (event) => {
+        if (app.isQuitting) {
+            // 允许窗口关闭
+            biruWindow = null;
+        } else {
+            // 阻止窗口关闭，仅仅隐藏窗口
+            event.preventDefault();
+            biruWindow.hide();
+        }
+    });
+}
 app.whenReady().then(() => {
     app.setAppUserModelId('com.dfsteve.kurisu'); // 设置应用程序的 User Model ID
     app.setBadgeCount(0); // 设置任务栏图标上的计数
@@ -297,6 +433,16 @@ app.on('activate', () => {
 ipcMain.on('open-terminal-window', () => {
     showOutputWindow(); // 调用函数来创建窗口
 });
+ipcMain.on('open-biru-window', () => {
+    showBiruWindow(); // 调用函数来创建窗口
+});
+function showBiruWindow() {
+    if (biruWindow === null) { // 如果窗口不存在，则创建它
+        createBiruWindow();
+        console.log('biru is created');
+    }
+    biruWindow.show();
+}
 function showOutputWindow() {
     if (outputWindow === null) { // 如果窗口不存在，则创建它
         createOutputWindow();
