@@ -6,4 +6,7 @@
 然后点击按钮们等待进度条完成就行。
 运用了chatgpt和ffmpeg的对接。
 请多多尝试。
-![image](https://github.com/MCDFsteve/Kurisu/assets/71605531/86a59c0e-1500-43bf-83a9-3a90851af0d9)
+### macOS用户请注意，直接运行程序会提示已损坏，请在终端输入sudo xattr -dr com.apple.quarantine 程序.app的运行路径（可以从访达拖放），输入密码以后就能正常打开了
+![image](https://github.com/MCDFsteve/Kurisu/assets/71605531/80471021-e4bc-4d7d-85f4-577081b39fa2)
+
+
