@@ -2,9 +2,23 @@
 const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
-const filePath = path.join(__dirname, 'messages', 'message.json');
+const os = require('os');
+const downloadsPath = path.join(os.homedir(), 'Downloads');
+const kurisuPath = path.join(downloadsPath, 'kurisu');
+const messagesFolderPath = path.join(kurisuPath, 'messages');
+const filePath = path.join(messagesFolderPath, 'message.json');
 // 覆盖console.log
 const originalLog = console.log;
+const axios = require('axios');
+
+function checkInternetConnection() {
+    return axios.get('https://www.baidu.com', {
+        timeout: 5000  // 设置较短的超时时间，例如5秒
+    })
+    .then(response => true)  // 网络正常
+    .catch(error => false);  // 网络连接失败
+}
+
 console.log = function (...args) {
     ipcRenderer.send('console-log', args);
     originalLog.apply(console, args);
@@ -276,6 +290,14 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 });
+document.addEventListener('DOMContentLoaded', function () {
+    const biruButton = document.querySelector('img[alt="关于"]'); // 通过 alt 文本选择 terminal 按钮
+    if (biruButton) {
+        biruButton.addEventListener('click', function () {
+            ipcRenderer.send('open-biru-window'); // 发送事件到主进程
+        });
+    }
+});
 document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('dragstart', (event) => {
         if (event.target.tagName.toUpperCase() === 'IMG') {
@@ -300,6 +322,7 @@ function updateProgress(progress, errorMessage = null) {
 
     // 根据错误状态更新进度条和文本
     if (errorMessage) {
+        clearInterval(dotsInterval);
         progressText.textContent = errorMessage + " 请查看控制台";
         progressLine.style.backgroundColor = 'rgb(211, 105, 105)';  // 错误时显示红色
         progressBar.style.width = '100%';
@@ -344,10 +367,12 @@ function updateProgress(progress, errorMessage = null) {
 ipcRenderer.on('ffmpeg-error', (event, message) => {
     updateProgress(100, message); // 接收错误信息并更新UI
 });
-function sendRequest() {
+async function sendRequest() {
+    const isConnected = await checkInternetConnection();
     const fileInput = document.getElementById('fileInput');
     const userInput = document.getElementById('userInput');
     const confirmButton = document.getElementById('confirmButton');
+    const progressText = document.getElementById('progressPercentage');
     const progressBar = document.getElementById('progressBar');
 
     if (fileInput.files.length === 0) {
@@ -357,15 +382,37 @@ function sendRequest() {
 
     const filePaths = Array.from(fileInput.files).map(file => file.path);
     const filePathsString = filePaths.join(', ');
-
+    if (!isConnected) {
+        progressText.textContent = '连接超时，请检查网络环境';
+        progressBar.style.backgroundColor = 'rgb(211, 105, 105)'; // 红色进度条
+        confirmButton.disabled = false;
+        confirmButton.style.opacity = 1;
+        return;  // 直接返回，不继续执行后续代码
+    }
+    // 初始化请求，显示连接中动画
+    progressText.textContent = '连接中';
+    let dotCount = 0;
+    const dotsInterval = setInterval(() => {
+        progressText.textContent = '连接中' + '.'.repeat(dotCount % 4);
+        dotCount++;
+    }, 500); // 每500毫秒更新一次文本
     progressBar.value = 0;
     confirmButton.disabled = true;
     confirmButton.style.opacity = 0.5;
-
+    // 设置超时处理
+    const timeoutId = setTimeout(() => {
+        clearInterval(dotsInterval);
+        progressText.textContent = '连接超时，请检查网络环境';
+        progressBar.style.backgroundColor = 'rgb(211, 105, 105)'; // 红色进度条
+        confirmButton.disabled = false;
+        confirmButton.style.opacity = 1;
+    }, 20000); // 20秒超时
     const userCommand = userInput.value;
     ipcRenderer.on('update-progress', (event, progress) => {
+        if (progress > 0) {
+            clearInterval(dotsInterval);  // 取消“连接中”动画
+        }
         updateProgress(progress);  // 使用新函数来更新进度条
-
         if (progress === 100) {
             confirmButton.disabled = false;  // 仅在完成时启用按钮
             confirmButton.style.opacity = 1;
@@ -375,12 +422,14 @@ function sendRequest() {
     ipcRenderer.invoke('generate-ffmpeg-command', filePathsString, userCommand)
         .then(command => {
             console.log("Received ffmpeg command:", command); // Debug: 打印接收到的命令
+            clearTimeout(timeoutId);  // 取消超时处理
             const commands = command.split('||'); // 使用新的分隔符拆分命令
             console.log("Split commands:", commands); // Debug: 打印拆分后的命令
             executeCommandsSequentially(commands, 0);
         })
         .catch(error => {
             console.error('Error:', error);
+            clearTimeout(timeoutId);  // 取消超时处理
             confirmButton.disabled = false;
             confirmButton.style.opacity = 1;
         });
@@ -409,10 +458,18 @@ function executeCommandsSequentially(commands, index) {
 function simulateProgress(startProgress) {
     let progress = Math.max(startProgress, progressBar.value);
     const intervalId = setInterval(() => {
-        progress += 1; // 每次增加 1%
-        progressBar.value = progress;
-        progressText.textContent = `${progress}%`;
-    }, 1000); // 每 2000 毫秒（2 秒）增加一次进度
+        if (progress < 100) {
+            progress += 1; // 每次增加 1%
+        }
+        // 当进度大于99时，界面显示固定为99%，直到实际进度到100%
+        if (progress > 99) {
+            progressBar.value = 99;
+            progressText.textContent = '99%';
+        } else {
+            progressBar.value = progress;
+            progressText.textContent = `${progress}%`;
+        }
+    }, 1000);
 }
 
 function executeFFmpegCommand(command) {
@@ -437,6 +494,52 @@ function adjustInputHeight() {
     var userInput = document.getElementById('userInput');
     userInput.style.height = (topPanel.clientHeight - 60) + 'px'; // 减去一些内边距
 }
+document.addEventListener('keydown', function(event) {
+    const userInput = document.getElementById('userInput');
+
+    // 检测是否按下 Ctrl 或 Cmd（Mac 上）
+    const isCtrlCmdPressed = event.ctrlKey || event.metaKey;
+
+    // 按键操作
+    switch(event.key) {
+        case 'a': // 全选
+            if (isCtrlCmdPressed) {
+                if (document.activeElement === userInput) {
+                    userInput.select();
+                    console.log('全选成功！');
+                }
+                event.preventDefault();  // 阻止默认的全选事件
+            }
+            break;
+        case 'c': // 复制
+            if (isCtrlCmdPressed) {
+                if (document.activeElement === userInput) {
+                    document.execCommand('copy');
+                    console.log('复制成功！');
+                }
+                event.preventDefault();  // 阻止默认的复制事件
+            }
+            break;
+        case 'x': // 剪切
+            if (isCtrlCmdPressed) {
+                if (document.activeElement === userInput) {
+                    document.execCommand('cut');
+                    console.log('剪切成功！');
+                }
+                event.preventDefault();  // 阻止默认的剪切事件
+            }
+            break;
+        case 'v': // 粘贴
+            if (isCtrlCmdPressed) {
+                if (document.activeElement === userInput) {
+                    document.execCommand('paste');
+                    console.log('粘贴成功！');
+                }
+                event.preventDefault();  // 阻止默认的粘贴事件
+            }
+            break;
+    }
+});
 
 // 在页面加载和窗口大小变化时调整输入框高度
 window.onload = adjustInputHeight;
