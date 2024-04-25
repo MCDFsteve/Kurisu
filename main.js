@@ -15,6 +15,37 @@ const messagesFolderPath = path.join(kurisuPath, 'messages');
 const messagesPath = path.join(messagesFolderPath, 'message.json');
 const defaultPath = path.join(messagesFolderPath, 'default.json');
 const targetMessagesPath = path.join(kurisuPath, 'messages');
+ipcMain.on('reset-output-directory-to-default', (event) => {
+    const defaultOutputPath = getDefaultOutputPath();  // 获取默认输出路径
+    updateConfigFile({ outputPath: defaultOutputPath });
+    event.sender.send('output-path-updated', defaultOutputPath);  // 通知渲染进程更新显示
+});
+
+function getDefaultOutputPath() {
+    const downloadsPath = path.join(os.homedir(), 'Downloads');
+    const defaultOutputPath = path.join(downloadsPath, 'kurisu', 'outputs');
+    if (!fs.existsSync(defaultOutputPath)) {
+        fs.mkdirSync(defaultOutputPath, { recursive: true });
+    }
+    return defaultOutputPath;
+}
+
+ipcMain.on('request-current-output-path', (event) => {
+    const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
+    const outputPath = config.outputPath;  // 使用最新的输出路径
+    event.sender.send('current-output-path', outputPath);  // 假设outputPath是你存储输出路径的变量
+});
+ipcMain.on('open-output-directory-dialog', (event) => {
+    dialog.showOpenDialog({
+        properties: ['openDirectory']
+    }).then(result => {
+        if (!result.canceled && result.filePaths.length > 0) {
+            const newOutputPath = result.filePaths[0];
+            updateConfigFile({ outputPath: newOutputPath });
+            event.sender.send('output-path-updated', newOutputPath);
+        }
+    });
+});
 function moveMessagesToKurisu() {
 
     // 创建 kurisu 目录如果它不存在
@@ -37,20 +68,43 @@ function moveMessagesToKurisu() {
     fs.copyFileSync(sourceDefaultJson, targetDefaultJson);
     console.log('Default settings file copied to:', targetDefaultJson);
 }
+// 假设配置文件路径
+const configFilePath = path.join(kurisuPath, 'kirusu-config.json');
 function createOutputDirectory() {
-    const downloadsPath = path.join(os.homedir(), 'Downloads');
-    const outputPath = path.join(downloadsPath, 'kurisu', 'outputs');
+    let outputPath;
 
-    // 检查目录是否存在，如果不存在，则创建它
-    if (!fs.existsSync(outputPath)) {
-        fs.mkdirSync(outputPath, { recursive: true });
-        console.log('Output directory created at:', outputPath);
-    } else {
-        console.log('Output directory already exists at:', outputPath);
+    // 尝试从配置文件读取输出目录
+    if (fs.existsSync(configFilePath)) {
+        const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+        outputPath = config.outputPath;
+    }
+
+    // 如果配置文件不存在或没有输出目录，则创建默认目录
+    if (!outputPath) {
+        const downloadsPath = path.join(os.homedir(), 'Downloads');
+        namingRule = 'timestamp';
+        outputPath = path.join(downloadsPath, 'kurisu', 'outputs');
+        if (!fs.existsSync(outputPath)) {
+            fs.mkdirSync(outputPath, { recursive: true });
+            console.log('Output directory created at:', outputPath);
+        }
+        // 更新配置文件
+        updateConfigFile({ outputPath: outputPath, namingRule: namingRule });
     }
 
     return outputPath;
 }
+function updateConfigFile(settings) {
+    const config = fs.existsSync(configFilePath) ? JSON.parse(fs.readFileSync(configFilePath, 'utf8')) : {};
+
+    // 更新配置文件中的每个设置，而不是替换整个配置对象
+    Object.keys(settings).forEach(key => {
+        config[key] = settings[key];
+    });
+
+    fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf8');
+}
+
 function syncMessagesWithDefault() {
     // 检查 message.json 文件是否存在
     if (!fs.existsSync(messagesPath)) {
@@ -121,6 +175,38 @@ ipcMain.on('console-log', (event, args) => {
 ipcMain.on('console-error', (event, args) => {
     console.error(...args);
 });
+ipcMain.on('update-naming-rule', (event, namingRule) => {
+    const config = getConfig();
+    config.namingRule = namingRule;
+    updateConfigFile(config);
+});
+ipcMain.on('request-settings', (event) => {
+    const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
+    event.sender.send('settings-data', config);
+});
+
+function getConfig() {
+    if (fs.existsSync(configFilePath)) {
+        const configData = fs.readFileSync(configFilePath, 'utf8');
+        return JSON.parse(configData);
+    } else {
+        // 如果配置文件不存在，返回默认配置
+        const defaultConfig = {
+            outputPath: getDefaultOutputPath(),
+            namingRule: 'timestamp' // 默认命名规则
+        };
+        updateConfigFile(defaultConfig); // 创建配置文件
+        return defaultConfig;
+    }
+}
+function generateFileName(originalName) {
+    const config = getConfig();
+    if (config.namingRule === 'timestamp') {
+        return getCurrentTimestamp();
+    } else {
+        return originalName;
+    }
+}
 function getFFmpegPath() {
     if (process.platform === 'darwin') {
         return path.join(__dirname, 'ffmpeg', 'ffmpeg_mac', 'ffmpeg');
@@ -130,17 +216,22 @@ function getFFmpegPath() {
         throw new Error('Unsupported platform');
     }
 }
-const outputPath = createOutputDirectory();
-
 ipcMain.on('open-output-directory', () => {
+    const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
+    const outputPath = config.outputPath;  // 使用最新的输出路径
+
     shell.openPath(outputPath).then(() => {
-        console.log('Output directory opened successfully');
+        console.log('Output directory opened successfully:', outputPath);
     }).catch(err => {
         console.error('Failed to open output directory:', err);
     });
 });
 
 function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
+    const originalFileName = path.basename(filePath); // 获取不含路径的文件名
+    const finalFileName = generateFileName(originalFileName);
+    const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
+    const outputPath = config.outputPath;  // 使用最新的输出路径
     const fileCount = filePath.split(',').length;
     const message1 = "从现在开始直到对话结束,请将我输入给你的内容处理成可用的ffmpeg命令,我会在句首给出";
     const message2 = "命令中请加入-y参数并放在-i之前。更改视频宽度和高度请确认为偶数，若为积数请px+1。如果遇到了使用-vf命令的情况则请用引号包裹-vf参数，-ss命令则请将-ss参数放在-i之前。只回复ffmpeg命令不回复除此之外的任何东西";
@@ -148,7 +239,7 @@ function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
     if (fileCount > 1) {
         content = `${message1}多个输入文件的路径（逗号隔开）,输入输出文件路径用双引号括起来，请按顺序生成多个ffmpeg命令并使用 || 符号分隔给出，同时输出的文件名字请继承输入的文件名字。默认的输出文件请放在${outputPath}下。${message2} ${filePath} ${userCommand}`;
     } else {
-        content = `${message1}输入文件的路径,输入输出文件路径用双引号括起来。默认的输出文件请放在${outputPath}下，、输出文件命名为${getCurrentTimestamp()}（如果在描述里手动指定了新的路径则请使用指定的命名）。${message2} ${filePath} ${userCommand}`;
+        content = `${message1}输入文件的路径,输入输出文件路径用双引号括起来。默认的输出文件请放在${outputPath}下，、输出文件命名为${finalFileName}（如果在描述里手动指定了新的路径则请使用指定的命名）。${message2} ${filePath} ${userCommand}`;
     }
     const postData = {
         model: "gpt-3.5-turbo",
@@ -333,7 +424,9 @@ app.whenReady().then(() => {
     }
     moveMessagesToKurisu();
     createOutputWindow();
-    createBiruWindow()
+    createBiruWindow();
+    createOutputDirectory();
+    createSettingsWindow();
     createWindow();
 });
 function parseTime(timeStr) {
@@ -350,6 +443,11 @@ const menuTemplate = [
                 label: '关于',
                 click: () =>
                     showBiruWindow()
+            },
+            {
+                label: '设置',
+                click: () =>
+                    showSettingsWindow()
             },
             {
                 label: '控制台',
@@ -417,6 +515,31 @@ function createBiruWindow() {
         }
     });
 }
+function createSettingsWindow() {
+    settingsWindow = new BrowserWindow({
+        width: 500,
+        height: 500,
+        icon: path.join(__dirname, 'window_icon.png'),
+        show: false,
+        vibrancy: 'sidebar',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        }
+    });
+    settingsWindow.setMenu(null);
+    settingsWindow.loadFile('settings.html');
+    settingsWindow.on('close', (event) => {
+        if (app.isQuitting) {
+            // 允许窗口关闭
+            settingsWindow = null;
+        } else {
+            // 阻止窗口关闭，仅仅隐藏窗口
+            event.preventDefault();
+            settingsWindow.hide();
+        }
+    });
+}
 app.whenReady().then(() => {
     app.setAppUserModelId('com.dfsteve.kurisu'); // 设置应用程序的 User Model ID
     app.setBadgeCount(0); // 设置任务栏图标上的计数
@@ -433,6 +556,9 @@ app.on('activate', () => {
 ipcMain.on('open-terminal-window', () => {
     showOutputWindow(); // 调用函数来创建窗口
 });
+ipcMain.on('open-settings-window', () => {
+    showSettingsWindow(); // 调用函数来创建窗口
+});
 ipcMain.on('open-biru-window', () => {
     showBiruWindow(); // 调用函数来创建窗口
 });
@@ -442,6 +568,13 @@ function showBiruWindow() {
         console.log('biru is created');
     }
     biruWindow.show();
+}
+function showSettingsWindow() {
+    if (settingsWindow === null) { // 如果窗口不存在，则创建它
+        createSettingsWindow();
+        console.log('settings is created');
+    }
+    settingsWindow.show();
 }
 function showOutputWindow() {
     if (outputWindow === null) { // 如果窗口不存在，则创建它

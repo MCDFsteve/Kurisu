@@ -152,7 +152,6 @@ function displayMessages(messages) {
             if (tips) {
                 bottomPanel.textContent = tips;
                 bottomPanel.className = 'bottom-tips';
-                console.log('Tips on hover:', tips);
             }
         }
     });
@@ -283,7 +282,7 @@ document.addEventListener('DOMContentLoaded', function () {
     updateButtonState();
 });
 document.addEventListener('DOMContentLoaded', function () {
-    const terminalButton = document.querySelector('img[alt="控制台"]'); // 通过 alt 文本选择 terminal 按钮
+    const terminalButton = document.querySelector('img[id="terminalbutton"]'); // 通过 alt 文本选择 terminal 按钮
     if (terminalButton) {
         terminalButton.addEventListener('click', function () {
             ipcRenderer.send('open-terminal-window'); // 发送事件到主进程
@@ -291,7 +290,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 document.addEventListener('DOMContentLoaded', function () {
-    const biruButton = document.querySelector('img[alt="关于"]'); // 通过 alt 文本选择 terminal 按钮
+    const terminalButton = document.querySelector('img[id="settingsbutton"]'); // 通过 alt 文本选择 terminal 按钮
+    if (terminalButton) {
+        terminalButton.addEventListener('click', function () {
+            ipcRenderer.send('open-settings-window'); // 发送事件到主进程
+        });
+    }
+});
+document.addEventListener('DOMContentLoaded', function () {
+    const biruButton = document.querySelector('img[id="birubutton"]'); // 通过 alt 文本选择 terminal 按钮
     if (biruButton) {
         biruButton.addEventListener('click', function () {
             ipcRenderer.send('open-biru-window'); // 发送事件到主进程
@@ -406,7 +413,7 @@ async function sendRequest() {
         progressBar.style.backgroundColor = 'rgb(211, 105, 105)'; // 红色进度条
         confirmButton.disabled = false;
         confirmButton.style.opacity = 1;
-    }, 20000); // 20秒超时
+    }, 60000); // 20秒超时
     const userCommand = userInput.value;
     ipcRenderer.on('update-progress', (event, progress) => {
         if (progress > 0) {

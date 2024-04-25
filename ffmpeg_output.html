@@ -1,65 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Kurisu 控制台输出</title>
 </head>
 <style>
     #ffmpegOutput {
-    height: 100%;  /* 或根据需要调整高度 */
-    overflow-x: hidden;
-    overflow-y: scroll;  /* 强制显示滚动条 */
-    white-space: pre-wrap;  /* 保持空白格式并自动换行 */
-    background-color: #ffffff;
-    color:#000000;
-}
-@media (prefers-color-scheme: dark) {
-    #ffmpegOutput {
-    color:#ffffff;
-    background-color: rgb(22, 22, 22);
-}
-  }
-  /* 设置滚动条的宽度和轨道颜色 */
-::-webkit-scrollbar {
-    width: 8px;
-    /* 或任何您希望的宽度 */
-    background-color: transparent;
-    /* 滚动条轨道颜色 */
-}
-
-/* 设置滚动条滑块的颜色 */
-::-webkit-scrollbar-thumb {
-    background-color: rgba(40, 40, 40, 0.4);
-    /* 滚动条滑块颜色 */
-    border-radius: 6px;
-    /* 如果需要，可以设置圆角 */
-}
-
-/* 设置当鼠标悬停在滚动条滑块上时的颜色 */
-::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(80, 80, 80, 0.4);
-    /* 滚动条滑块悬停颜色 */
-}
-
-@media (prefers-color-scheme: dark) {
-    ::-webkit-scrollbar-thumb:hover {
-        background-color: rgba(198, 198, 198, 0.4);
+        height: 100%;
+        /* 或根据需要调整高度 */
+        overflow-x: hidden;
+        overflow-y: scroll;
+        /* 强制显示滚动条 */
+        white-space: pre-wrap;
+        /* 保持空白格式并自动换行 */
+        background-color: #ffffff;
+        color: #000000;
     }
-}
-@media (prefers-color-scheme: dark) {
+
+    @media (prefers-color-scheme: dark) {
+        #ffmpegOutput {
+            color: #ffffff;
+            background-color: rgb(22, 22, 22);
+        }
+    }
+
+    /* 设置滚动条的宽度和轨道颜色 */
+    ::-webkit-scrollbar {
+        width: 8px;
+        /* 或任何您希望的宽度 */
+        background-color: transparent;
+        /* 滚动条轨道颜色 */
+    }
+
+    /* 设置滚动条滑块的颜色 */
     ::-webkit-scrollbar-thumb {
-        background-color: rgba(134, 134, 134, 0.4);
+        background-color: rgba(40, 40, 40, 0.4);
+        /* 滚动条滑块颜色 */
+        border-radius: 6px;
+        /* 如果需要，可以设置圆角 */
     }
-}
+
+    /* 设置当鼠标悬停在滚动条滑块上时的颜色 */
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: rgba(80, 80, 80, 0.4);
+        /* 滚动条滑块悬停颜色 */
+    }
+
+    @media (prefers-color-scheme: dark) {
+        ::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(198, 198, 198, 0.4);
+        }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        ::-webkit-scrollbar-thumb {
+            background-color: rgba(134, 134, 134, 0.4);
+        }
+    }
 </style>
+
 <body>
-    <pre id="ffmpegOutput"></pre>
+    <pre id="ffmpegOutput" tabindex="0"></pre>
     <script>
         const { ipcRenderer } = require('electron');
         ipcRenderer.on('platform-info', (event, { isMac }) => {
-    if (isMac) {
-      const styleSheet = document.createElement('style');
-      styleSheet.textContent = `
+            if (isMac) {
+                const styleSheet = document.createElement('style');
+                styleSheet.textContent = `
         #ffmpegOutput {
             background-color: initial !important;
         }
@@ -69,9 +77,9 @@
         }
     }
       `;
-      document.head.appendChild(styleSheet);
-    }
-  });
+                document.head.appendChild(styleSheet);
+            }
+        });
         ipcRenderer.on('ffmpeg-output', (event, message) => {
             const outputElement = document.getElementById('ffmpegOutput');
             const atBottom = outputElement.scrollHeight - outputElement.clientHeight <= outputElement.scrollTop + 1;
@@ -86,6 +94,31 @@
                 messageElement.scrollIntoView({ behavior: 'smooth' });
             }
         });
+        document.addEventListener('keydown', function (event) {
+            const isCtrlPressed = event.ctrlKey || event.metaKey; // 支持Mac的Command键
+            const outputElement = document.getElementById('ffmpegOutput');
+
+            if (isCtrlPressed) {
+                switch (event.key.toLowerCase()) {
+                    case 'a': // 全选
+                        if (document.activeElement === outputElement) {
+                            window.getSelection().selectAllChildren(outputElement);
+                            event.preventDefault(); // 阻止默认全选行为
+                        }
+                        break;
+                    case 'c': // 复制
+                        if (window.getSelection().toString() && document.activeElement === outputElement) {
+                            navigator.clipboard.writeText(window.getSelection().toString())
+                                .then(() => console.log('内容已复制到剪贴板'))
+                                .catch(err => console.error('复制到剪贴板失败', err));
+                            event.preventDefault(); // 阻止默认复制行为
+                        }
+                        break;
+                }
+            }
+        });
+
     </script>
 </body>
+
 </html>

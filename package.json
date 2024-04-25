@@ -1,7 +1,7 @@
 {
   "name": "kurisu",
-  "productName": "kurisu",
-  "version": "0.2.0",
+  "productName": "Kurisu",
+  "version": "0.3.0",
   "description": "助手～",
   "main": "main.js",
   "dependencies": {
@@ -29,6 +29,11 @@
       "gatekeeperAssess": false,
       "identity": null
     },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true, 
+      "allowToChangeInstallationDirectory": true 
+    },
     "win": {
       "target": [
         "nsis",
@@ -37,12 +42,7 @@
       "icon": "icon.ico",
       "extraResources": [
         "assets"
-      ],
-      "nsis": {
-        "oneClick": false,
-        "perMachine": true, 
-        "allowToChangeInstallationDirectory": true 
-      }
+      ]
     }
   },
   "keywords": [],

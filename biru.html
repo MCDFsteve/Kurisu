@@ -12,7 +12,22 @@
         body {
             color: #292929;
         }
+        .divider {
+            height: 1px;
+            /* 分割线的厚度 */
+            background-color:rgb(183, 183, 183);
+            /* 分割线的颜色 */
+            width: 90%;
+            /* 分割线的宽度 */
+            margin: 20px 0px;
+            /* 上下各有20px的外边距，自动水平居中 */
+        }
 
+        @media (prefers-color-scheme: dark) {
+            .divider {
+                background-color: rgb(0, 0, 0);
+            }
+        }
         .section {
             color: #595959;
             margin-bottom: 10px;
@@ -97,9 +112,11 @@
 <body>
     <pre id="biruui"></pre>
     <h1>关于 Kurisu</h1>
-    <p>作者：戴夫邻居史蒂夫DFsteve。</p>
+    <p>作者：戴夫邻居史蒂夫DFsteve  ©️copyright 2024 Aimes Soft</p>
+    <div class="divider"></div>
     <div class="section">
         <h2>鸣谢</h2>
+        <div class="divider"></div>
         <p>感谢所有给予支持和鼓励的朋友们。特别鸣谢以下开源项目：</p>
         <ul>
             <li><a href="https://electronjs.org/" target="_blank" class="externalLink">Electron</a> - 使我能够使用 Web 技术构建桌面应用。</li>
@@ -109,23 +126,27 @@
     </div>
     <div class="section">
         <h2>Bilibili</h2>
+        <div class="divider"></div>
         <p>查看我的上传和动态，更新建议和bug提出也可以通过这里联系我。</p>
         <a href="https://space.bilibili.com/381681555" class="externalLink">戴夫邻居史蒂夫DFsteve的哔哩哔哩空间</a>
     </div>
     <div class="section">
         <h2>GitHub</h2>
+        <div class="divider"></div>
         <p>您可以在我的 GitHub 页面上找到我的项目和代码。</p>
         <a href="https://github.com/MCDFsteve/Kurisu" class="externalLink">https://github.com/MCDFsteve/Kurisu</a>
     </div>
 
     <div class="section">
         <h2>个人博客</h2>
+        <div class="divider"></div>
         <p>阅读我的文章，获取更多技术分享和生活点滴。</p>
         <a href="https://www.dfsteve.top" class="externalLink">https://www.dfsteve.top</a>
     </div>
 
     <div class="section">
         <h2>赞助</h2>
+        <div class="divider"></div>
         <p>如果您觉得我的作品对您有帮助，可以考虑赞助支持。</p>
         <a href="https://www.dfsteve.top/wp-content/uploads/2024/04/6426F436D4470C5A534692002525D9D8.jpg" class="externalLink">赞助链接</a>
     </div>
