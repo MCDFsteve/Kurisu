@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title>设置</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #settingsui {
+            background-color: #ffffff;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            #settingsui {
+                background-color: #202020;
+            }
+        }
+
+        h1 {
+            text-align: left;
+            /* 将标题对齐到左边 */
+            margin-left: 20px;
+            color: #1f1f1f;
+            user-select: none;
+            /* 添加一些左边距，让标题不会紧贴边缘 */
+        }
+
+        h3 {
+            text-align: left;
+            /* 将标题对齐到左边 */
+            margin-left: 20px;
+            color: #515151;
+            user-select: none;
+            /* 添加一些左边距，让标题不会紧贴边缘 */
+        }
+
+        @media (prefers-color-scheme: dark) {
+            h1 {
+                color: #ffffff;
+            }
+
+            h3 {
+                color: #d8d8d8;
+            }
+        }
+
+        .divider {
+            height: 1px;
+            /* 分割线的厚度 */
+            background-color: rgb(183, 183, 183);
+            /* 分割线的颜色 */
+            width: 90%;
+            /* 分割线的宽度 */
+            margin: 20px 20px;
+            /* 上下各有20px的外边距，自动水平居中 */
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .divider {
+                background-color: rgb(0, 0, 0);
+            }
+        }
+
+        .settings-container {
+            margin: 20px 20px;
+            color: #656565;
+            /* 上下各有20px的外边距，自动水平居中 */
+            user-select: none;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .settings-container {
+                color: #aeaeae;
+            }
+        }
+
+        select {
+            padding: 10px 50px;
+            margin: 0px 20px;
+            border: none;
+            text-align: left;
+            /* 确保文本左对齐 */
+            padding-left: 10px;
+            border-radius: 10px;
+            background-color: #131313;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.4);
+            user-select: none;
+            appearance: none;
+            /* 移除默认的外观 */
+            outline: none;
+            background-image: url('icons/down.png');
+            /* 使用你的自定义下拉箭头图像 */
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            select {
+                background-color: #444444;
+                color: #b8b8b8;
+                box-shadow: 0px 1px 1px rgba(255, 255, 255, 0.4);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <pre id="settingsui"></pre>
+    <h1>设置</h1>
+    <h3>输出文件位置</h3>
+    <div class="divider"></div>
+    <div class="settings-container">
+        <p>当前输出目录: <span id="currentOutputPath"></span></p>
+        <button id="changeOutputDir">更换输出文件夹</button>
+        <button id="resetToDefault">恢复默认文件夹</button>
+    </div>
+    <div class="divider"></div>
+    <h3 for="namingRule">文件命名规则</h3>
+    <div class="divider"></div>
+    <p class="settings-container">当前文件命名: <span id="currentNamingRule"></span></p>
+    <select id="namingRule">
+        <option value="timestamp">当前时间</option>
+        <option value="original">保持原名</option>
+    </select>
+
+    <script>
+        const { ipcRenderer } = require('electron');
+        const currentOutputPathDisplay = document.getElementById('currentOutputPath');
+        ipcRenderer.on('platform-info', (event, { isMac }) => {
+            if (isMac) {
+                const styleSheet = document.createElement('style');
+                styleSheet.textContent = `
+                #settingsui {
+            background-color: initial !important;
+        }
+        @media (prefers-color-scheme: dark) {
+            #settingsui {
+            background-color: initial !important;
+        }
+    }
+      `;
+                document.head.appendChild(styleSheet);
+            }
+        });
+        // 当文档加载完成后，请求当前的输出路径
+        document.addEventListener('DOMContentLoaded', () => {
+            ipcRenderer.send('request-current-output-path');
+        });
+        document.getElementById('resetToDefault').addEventListener('click', () => {
+            ipcRenderer.send('reset-output-directory-to-default');
+        });
+        document.addEventListener('DOMContentLoaded', () => {
+            ipcRenderer.send('request-settings');
+        });
+        // 从主进程接收当前输出路径并显示
+        ipcRenderer.on('current-output-path', (event, path) => {
+            currentOutputPathDisplay.textContent = path;
+        });
+
+        // 当用户点击更换输出目录按钮时
+        document.getElementById('changeOutputDir').addEventListener('click', () => {
+            ipcRenderer.send('open-output-directory-dialog');
+        });
+
+        // 从主进程接收更新的输出路径并更新显示
+        ipcRenderer.on('output-path-updated', (event, newPath) => {
+            currentOutputPathDisplay.textContent = newPath;
+        });
+        ipcRenderer.on('settings-data', (event, settings) => {
+            document.getElementById('namingRule').value = settings.namingRule;
+            updateCurrentNamingRuleDisplay(settings.namingRule);
+        });
+
+        document.getElementById('namingRule').addEventListener('change', (event) => {
+            const selectedOption = event.target.value;
+            ipcRenderer.send('update-naming-rule', selectedOption);
+            updateCurrentNamingRuleDisplay(selectedOption);
+        });
+
+        function updateCurrentNamingRuleDisplay(namingRule) {
+            const namingRuleDisplay = document.getElementById('currentNamingRule');
+            namingRuleDisplay.textContent = namingRule === 'timestamp' ? '当前时间' : '保持原名';
+        }
+    </script>
+</body>
+
+</html>
