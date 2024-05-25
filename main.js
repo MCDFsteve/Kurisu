@@ -9,7 +9,7 @@ const os = require('os');
 const originalMessagesPath = path.join(__dirname, 'messages');
 const originaldefaultPath = path.join(__dirname, 'messages', 'default.json');
 // 定义目标路径，即用户下载文件夹下的 kurisu 文件夹
-const downloadsPath = path.join(os.homedir(), 'Downloads');
+const downloadsPath = app.getPath('userData');
 const kurisuPath = path.join(downloadsPath, 'kurisu');
 const messagesFolderPath = path.join(kurisuPath, 'messages');
 const messagesPath = path.join(messagesFolderPath, 'message.json');
@@ -22,14 +22,12 @@ ipcMain.on('reset-output-directory-to-default', (event) => {
 });
 
 function getDefaultOutputPath() {
-    const downloadsPath = path.join(os.homedir(), 'Downloads');
     const defaultOutputPath = path.join(downloadsPath, 'kurisu', 'outputs');
     if (!fs.existsSync(defaultOutputPath)) {
         fs.mkdirSync(defaultOutputPath, { recursive: true });
     }
     return defaultOutputPath;
 }
-
 ipcMain.on('request-current-output-path', (event) => {
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
     const outputPath = config.outputPath;  // 使用最新的输出路径
@@ -81,7 +79,6 @@ function createOutputDirectory() {
 
     // 如果配置文件不存在或没有输出目录，则创建默认目录
     if (!outputPath) {
-        const downloadsPath = path.join(os.homedir(), 'Downloads');
         namingRule = 'timestamp';
         outputPath = path.join(downloadsPath, 'kurisu', 'outputs');
         if (!fs.existsSync(outputPath)) {
@@ -226,55 +223,104 @@ ipcMain.on('open-output-directory', () => {
         console.error('Failed to open output directory:', err);
     });
 });
-
+const https = require('https');
 function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
-    const originalFileName = path.basename(filePath); // 获取不含路径的文件名
-    const finalFileName = generateFileName(originalFileName);
+    const originalFileName = path.basename(filePath, path.extname(filePath)); // 获取不含路径和后缀的文件名
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
     const outputPath = config.outputPath;  // 使用最新的输出路径
-    const fileCount = filePath.split(',').length;
-    const message1 = "从现在开始直到对话结束,请将我输入给你的内容处理成可用的ffmpeg命令,我会在句首给出";
+    const filePaths = filePath.split(',');
+
+    // 检查 default.json 文件中的命令
+    const defaultPath = path.join(messagesFolderPath, 'default.json');
+    if (fs.existsSync(defaultPath)) {
+        const defaultData = JSON.parse(fs.readFileSync(defaultPath, 'utf8'));
+        const selectedMessage = defaultData.find(item => item.message === userCommand);
+        if (selectedMessage && selectedMessage.command) {
+            // 处理 ${.gif} 这样的占位符
+            let commands = filePaths.map((fp, index) => {
+                let command = selectedMessage.command.replace('${filePath}', `"${fp.trim()}"`);
+                const fileBaseName = path.basename(fp.trim(), path.extname(fp.trim()));
+                let outputFileName;
+                const match = selectedMessage.command.match(/\$\{(\.\w+)\}/);
+                if (match) {
+                    // 如果提供了后缀名占位符，则使用它替换输入文件的后缀名
+                    outputFileName = generateFileName(fileBaseName) + match[1];
+                } else {
+                    // 否则继承输入文件的后缀名
+                    outputFileName = generateFileName(fileBaseName) + path.extname(fp.trim());
+                }
+                command = command.replace('${outputPath}', `"${path.join(outputPath, outputFileName)}"`);
+                command = command.replace(/\$\{\.\w+\}/, ''); // 移除后缀占位符
+                return command;
+            }).join(' || ');
+            console.log('Using predefined command:', commands);
+            return Promise.resolve(commands);
+        }
+    }
+
+    const message1 = "从现在开始直到对话结束,请将我输入给你的内容处理成可用的ffmpeg命令，因此请务必在最开头写上ffmpeg,我会在句首给出";
     const message2 = "命令中请加入-y参数并放在-i之前。更改视频宽度和高度请确认为偶数，若为积数请px+1。如果遇到了使用-vf命令的情况则请用引号包裹-vf参数，-ss命令则请将-ss参数放在-i之前。只回复ffmpeg命令不回复除此之外的任何东西";
     let content;
-    if (fileCount > 1) {
-        content = `${message1}多个输入文件的路径（逗号隔开）,输入输出文件路径用双引号括起来，请按顺序生成多个ffmpeg命令并使用 || 符号分隔给出，同时输出的文件名字请继承输入的文件名字。默认的输出文件请放在${outputPath}下。${message2} ${filePath} ${userCommand}`;
+    if (filePaths.length > 1) {
+        content = `${message1}多个输入文件的路径（逗号隔开）,输入输出文件路径用双引号括起来，请按顺序生成多个ffmpeg命令并使用 || 符号分隔给出，同时输出的文件名字请继承输入的文件名字。默认的输出文件请放在${outputPath}下。${message2} "${filePath}" ${userCommand}`;
     } else {
-        content = `${message1}输入文件的路径,输入输出文件路径用双引号括起来。默认的输出文件请放在${outputPath}下，、输出文件命名为${finalFileName}（如果在描述里手动指定了新的路径则请使用指定的命名）。${message2} ${filePath} ${userCommand}`;
+        content = `${message1}输入文件的路径,输入输出文件路径用双引号括起来。默认的输出文件请放在${outputPath}下，、输出文件命名为${generateFileName(originalFileName)}（如果在描述里手动指定了新的路径则请使用指定的命名）。${message2} "${filePath}" ${userCommand}`;
     }
-    const postData = {
+
+    const postData = JSON.stringify({
         model: "gpt-3.5-turbo",
         temperature: 0.1,
         messages: [{
             role: "user",
-            content: content
+            content: JSON.stringify(content) // 将content转换为字符串
         }]
-    };
+    });
 
+    const options = {
+        hostname: 'dfsteve.top',
+        path: '/ffmpeg.php',
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json; charset=utf-8',
+            'Content-Length': Buffer.byteLength(postData)
+        }
+    };
     console.log('Sending POST request with:', postData);
 
-    return axios.post('https://dfsteve.top/ffmpeg.php', postData, {
-        headers: {
-            'Content-Type': 'application/json; charset=utf-8'
-        }
-    })
-        .then(response => {
-            let command = response.data.choices[0].message.content;
-            command = command.replace(/\\\\/g, "\\");
-            const ffmpegExecutablePath = getFFmpegPath();
-            command = command.replace(/ffmpeg/g, ffmpegExecutablePath);
-            console.log('Received ffmpeg command:', command);
-            if (outputWindow) {
-                outputWindow.webContents.send('ffmpeg-output', 'Received ffmpeg command: ' + command);
-            }
-            return command;
-        })
-        .catch(error => {
-            clearInterval(dotsInterval);
-            progressText.textContent = '连接失败，请检查网络环境';
-            progressBar.style.backgroundColor = 'rgb(211, 105, 105)'; // 红色进度条
-        });
-}
+    return new Promise((resolve, reject) => {
+        const req = https.request(options, (res) => {
+            let data = '';
 
+            res.on('data', (chunk) => {
+                data += chunk;
+            });
+
+            res.on('end', () => {
+                try {
+                    const response = JSON.parse(data);
+                    let command = response.choices[0].message.content;
+                    command = command.replace(/\\\\/g, "\\");
+                    const ffmpegExecutablePath = getFFmpegPath();
+                    command = command.replace(/ffmpeg/g, `"${ffmpegExecutablePath}"`);
+                    console.log('Received ffmpeg command:', command);
+                    if (outputWindow) {
+                        outputWindow.webContents.send('ffmpeg-output', 'Received ffmpeg command: ' + command);
+                    }
+                    resolve(command);
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        });
+
+        req.on('error', (error) => {
+            reject(error);
+        });
+
+        req.write(postData);
+        req.end();
+    });
+}
 function getCurrentTimestamp() {
     const now = new Date();
     return now.getFullYear().toString() +
@@ -298,7 +344,7 @@ app.on('window-all-closed', () => {
 ipcMain.handle('generate-ffmpeg-command', async (event, filePathsString, userCommand) => {
     const ffmpegPath = getFFmpegPath();
     try {
-        const commandsString = await generateFFmpegCommand(filePathsString, userCommand, ffmpegPath);
+        const commandsString = await generateFFmpegCommand(filePathsString, userCommand, `"${ffmpegPath}"`);
         const commands = commandsString.split('||'); // 使用新的分隔符
         console.log("Received ffmpeg commands split by '||':", commands); // 打印拆分后的命令列表
 
@@ -415,7 +461,15 @@ function handleFFmpegCommand(win, command, totalDuration) {
 
 app.whenReady().then(() => {
     process.env.PYTHONIOENCODING = 'utf8'; // 强制使用 UTF-8 编码
-
+    let kurisucachePath;
+    if (process.platform === 'win32') {
+        // 使用 __dirname 获取当前执行目录并拼接 C:\
+        kurisucachePath = path.join(__dirname, 'kurisu.json');
+    } else {
+        kurisucachePath = path.join(os.homedir(), 'Downloads', 'kurisu.json');
+    }
+    const data = { downloadsPath };
+    fs.writeFileSync(kurisucachePath, JSON.stringify(data, null, 2), 'utf8');
     syncMessagesWithDefault();
     if (process.platform === 'darwin') {
         globalShortcut.register('Command+Q', () => {

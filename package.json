@@ -1,7 +1,7 @@
 {
   "name": "kurisu",
   "productName": "Kurisu",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "助手～",
   "main": "main.js",
   "dependencies": {
@@ -9,13 +9,16 @@
     "asar": "^3.2.0",
     "axios": "^1.6.8",
     "ffmpeg": "^0.0.4",
-    "fs-extra": "^11.2.0"
+    "fs-extra": "^11.2.0",
+    "got": "^14.2.1"
   },
   "scripts": {
     "start": "electron .",
     "win": "electron-builder --win --x64",
     "woa": "electron-builder --win --arm64",
-    "mac": "electron-builder --mac"
+    "mac": "electron-builder --mac",
+    "macx64": "electron-builder --mac --x64",
+    "build": "npm run win && npm run mac && npm run macx64"
   },
   "build": {
     "appId": "com.dfsteve.kurisu",
@@ -23,7 +26,8 @@
     "mac": {
       "target": [
         "dmg",
-        "zip"
+        "zip",
+        "pkg"
       ],
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
@@ -31,8 +35,8 @@
     },
     "nsis": {
       "oneClick": false,
-      "perMachine": true, 
-      "allowToChangeInstallationDirectory": true 
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true
     },
     "win": {
       "target": [

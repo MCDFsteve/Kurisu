@@ -1,6 +1,5 @@
 [
     {
-<<<<<<< HEAD
         "id": 1,
         "message": "将视频的编码处理成av1，使用cuda加速",
         "tips": "将视频处理成av1编码，只有nvidia显卡40系以上才能使用此命令，不是n卡请删掉“使用cuda加速”"
@@ -8,7 +7,8 @@
     {
         "id": 2,
         "message": "转换为h264编码的，16:9比例的mp4",
-        "tips": "把你的视频处理成h264编码的16:9的mp4视频"
+        "tips": "把你的视频处理成h264编码的16:9的mp4视频",
+        "command":"ffmpeg -i ${filePath} -y -c:v libx264 -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -aspect 16:9 ${outputPath}${.mp4}"
     },
     {
         "id": 3,
@@ -23,37 +23,44 @@
     {
         "id": 5,
         "message": "转成128k的ogg",
-        "tips": "把你的音频文件处理成128k的ogg格式，可以自己根据需求修改"
+        "tips": "把你的音频文件处理成128k的ogg格式，可以自己根据需求修改",
+        "command":"ffmpeg -i ${filePath} -y -ss 0 -b:a 128k ${outputPath}${.ogg}"
     },
     {
         "id": 6,
         "message": "只保留第0:20-0:40的片段",
-        "tips": "视频和音频都可以用，时间也可以手动更改，单独把时间内片段导出"
+        "tips": "视频和音频都可以用，时间也可以手动更改，单独把时间内片段导出",
+        "command":"ffmpeg -i ${filePath} -ss 00:00:20 -to 00:00:40 -y ${outputPath}"
     },
     {
         "id": 7,
         "message": "倒放",
-        "tips": "把你的视频或者音频倒放处理，如果是视频的话一般不会倒放音频"
+        "tips": "把你的视频或者音频倒放处理，如果是视频的话一般不会倒放音频",
+        "command":"ffmpeg -i ${filePath} -y -vf \"reverse\" ${outputPath}"
     },
     {
         "id": 8,
         "message": "3倍速播放",
-        "tips": "把你的视频或者音频播放速度x3，速度可以手动修改，如果是视频的话音频不会倍速播放"
+        "tips": "把你的视频或者音频播放速度x3，速度可以手动修改，如果是视频的话音频不会倍速播放",
+        "command":"ffmpeg -i ${filePath} -y -vf \"setpts=0.333*PTS\" ${outputPath}"
     },
     {
         "id": 9,
         "message": "转成动态gif",
-        "tips": "把你的视频导出为动态gif图片"
+        "tips": "把你的视频导出为动态gif图片",
+        "command":"ffmpeg -i ${filePath} ${outputPath}${.gif}"
     },
     {
         "id": 10,
-        "message": "处理为128x分辨率的ico",
-        "tips": "把你的图片处理成符合windows程序打包规范的分辨率的ico格式"
+        "message": "处理为256x分辨率的ico",
+        "tips": "把你的图片处理成符合windows程序打包规范的分辨率的ico格式",
+        "command":"ffmpeg -i ${filePath} -vf \"scale=256:256\" -y ${outputPath}${.ico}"
     },
     {
         "id": 11,
         "message": "处理为avif",
-        "tips": "把你的图片处理成avif格式，压缩效率极高，可以在相同图像质量的情况下大幅度降低存储占用"
+        "tips": "把你的图片处理成avif格式，压缩效率极高，可以在相同图像质量的情况下大幅度降低存储占用",
+        "command":"ffmpeg -i ${filePath} -y -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" ${outputPath}${.avif}"
     },
     {
         "id": 12,
@@ -63,12 +70,14 @@
     {
         "id": 13,
         "message": "将码率压到2M",
-        "tips": "把视频的码率更改为指定的参数，可以自己修改"
+        "tips": "把视频的码率更改为指定的参数，可以自己修改",
+        "command":"ffmpeg -i ${filePath} -y -b:v 2M ${outputPath}"
     },
     {
         "id": 14,
         "message": "将视频分辨率处理为720p",
-        "tips": "把你视频的分辨率处理为720p，可以手动更改"
+        "tips": "把你视频的分辨率处理为720p，可以手动更改",
+        "command":"ffmpeg -i ${filePath} -y -vf \"scale=1280:720\" ${outputPath}"
     },
     {
         "id": 15,
@@ -78,22 +87,26 @@
     {
         "id": 16,
         "message": "将视频内的音频提取出来",
-        "tips": "把视频内部的声音单独提取出来保存为音频文件"
+        "tips": "把视频内部的声音单独提取出来保存为音频文件",
+        "command":"ffmpeg -i ${filePath}  -y -vn ${outputPath}${.mp3}"
     },
     {
         "id": 17,
         "message": "采样率转44100hz",
-        "tips": "处理音频常用的更改采样率"
+        "tips": "处理音频常用的更改采样率",
+        "command":"ffmpeg -i ${filePath} -ar 44100 ${outputPath}"
     },
     {
         "id": 18,
         "message": "去掉音频只保留画面",
-        "tips": "把你的视频内的声音去掉，变成没有声音的视频"
+        "tips": "把你的视频内的声音去掉，变成没有声音的视频",
+        "command":"ffmpeg -i ${filePath}  -y -an ${outputPath}"
     },
     {
         "id": 19,
         "message": "处理成黑白",
-        "tips": "把图片或者视频处理成黑白的样子，没有颜色"
+        "tips": "把图片或者视频处理成黑白的样子，没有颜色",
+        "command":"ffmpeg -i ${filePath}  -y -vf hue=s=0 ${outputPath}"
     },
     {
         "id": 20,
@@ -118,12 +131,14 @@
     {
         "id": 24,
         "message": "使用h264_videotoolbox进行硬件加速",
-        "tips": "在处理的时候加上这一句可以使用gpu加速处理（只有苹果电脑可以用）"
+        "tips": "在处理的时候加上这一句可以使用gpu加速处理（只有苹果电脑可以用）",
+        "command":"ffmpeg -i ${filePath}  -y -c:v h264_videotoolbox ${outputPath}${.mp4}"
     },
     {
         "id": 25,
         "message": "处理成反相",
-        "tips": "把图片或者视频处理成颜色相反的样子"
+        "tips": "把图片或者视频处理成颜色相反的样子",
+        "command":"ffmpeg -i ${filePath}  -vf \"negate\" -y ${outputPath}"
     },
     {
         "id": 26,
@@ -148,114 +163,31 @@
     {
         "id": 30,
         "message": "垂直镜像",
-        "tips": "把你的视频上下颠倒"
+        "tips": "把你的视频上下颠倒",
+        "command":"ffmpeg -i ${filePath}  -y -vf \"vflip\" ${outputPath}"
     },
     {
         "id": 31,
         "message": "水平镜像",
-        "tips": "把你的视频左右颠倒"
+        "tips": "把你的视频左右颠倒",
+        "command":"ffmpeg -i ${filePath}  -y -vf \"hflip\" ${outputPath}"
     },
     {
         "id": 32,
         "message": "把视频连带着音频一起倒放",
-        "tips": "把你的视频连带着音频一起倒放播放"
+        "tips": "把你的视频连带着音频一起倒放播放",
+        "command":"ffmpeg -i ${filePath} -y -vf reverse -af areverse ${outputPath}"
     },
     {
         "id": 33,
         "message": "把视频连带着音频一起3倍速播放",
-        "tips": "把你的视频连带着音频一起3倍速播放"
+        "tips": "把你的视频连带着音频一起3倍速播放",
+        "command":"ffmpeg -i ${filePath} -y -filter_complex \"[0:v]setpts=0.333*PTS[v];[0:a]atempo=3[a]\" -map \"[v]\" -map \"[a]\" ${outputPath}"
+    },
+    {
+        "id": 34,
+        "message": "给视频添加一段位于垂直底部水平居中的黑色字幕和白色字幕，字幕从视频的第0:20-0:30开始出现。字幕内容都为：EL PSY KONGROO，白色字幕大小为50px黑色字幕大小为51px，两个字幕的垂直坐标一致，白色字幕显示在黑色字幕的图层上面",
+        "tips": "给视频添加一段带黑色描边的字幕，可以手动更改颜色，大小和出现时间",
+        "command":"ffmpeg -i ${filePath} -y -vf \"drawtext=text='EL PSY KONGROO':fontcolor=black:fontsize=51:x=(w-text_w)/2:y=main_h-50:enable='between(t,20,30)',drawtext=text='EL PSY KONGROO':fontcolor=white:fontsize=50:x=(w-text_w)/2:y=main_h-50:enable='between(t,20,30)'\" ${outputPath}"
     }
 ]
-=======
-        "id": 2,
-        "message": "转换为h264编码的，16:9比例的mp4",
-        "tips": "把你的视频处理成h264编码的16:9的mp4视频"
-      },
-      {
-        "id": 9,
-        "message": "转成动态gif",
-        "tips": "把你的视频导出为动态gif图片"
-      },
-      {
-        "id": 12,
-        "message": "将0:20-0:30的片段裁出来拼到开头",
-        "tips": "把中间某段视频或者音频裁剪到其他地方，能工作但是这种东西或许正儿八经剪辑软件更适合"
-      },
-      {
-        "id": 16,
-        "message": "将视频内的音频提取出来",
-        "tips": "把视频内部的声音单独提取出来保存为音频文件"
-      },
-      {
-        "id": 8,
-        "message": "3倍速播放",
-        "tips": "把你的视频或者音频播放速度x3，速度可以手动修改"
-      },
-      {
-        "id": 15,
-        "message": "把字幕内嵌的srt字幕提取出来",
-        "tips": "把内嵌字幕的视频提取出内部的字幕，可以手动指定提取哪条轨道"
-      },
-      {
-        "id": 13,
-        "message": "将码率压到2M",
-        "tips": "把视频的码率更改为指定的参数，可以自己修改"
-      },
-      {
-        "id": 14,
-        "message": "将视频分辨率处理为720p",
-        "tips": "把你视频的分辨率处理为720p，可以手动更改"
-      },
-      {
-        "id": 17,
-        "message": "采样率转44100hz",
-        "tips": "处理音频常用的更改采样率"
-      },
-      {
-        "id": 1,
-        "message": "将视频的编码处理成av1，使用cuda加速",
-        "tips": "将视频处理成av1编码，只有nvidia显卡40系以上才能使用此命令，不是n卡请删掉“使用cuda加速”"
-      },
-      {
-        "id": 3,
-        "message": "将视频的编码处理成av1",
-        "tips": "将视频处理成av1编码，cpu解码，一般情况会很慢"
-      },
-      {
-        "id": 4,
-        "message": "使用cuda加速",
-        "tips": "在处理的时候加上这一句可以使用gpu加速处理（nvidia显卡才能用）"
-      },
-      {
-        "id": 5,
-        "message": "转成128k的ogg",
-        "tips": "把你的音频文件处理成128k的ogg格式，可以自己根据需求修改"
-      },
-      {
-        "id": 6,
-        "message": "只保留第0:20-0:40的片段",
-        "tips": "视频和音频都可以用，时间也可以手动更改，单独把时间内片段导出"
-      },
-      {
-        "id": 7,
-        "message": "倒放",
-        "tips": "把你的视频或者音频倒放处理"
-      },
-      {
-        "id": 10,
-        "message": "处理为128x分辨率的ico",
-        "tips": "把你的图片处理成符合windows程序打包规范的分辨率的ico格式"
-      },
-      {
-        "id": 11,
-        "message": "处理为avif",
-        "tips": "把你的图片处理成avif格式，压缩效率极高，可以在相同图像质量的情况下大幅度降低存储占用"
-      },
-      {
-        "id": 18,
-        "message": "去掉音频只保留画面",
-        "tips": "把你的视频内的声音去掉，变成没有声音的视频"
-      }
-  ]
-  
->>>>>>> 44f4f9f514d3420213b9f95ad1cf736cad5d65d8

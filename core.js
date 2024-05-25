@@ -3,20 +3,32 @@ const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const downloadsPath = path.join(os.homedir(), 'Downloads');
+let kurisucachePath;
+if (process.platform === 'win32') {
+    // 使用 __dirname 获取当前执行目录并拼接 C:\
+    kurisucachePath = path.join(__dirname, 'kurisu.json');
+} else {
+    kurisucachePath = path.join(os.homedir(), 'Downloads', 'kurisu.json');
+}
+const fileJson = JSON.parse(fs.readFileSync(path.join(kurisucachePath), 'utf8'));
+const downloadsPath = fileJson.downloadsPath;
 const kurisuPath = path.join(downloadsPath, 'kurisu');
 const messagesFolderPath = path.join(kurisuPath, 'messages');
 const filePath = path.join(messagesFolderPath, 'message.json');
 // 覆盖console.log
 const originalLog = console.log;
 const axios = require('axios');
-
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
+const appVersion = packageJson.version;
+// 更新版本号
+const versionText = document.getElementById('version-text');
+versionText.textContent = `ver${appVersion}`;
 function checkInternetConnection() {
-    return axios.get('https://www.baidu.com', {
+    return axios.get('https://www.bilibili.com', {
         timeout: 5000  // 设置较短的超时时间，例如5秒
     })
-    .then(response => true)  // 网络正常
-    .catch(error => false);  // 网络连接失败
+        .then(response => true)  // 网络正常
+        .catch(error => false);  // 网络连接失败
 }
 
 console.log = function (...args) {
@@ -42,7 +54,7 @@ function saveInput() {
         message: userInput
     };
 
-    fs.readFile(filePath, {encoding: 'utf8'}, (readErr, data) => {
+    fs.readFile(filePath, { encoding: 'utf8' }, (readErr, data) => {
         if (readErr) {
             if (readErr.code === 'ENOENT') {  // 文件不存在时，创建新文件
                 console.log('文件不存在，创建新文件');
@@ -312,12 +324,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-ipcRenderer.on('ffmpeg-error', (event, message) => {
-    console.error(message); // 可以在控制台输出错误信息
-    updateProgress(100, true); // 更新进度条为100%并显示错误信息
-});
 let hideTextTimeout;  // 用于隐藏文本的定时器
-
 function updateProgress(progress, errorMessage = null) {
     const confirmButton = document.getElementById('confirmButton');
     const progressBar = document.getElementById('progressBar');
@@ -369,11 +376,6 @@ function updateProgress(progress, errorMessage = null) {
     // 确保文本可见
     progressText.style.opacity = '1';
 }
-
-// 确保在主进程或处理错误逻辑的地方调用此函数时，传递正确的错误状态
-ipcRenderer.on('ffmpeg-error', (event, message) => {
-    updateProgress(100, message); // 接收错误信息并更新UI
-});
 async function sendRequest() {
     const isConnected = await checkInternetConnection();
     const fileInput = document.getElementById('fileInput');
@@ -381,7 +383,7 @@ async function sendRequest() {
     const confirmButton = document.getElementById('confirmButton');
     const progressText = document.getElementById('progressPercentage');
     const progressBar = document.getElementById('progressBar');
-
+    const progressLine = document.getElementById('progressBar');
     if (fileInput.files.length === 0) {
         console.error('No file selected');
         return;
@@ -425,7 +427,26 @@ async function sendRequest() {
             confirmButton.style.opacity = 1;
         }
     });
+    ipcRenderer.on('ffmpeg-error', (event, message) => {
+        console.error(message); // 可以在控制台输出错误信息
+        clearInterval(dotsInterval);
+        progressText.textContent = message + " 请查看控制台";
+        progressLine.style.backgroundColor = 'rgb(211, 105, 105)';  // 错误时显示红色
+        progressBar.style.width = '100%';
+        confirmButton.disabled = false;  // 仅在完成时启用按钮
+        confirmButton.style.opacity = 1;
+        // 设置定时器来隐藏文本和重置进度条颜色
+        hideTextTimeout = setTimeout(() => {
+            progressText.style.opacity = '0';  // 逐渐隐藏文本
 
+            setTimeout(() => {
+                progressText.textContent = '';  // 清空文本内容
+                if (error) {
+                    progressLine.style.backgroundColor = '';  // 如果是错误状态，重置进度条颜色
+                }
+            }, 500);  // 等待透明度过渡完成后执行
+        }, 10000);  // 3秒后开始隐藏文本
+    });
     ipcRenderer.invoke('generate-ffmpeg-command', filePathsString, userCommand)
         .then(command => {
             console.log("Received ffmpeg command:", command); // Debug: 打印接收到的命令
@@ -501,14 +522,14 @@ function adjustInputHeight() {
     var userInput = document.getElementById('userInput');
     userInput.style.height = (topPanel.clientHeight - 60) + 'px'; // 减去一些内边距
 }
-document.addEventListener('keydown', function(event) {
+document.addEventListener('keydown', function (event) {
     const userInput = document.getElementById('userInput');
 
     // 检测是否按下 Ctrl 或 Cmd（Mac 上）
     const isCtrlCmdPressed = event.ctrlKey || event.metaKey;
 
     // 按键操作
-    switch(event.key) {
+    switch (event.key) {
         case 'a': // 全选
             if (isCtrlCmdPressed) {
                 if (document.activeElement === userInput) {
