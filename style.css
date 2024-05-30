@@ -6,6 +6,7 @@ body {
     /* 移除默认的边距 */
     padding: 0;
     overflow: hidden;
+    user-select: none;
     /* 移除默认的内边距 */
 }
 
@@ -146,7 +147,7 @@ h1 {
 
 .top-panel {
     padding: 20px;
-    height: 30%;
+    height: 30vh;
 }
 
 .right-panel {
@@ -192,32 +193,25 @@ h1 {
     }
 }
 .center-panel {
+    position: absolute;
+    top:35vh;
     padding: 20px;
-    height: 45%;
-    top: 35%;
+    height: calc(1vh + 50%);
+    left:30%;
+    right:0;
     overflow-y: scroll;
     z-index: 3;
+    border-top: 1px solid rgb(213, 213, 213);
     border-bottom: 1px solid rgb(213, 213, 213);
     /* 竖黑线 */
-}
-.bottom-panel {
-    padding: 20px;
-    height: 25%;
-    overflow: auto;
-    /* 竖黑线 */
-
 }
 
 @media (prefers-color-scheme: dark) {
     .center-panel {
         border-bottom: 1px solid rgb(50, 50, 50);
+        border-top: 1px solid rgb(50, 50, 50);
     }
 }
-
-.progress-container {
-    margin-bottom: 20px;
-}
-
 .input-container {
     position: relative;
     width: 100%;
@@ -264,9 +258,6 @@ h1 {
 }
 
 #version-text {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
     color: #999;
     /* 文本颜色 */
     font-size: 12px;
@@ -392,9 +383,9 @@ h1 {
     pointer-events: none;
     left: 30%;
     width: 70%;
-    top: 35%;
+    top: 35vh;
     /* 紧贴底部 */
-    height: 15%;
+    height: 2%;
     /* 调整高度以包括文本显示 */
     background-color: transparent;
     /* 背景透明 */
@@ -402,7 +393,7 @@ h1 {
     /* 使用flex布局 */
     flex-direction: column-reverse;
     /* 使文本在进度条上方显示 */
-    align-items: center;
+    align-items:start;
     /* 水平居中对齐 */
     justify-content: flex-end;
     /* 将内容对齐到容器的底部 */
@@ -425,11 +416,11 @@ h1 {
 #progressPercentage {
     position: absolute;
     /* 使用绝对定位 */
-    top: 0;
+    top: -4vh;
     /* 定位到容器顶部 */
     width: 100%;
     /* 宽度为100% */
-    text-align: center;
+    text-align:left;
     /* 文本居中 */
     color: rgb(63, 63, 63);
     /* 文本颜色为黑色 */
@@ -437,7 +428,11 @@ h1 {
     transition: opacity 0.5s ease-out;
     /* 为了视觉效果稍微提上一点 */
 }
-
+@media (max-height: 650px) {
+    #progressPercentage {
+        top: -5vh;
+    }
+}
 @media (prefers-color-scheme: dark) {
     #progressPercentage {
         color: #adadad;
@@ -450,6 +445,7 @@ h1 {
     display: flex;
     /* 使用flex布局 */
     flex-direction: column;
+    align-self: flex-end;
     /* 垂直排列按钮 */
     align-items: flex-start;
     /* 按钮左对齐 */
@@ -515,16 +511,6 @@ button {
     opacity: 1;
     /* 当鼠标悬停在 .selected-message 上时，设置子元素的透明度为 1 */
 }
-
-.bottom-tips {
-    display: flex;
-    padding: 5px;
-    color: #000000;
-    /* 根据需要更改颜色 */
-    margin-bottom: 2px;
-    /* 添加一点底部间距 */
-}
-
 .selected-message:hover .message-tips {
     opacity: 1;
     /* 当鼠标悬停在 .selected-message 上时，设置子元素的透明度为 1 */
@@ -585,12 +571,20 @@ button:hover {
 }
 /* bottom-panel.css */
 .bottom-tips {
-    padding: 10px;
+    position: absolute;
+    padding-left: 20px;
+    padding-top:59vh;
     background-color: transparent; /* 浅灰色背景 */
     color: #838383;               /* 深色文字 */
     font-size: 12px;           /* 文字大小 */
-    margin: 10px;     
+    margin: 0px;    
     opacity: 1;   
+}
+/* 当窗口高度低于800像素时应用滚动效果 */
+@media (max-height: 650px) {
+    .bottom-tips {
+        padding-top:57vh;
+    }
 }
 @media (prefers-color-scheme: dark) {
     .bottom-tips {

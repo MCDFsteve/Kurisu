@@ -1,7 +1,7 @@
 {
   "name": "kurisu",
   "productName": "Kurisu",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "助手～",
   "main": "main.js",
   "dependencies": {
@@ -14,29 +14,70 @@
   },
   "scripts": {
     "start": "electron .",
-    "win": "electron-builder --win --x64",
-    "woa": "electron-builder --win --arm64",
-    "mac": "electron-builder --mac",
-    "macx64": "electron-builder --mac --x64",
-    "build": "npm run win && npm run mac && npm run macx64"
+    "prebuild:mac": "node scripts/prebuild.js mac",
+    "prebuild:win": "node scripts/prebuild.js win",
+    "prebuild:linux": "node scripts/prebuild.js linux",
+    "win": "npm run prebuild:win && electron-builder --win --x64",
+    "woa": "npm run prebuild:win && electron-builder --win --arm64",
+    "mac": "npm run prebuild:mac && electron-builder --mac",
+    "macx64": "npm run prebuild:mac && electron-builder --mac --x64",
+    "linux": "npm run prebuild:linux && electron-builder --linux --x64",
+    "linuxarm": "npm run prebuild:linux && electron-builder --linux",
+    "build": "npm run win && npm run mac && npm run macx64 && npm run linux && npm run linuxarm && npm run woa"
   },
   "build": {
     "appId": "com.dfsteve.kurisu",
     "asar": false,
+    "files": [
+      "**/*",
+      "!**/*.ts",
+      "!*.code-workspace",
+      "!**/*.js.map",
+      "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+      "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+      "!**/node_modules/*.d.ts",
+      "!**/node_modules/.bin",
+      "!**/*.{o,hprof,orig,pyc,pyo,rbc}",
+      "!**/._*",
+      "!**/electron-builder.yml",
+      "!**/.DS_Store",
+      "!**/*.bak",
+      "!**/ffmpeg/ffmpeg_mac",
+      "!**/ffmpeg/ffmpeg_linux64",
+      "!**/ffmpeg/ffmpeg_linuxarm"
+    ],
     "mac": {
       "target": [
         "dmg",
-        "zip",
-        "pkg"
+        "mas",
+        "pkg",
+        "zip"
       ],
-      "hardenedRuntime": false,
+      "hardenedRuntime": true,
       "gatekeeperAssess": false,
-      "identity": null
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+      "identity": null,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.inherit.plist"
     },
     "nsis": {
       "oneClick": false,
       "perMachine": true,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "installerSidebar": "others/sidebar.bmp",
+      "uninstallerSidebar": "others/sidebar.bmp"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "zip"
+      ],
+      "category": "Utility",
+      "icon": "icon.png",
+      "extraResources": [
+        "assets"
+      ],
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
     },
     "win": {
       "target": [
@@ -46,12 +87,13 @@
       "icon": "icon.ico",
       "extraResources": [
         "assets"
-      ]
+      ],
+      "artifactName": "${productName}-${version}-${os}-${arch}.${ext}"
     }
   },
   "keywords": [],
   "author": "DFsteve",
-  "license": "GPLv2",
+  "license": "GPLv3",
   "devDependencies": {
     "electron": "^29.3.0",
     "electron-builder": "^24.13.3",

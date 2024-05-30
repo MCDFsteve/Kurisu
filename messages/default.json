@@ -36,13 +36,13 @@
         "id": 7,
         "message": "倒放",
         "tips": "把你的视频或者音频倒放处理，如果是视频的话一般不会倒放音频",
-        "command":"ffmpeg -i ${filePath} -y -vf \"reverse\" ${outputPath}"
+        "command":"ffmpeg -i ${filePath} -af \"areverse\" ${outputPath}"
     },
     {
         "id": 8,
         "message": "3倍速播放",
         "tips": "把你的视频或者音频播放速度x3，速度可以手动修改，如果是视频的话音频不会倍速播放",
-        "command":"ffmpeg -i ${filePath} -y -vf \"setpts=0.333*PTS\" ${outputPath}"
+        "command":"ffmpeg -i ${filePath} -filter_complex \"atempo=3.0\" -y  ${outputPath}"
     },
     {
         "id": 9,

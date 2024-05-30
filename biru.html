@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>关于Kurisu</title>
+    <link rel="stylesheet" href="close2.css">
     <style>
         #biruui {
             background-color: #ffffff;
@@ -12,10 +13,11 @@
         body {
             color: #292929;
         }
+
         .divider {
             height: 1px;
             /* 分割线的厚度 */
-            background-color:rgb(183, 183, 183);
+            background-color: rgb(183, 183, 183);
             /* 分割线的颜色 */
             width: 90%;
             /* 分割线的宽度 */
@@ -28,6 +30,7 @@
                 background-color: rgb(0, 0, 0);
             }
         }
+
         .section {
             color: #595959;
             margin-bottom: 10px;
@@ -89,6 +92,19 @@
             /* 如果需要，可以设置圆角 */
         }
 
+        .drag-area {
+            position: fixed;
+            top: 0;
+            left: 50px;
+            right: 50px;
+            width: auto;
+            height: 20px;
+            /* 高度足够用于拖放和放置图标 */
+            -webkit-app-region: drag;
+            /* Electron的拖动区域 */
+            /* 确保这个区域位于其他内容上方 */
+        }
+
         /* 设置当鼠标悬停在滚动条滑块上时的颜色 */
         ::-webkit-scrollbar-thumb:hover {
             background-color: rgba(80, 80, 80, 0.4);
@@ -110,19 +126,28 @@
 </head>
 
 <body>
+    <div class="windowbutton">
+        <div id="close-button" style="display: none;"></div>
+        <div id="fullscreen-button" style="display: none;"></div>
+        <div id="restore-button" style="display: none;"></div>
+        <div id="minimize-button" style="display: none;"></div>
+    </div>
+    <div class="drag-area"></div>
     <pre id="biruui"></pre>
     <h1>关于 Kurisu</h1>
-    <p>作者：戴夫邻居史蒂夫DFsteve  ©️copyright 2024 Aimes Soft</p>
+    <p>作者：戴夫邻居史蒂夫DFsteve ©️copyright 2024 Aimes Soft</p>
     <div class="divider"></div>
     <div class="section">
         <h2>鸣谢</h2>
         <div class="divider"></div>
         <p>感谢所有给予支持和鼓励的朋友们。特别鸣谢以下开源项目：</p>
         <ul>
-            <li><a href="https://electronjs.org/" target="_blank" class="externalLink">Electron</a> - 使我能够使用 Web 技术构建桌面应用。</li>
-            <li><a href="https://ffmpeg.org/" target="_blank" class="externalLink">FFmpeg</a> - 一个完整的、跨平台的解决方案，用于记录、转换数字音频和视频流。</li>
+            <li><a href="https://electronjs.org/" target="_blank" class="externalLink">Electron</a> - 使我能够使用 Web
+                技术构建桌面应用。</li>
+            <li><a href="https://ffmpeg.org/" target="_blank" class="externalLink">FFmpeg</a> -
+                一个完整的、跨平台的解决方案，用于记录、转换数字音频和视频流。</li>
         </ul>
-        <p>本程序是基于 <strong>GNU General Public License version 2 (GPLv2)</strong> 开源的。</p>
+        <p>本程序是基于 <strong>GNU General Public License version 3 (GPLv3)</strong> 开源的。</p>
     </div>
     <div class="section">
         <h2>Bilibili</h2>
@@ -148,7 +173,8 @@
         <h2>赞助</h2>
         <div class="divider"></div>
         <p>如果您觉得我的作品对您有帮助，可以考虑赞助支持。</p>
-        <a href="https://www.dfsteve.top/wp-content/uploads/2024/04/6426F436D4470C5A534692002525D9D8.jpg" class="externalLink">赞助链接</a>
+        <a href="https://www.dfsteve.top/wp-content/uploads/2024/04/6426F436D4470C5A534692002525D9D8.jpg"
+            class="externalLink">赞助链接</a>
     </div>
     <script>
         const { ipcRenderer } = require('electron');
@@ -182,6 +208,44 @@
                 document.head.appendChild(styleSheet);
             }
         });
+        function isMacOS() {
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+}
+if (isMacOS()) {
+    console.log('mac');
+} else {
+    const closeButton = document.getElementById('close-button');
+    const miniButton = document.getElementById('minimize-button');
+    const fullscreenButton = document.getElementById('fullscreen-button');
+    const restoreButton = document.getElementById('restore-button');
+    closeButton.classList.add('close-button-other');
+    closeButton.style.display = 'block';
+    closeButton.addEventListener('click', () => {
+        console.log('nipa');
+        ipcRenderer.send('close-biru-window');
+    });
+    fullscreenButton.classList.add('fullscreen-button-other');
+    fullscreenButton.style.display = 'block';
+    fullscreenButton.addEventListener('click', () => {
+        console.log('nipa');
+        fullscreenButton.style.display = 'none';
+        restoreButton.style.display = 'block';
+        ipcRenderer.send('fullscreen-biru-window');
+    });
+    restoreButton.classList.add('restore-button-other');
+    restoreButton.addEventListener('click', () => {
+        console.log('nipa');
+        fullscreenButton.style.display = 'block';
+        restoreButton.style.display = 'none';
+        ipcRenderer.send('restore-biru-window');
+    });
+    miniButton.classList.add('minimize-button-other');
+    miniButton.style.display = 'block';
+    miniButton.addEventListener('click', () => {
+        console.log('nipa');
+        ipcRenderer.send('minimize-biru-window');
+    });
+}
     </script>
 </body>
 

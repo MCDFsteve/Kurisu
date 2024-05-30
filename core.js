@@ -35,6 +35,19 @@ console.log = function (...args) {
     ipcRenderer.send('console-log', args);
     originalLog.apply(console, args);
 };
+document.addEventListener('DOMContentLoaded', function () {
+    const stopButton = document.getElementById('stopButton');
+    const confirmButton = document.getElementById('confirmButton');
+    if (stopButton) {
+        stopButton.addEventListener('click', function () {
+            stopButton.style.display = 'none';
+            confirmButton.style.display = 'block';
+            confirmButton.disabled = true;  // 仅在完成时启用按钮
+            confirmButton.style.opacity = 0.5;
+            ipcRenderer.send('stop-ffmpeg');  // 发送停止 FFmpeg 的事件
+        });
+    }
+});
 
 // 可以对console.error, console.warn等进行类似的覆盖
 const originalError = console.error;
@@ -273,17 +286,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateButtonState() {
         // 检查文件是否已上传并且输入框中有文字
-        if (fileInput.files.length > 0) {
-            confirmButton.disabled = false;
-            saveButton.disabled = false;
-            confirmButton.style.opacity = 1;
-            saveButton.style.opacity = 1;
-        } else {
-            confirmButton.disabled = true;
-            saveButton.disabled = true;
-            confirmButton.style.opacity = 0.5;
-            saveButton.style.opacity = 0.5;
-        }
+        confirmButton.disabled = false;
+        saveButton.disabled = false;
+        confirmButton.style.opacity = 1;
+        saveButton.style.opacity = 1;
     }
 
     // 为文件选择和输入框变化添加事件监听
@@ -342,34 +348,12 @@ function updateProgress(progress, errorMessage = null) {
         progressBar.style.width = '100%';
         confirmButton.disabled = false;  // 仅在完成时启用按钮
         confirmButton.style.opacity = 1;
-        // 设置定时器来隐藏文本和重置进度条颜色
-        hideTextTimeout = setTimeout(() => {
-            progressText.style.opacity = '0';  // 逐渐隐藏文本
-
-            setTimeout(() => {
-                progressText.textContent = '';  // 清空文本内容
-                if (error) {
-                    progressLine.style.backgroundColor = '';  // 如果是错误状态，重置进度条颜色
-                }
-            }, 500);  // 等待透明度过渡完成后执行
-        }, 10000);  // 3秒后开始隐藏文本
     } else {
         progressBar.style.width = progress + '%';
         progressText.textContent = progress.toFixed(0) + '%';
         progressLine.style.backgroundColor = 'rgb(105, 131, 211)';  // 重置颜色为默认或成功颜色
         if (progress === 100) {
-            progressText.textContent = '100% 处理成功';  // Success message
-            // 设置定时器来隐藏文本和重置进度条颜色
-            hideTextTimeout = setTimeout(() => {
-                progressText.style.opacity = '0';  // 逐渐隐藏文本
-
-                setTimeout(() => {
-                    progressText.textContent = '';  // 清空文本内容
-                    if (error) {
-                        progressLine.style.backgroundColor = '';  // 如果是错误状态，重置进度条颜色
-                    }
-                }, 500);  // 等待透明度过渡完成后执行
-            }, 10000);  // 3秒后开始隐藏文本
+            progressText.textContent = '100% 哼！帮你处理好了！！';  // Success message
         }
     }
 
@@ -381,6 +365,7 @@ async function sendRequest() {
     const fileInput = document.getElementById('fileInput');
     const userInput = document.getElementById('userInput');
     const confirmButton = document.getElementById('confirmButton');
+    const stopButton = document.getElementById('stopButton');
     const progressText = document.getElementById('progressPercentage');
     const progressBar = document.getElementById('progressBar');
     const progressLine = document.getElementById('progressBar');
@@ -407,14 +392,16 @@ async function sendRequest() {
     }, 500); // 每500毫秒更新一次文本
     progressBar.value = 0;
     confirmButton.disabled = true;
-    confirmButton.style.opacity = 0.5;
+    confirmButton.style.display = 'none';
+    stopButton.style.display = 'block';
     // 设置超时处理
     const timeoutId = setTimeout(() => {
         clearInterval(dotsInterval);
         progressText.textContent = '连接超时，请检查网络环境';
         progressBar.style.backgroundColor = 'rgb(211, 105, 105)'; // 红色进度条
         confirmButton.disabled = false;
-        confirmButton.style.opacity = 1;
+        confirmButton.style.display = 'block';
+        stopButton.style.display = 'none';
     }, 60000); // 20秒超时
     const userCommand = userInput.value;
     ipcRenderer.on('update-progress', (event, progress) => {
@@ -424,7 +411,8 @@ async function sendRequest() {
         updateProgress(progress);  // 使用新函数来更新进度条
         if (progress === 100) {
             confirmButton.disabled = false;  // 仅在完成时启用按钮
-            confirmButton.style.opacity = 1;
+            confirmButton.style.display = 'block';
+            stopButton.style.display = 'none';
         }
     });
     ipcRenderer.on('ffmpeg-error', (event, message) => {
@@ -434,18 +422,20 @@ async function sendRequest() {
         progressLine.style.backgroundColor = 'rgb(211, 105, 105)';  // 错误时显示红色
         progressBar.style.width = '100%';
         confirmButton.disabled = false;  // 仅在完成时启用按钮
-        confirmButton.style.opacity = 1;
-        // 设置定时器来隐藏文本和重置进度条颜色
-        hideTextTimeout = setTimeout(() => {
-            progressText.style.opacity = '0';  // 逐渐隐藏文本
-
-            setTimeout(() => {
-                progressText.textContent = '';  // 清空文本内容
-                if (error) {
-                    progressLine.style.backgroundColor = '';  // 如果是错误状态，重置进度条颜色
-                }
-            }, 500);  // 等待透明度过渡完成后执行
-        }, 10000);  // 3秒后开始隐藏文本
+        confirmButton.style.display = 'block';
+        stopButton.style.display = 'none';
+    });
+    ipcRenderer.on('ffmpeg-stop', (event, message) => {
+        clearInterval(dotsInterval);
+        progressText.textContent = message;
+        progressLine.style.backgroundColor = 'rgb(211, 179, 105)';
+        progressBar.style.width = '100%';
+        confirmButton.style.display = 'block';
+        stopButton.style.display = 'none';
+        const dotsInterval2 = setInterval(() => {
+            confirmButton.disabled = false;  // 仅在完成时启用按钮
+            confirmButton.style.opacity = 1;
+        }, 500);
     });
     ipcRenderer.invoke('generate-ffmpeg-command', filePathsString, userCommand)
         .then(command => {
@@ -459,7 +449,8 @@ async function sendRequest() {
             console.error('Error:', error);
             clearTimeout(timeoutId);  // 取消超时处理
             confirmButton.disabled = false;
-            confirmButton.style.opacity = 1;
+            confirmButton.style.display = 'block';
+            stopButton.style.display = 'none';
         });
 }
 
@@ -467,7 +458,8 @@ function executeCommandsSequentially(commands, index) {
     if (index >= commands.length) {
         return; // 所有命令执行完毕
     }
-
+    const confirmButton = document.getElementById('confirmButton');
+    const stopButton = document.getElementById('stopButton');
     const command = commands[index].trim(); // 清除可能的空白字符
     console.log(`Executing command ${index + 1}:`, command); // Debug: 打印正在执行的命令
     executeFFmpegCommand(command).then(() => {
@@ -477,7 +469,8 @@ function executeCommandsSequentially(commands, index) {
         if (index === commands.length - 1) {
             statusText.innerText = '处理完成';
             confirmButton.disabled = false;
-            confirmButton.style.opacity = 1;
+            confirmButton.style.display = 'block';
+            stopButton.style.display = 'none';
         } else {
             executeCommandsSequentially(commands, index + 1); // 执行下一命令
         }
@@ -520,7 +513,7 @@ function executeFFmpegCommand(command) {
 function adjustInputHeight() {
     var topPanel = document.querySelector('.top-panel');
     var userInput = document.getElementById('userInput');
-    userInput.style.height = (topPanel.clientHeight - 60) + 'px'; // 减去一些内边距
+    userInput.style.height = (topPanel.clientHeight - 80) + 'px'; // 减去一些内边距
 }
 document.addEventListener('keydown', function (event) {
     const userInput = document.getElementById('userInput');
@@ -572,3 +565,41 @@ document.addEventListener('keydown', function (event) {
 // 在页面加载和窗口大小变化时调整输入框高度
 window.onload = adjustInputHeight;
 window.onresize = adjustInputHeight;
+function isMacOS() {
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+}
+if (isMacOS()) {
+    console.log('mac');
+} else {
+    const closeButton = document.getElementById('close-button');
+    const miniButton = document.getElementById('minimize-button');
+    const fullscreenButton = document.getElementById('fullscreen-button');
+    const restoreButton = document.getElementById('restore-button');
+    closeButton.classList.add('close-button-other');
+    closeButton.style.display = 'block';
+    closeButton.addEventListener('click', () => {
+        console.log('nipa');
+        ipcRenderer.send('close-main-window');
+    });
+    fullscreenButton.classList.add('fullscreen-button-other');
+    fullscreenButton.style.display = 'block';
+    fullscreenButton.addEventListener('click', () => {
+        console.log('nipa');
+        fullscreenButton.style.display = 'none';
+        restoreButton.style.display = 'block';
+        ipcRenderer.send('fullscreen-window');
+    });
+    restoreButton.classList.add('restore-button-other');
+    restoreButton.addEventListener('click', () => {
+        console.log('nipa');
+        fullscreenButton.style.display = 'block';
+        restoreButton.style.display = 'none';
+        ipcRenderer.send('restore-window');
+    });
+    miniButton.classList.add('minimize-button-other');
+    miniButton.style.display = 'block';
+    miniButton.addEventListener('click', () => {
+        console.log('nipa');
+        ipcRenderer.send('minimize-window');
+    });
+}

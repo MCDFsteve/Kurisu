@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Kurisu 控制台输出</title>
+    <link rel="stylesheet" href="close2.css">
 </head>
 <style>
     #ffmpegOutput {
@@ -16,6 +17,19 @@
         /* 保持空白格式并自动换行 */
         background-color: #ffffff;
         color: #000000;
+    }
+
+    .drag-area {
+        position: fixed;
+        top: 0;
+        left: 50px;
+        right: 50px;
+        width: auto;
+        height: 20px;
+        /* 高度足够用于拖放和放置图标 */
+        -webkit-app-region: drag;
+        /* Electron的拖动区域 */
+        /* 确保这个区域位于其他内容上方 */
     }
 
     @media (prefers-color-scheme: dark) {
@@ -61,6 +75,13 @@
 </style>
 
 <body>
+    <div class="windowbutton">
+        <div id="close-button" style="display: none;"></div>
+        <div id="fullscreen-button" style="display: none;"></div>
+        <div id="restore-button" style="display: none;"></div>
+        <div id="minimize-button" style="display: none;"></div>
+    </div>
+    <div class="drag-area"></div>
     <pre id="ffmpegOutput" tabindex="0"></pre>
     <script>
         const { ipcRenderer } = require('electron');
@@ -117,7 +138,44 @@
                 }
             }
         });
-
+        function isMacOS() {
+    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+}
+if (isMacOS()) {
+    console.log('mac');
+} else {
+    const closeButton = document.getElementById('close-button');
+    const miniButton = document.getElementById('minimize-button');
+    const fullscreenButton = document.getElementById('fullscreen-button');
+    const restoreButton = document.getElementById('restore-button');
+    closeButton.classList.add('close-button-other');
+    closeButton.style.display = 'block';
+    closeButton.addEventListener('click', () => {
+        console.log('nipa');
+        ipcRenderer.send('close-output-window');
+    });
+    fullscreenButton.classList.add('fullscreen-button-other');
+    fullscreenButton.style.display = 'block';
+    fullscreenButton.addEventListener('click', () => {
+        console.log('nipa');
+        fullscreenButton.style.display = 'none';
+        restoreButton.style.display = 'block';
+        ipcRenderer.send('fullscreen-output-window');
+    });
+    restoreButton.classList.add('restore-button-other');
+    restoreButton.addEventListener('click', () => {
+        console.log('nipa');
+        fullscreenButton.style.display = 'block';
+        restoreButton.style.display = 'none';
+        ipcRenderer.send('restore-output-window');
+    });
+    miniButton.classList.add('minimize-button-other');
+    miniButton.style.display = 'block';
+    miniButton.addEventListener('click', () => {
+        console.log('nipa');
+        ipcRenderer.send('minimize-output-window');
+    });
+}
     </script>
 </body>
 

@@ -1,5 +1,10 @@
 process.env.PYTHONIOENCODING = 'utf8';
-const { app, BrowserWindow, ipcMain, shell, Menu, globalShortcut, dialog, } = require('electron');
+let isMac = process.platform === 'darwin';
+let outputWindow;
+let biruWindow;
+let totalDuration = 600; // 假设视频总时长是600秒
+let mainWindow = null;
+const { app, BrowserWindow, ipcMain, shell, screen,Menu, globalShortcut, dialog, } = require('electron');
 const axios = require('axios');
 const fs = require('fs-extra');
 const path = require('path');
@@ -15,19 +20,240 @@ const messagesFolderPath = path.join(kurisuPath, 'messages');
 const messagesPath = path.join(messagesFolderPath, 'message.json');
 const defaultPath = path.join(messagesFolderPath, 'default.json');
 const targetMessagesPath = path.join(kurisuPath, 'messages');
+const ffmpegmac = path.join(__dirname, 'ffmpeg', 'ffmpeg_mac');
+const ffmpeglinux64 = path.join(__dirname, 'ffmpeg', 'ffmpeg_linux64');
+const ffmpeglinuxarm = path.join(__dirname, 'ffmpeg', 'ffmpeg_linuxarm');
+const ffmpegwin = path.join(__dirname, 'ffmpeg', 'ffmpeg_win', 'bin', 'ffmpeg.exe')
+const https = require('https');
+// 假设配置文件路径
+const configFilePath = path.join(kurisuPath, 'kirusu-config.json');
+const menuTemplate = [
+    {
+        label: '菜单',
+        submenu: [
+            {
+                label: '关于',
+                click: () =>
+                    showBiruWindow()
+            },
+            {
+                label: '设置',
+                click: () =>
+                    showSettingsWindow()
+            },
+            {
+                label: '控制台',
+                click: () =>
+                    showOutputWindow()
+            }
+        ]
+    }
+];
+// 确保关闭窗口时清理引用
+app.on('window-all-closed', () => {
+    if (outputWindow !== null) {
+        outputWindow.close();
+    }
+    if (process.platform !== 'darwin') {
+        app.quit();
+    }
+});
+app.whenReady().then(() => {
+    process.env.PYTHONIOENCODING = 'utf8'; // 强制使用 UTF-8 编码
+    let kurisucachePath;
+    if (process.platform === 'win32') {
+        // 使用 __dirname 获取当前执行目录并拼接 C:\
+        kurisucachePath = path.join(__dirname, 'kurisu.json');
+    } else {
+        kurisucachePath = path.join(os.homedir(), 'Downloads', 'kurisu.json');
+    }
+    const data = { downloadsPath };
+    fs.writeFileSync(kurisucachePath, JSON.stringify(data, null, 2), 'utf8');
+    syncMessagesWithDefault();
+    // 注册全局快捷键 Command + Q
+    const ret = globalShortcut.register('CommandOrControl+Q', () => {
+        const allWindows = BrowserWindow.getAllWindows();
+        const isAnyWindowFocused = allWindows.some(win => win.isFocused());
+
+        if (isAnyWindowFocused) {
+            // 结束应用程序
+            app.quit();
+        }
+    });
+    // 检查注册快捷键的状态
+    if (!ret) {
+        console.error('Registration failed');
+    }
+    moveMessagesToKurisu();
+    createOutputWindow();
+    createBiruWindow();
+    createOutputDirectory();
+    createSettingsWindow();
+    createWindow();
+});
+app.whenReady().then(() => {
+    app.setAppUserModelId('com.dfsteve.kurisu'); // 设置应用程序的 User Model ID
+    app.setBadgeCount(0); // 设置任务栏图标上的计数
+    app.dock.setIcon(path.join(__dirname, 'window_icon.png'));
+});
+app.on('before-quit', () => {
+    app.isQuitting = true;
+});
+app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow();
+    }
+});
+ipcMain.on('open-terminal-window', () => {
+    showOutputWindow(); // 调用函数来创建窗口
+});
+ipcMain.on('open-settings-window', () => {
+    showSettingsWindow(); // 调用函数来创建窗口
+});
+ipcMain.on('open-biru-window', () => {
+    showBiruWindow(); // 调用函数来创建窗口
+});
+ipcMain.handle('generate-ffmpeg-command', async (event, filePathsString, userCommand) => {
+    const ffmpegPath = getFFmpegPath();
+    try {
+        const commandsString = await generateFFmpegCommand(filePathsString, userCommand, `"${ffmpegPath}"`);
+        const commands = commandsString.split('||'); // 使用新的分隔符
+        console.log("Received ffmpeg commands split by '||':", commands); // 打印拆分后的命令列表
+
+        for (let i = 0; i < commands.length; i++) {
+            const command = commands[i].trim();
+            mainWindow.webContents.send('update-progress', 0);
+            handleFFmpegCommand(mainWindow, command, totalDuration); // 确保传递正确的窗口对象
+        }
+
+
+        return "All commands executed successfully";
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+});
+ipcMain.on('console-log', (event, args) => {
+    console.log(...args);
+});
+ipcMain.on('console-error', (event, args) => {
+    console.error(...args);
+});
+ipcMain.on('open-output-directory', () => {
+    const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
+    const outputPath = config.outputPath;  // 使用最新的输出路径
+
+    shell.openPath(outputPath).then(() => {
+        console.log('Output directory opened successfully:', outputPath);
+    }).catch(err => {
+        console.error('Failed to open output directory:', err);
+    });
+});
+ipcMain.on('update-naming-rule', (event, namingRule) => {
+    const config = getConfig();
+    config.namingRule = namingRule;
+    updateConfigFile(config);
+});
+ipcMain.on('request-settings', (event) => {
+    const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
+    event.sender.send('settings-data', config);
+});
 ipcMain.on('reset-output-directory-to-default', (event) => {
     const defaultOutputPath = getDefaultOutputPath();  // 获取默认输出路径
     updateConfigFile({ outputPath: defaultOutputPath });
     event.sender.send('output-path-updated', defaultOutputPath);  // 通知渲染进程更新显示
 });
-
-function getDefaultOutputPath() {
-    const defaultOutputPath = path.join(downloadsPath, 'kurisu', 'outputs');
-    if (!fs.existsSync(defaultOutputPath)) {
-        fs.mkdirSync(defaultOutputPath, { recursive: true });
+ipcMain.on('close-main-window', () => {
+    if (mainWindow) {
+        app.quit();
     }
-    return defaultOutputPath;
-}
+});
+ipcMain.on('fullscreen-window', () => {
+    if (mainWindow) {
+        const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+        animateWindowResize(mainWindow, width, height,200);
+    }
+});
+ipcMain.on('restore-window', () => {
+    if (mainWindow) {
+        animateWindowResize(mainWindow, 800, 600,200);
+    }
+});
+ipcMain.on('minimize-window', (event) => {
+    if (mainWindow) {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.minimize();
+    }
+});
+///
+ipcMain.on('close-biru-window', () => {
+    if (biruWindow) {
+        biruWindow.close();
+    }
+});
+ipcMain.on('fullscreen-biru-window', () => {
+    if (biruWindow) {
+        const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+        animateWindowResize(biruWindow, width, height,200);
+    }
+});
+ipcMain.on('restore-biru-window', () => {
+    if (biruWindow) {
+        animateWindowResize(biruWindow, 500, 400,200);
+    }
+});
+ipcMain.on('minimize-biru-window', (event) => {
+    if (biruWindow) {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.minimize();
+    }
+});
+///
+ipcMain.on('close-output-window', () => {
+    if (outputWindow) {
+        outputWindow.close();
+    }
+});
+ipcMain.on('fullscreen-output-window', () => {
+    if (outputWindow) {
+        const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+        animateWindowResize(outputWindow, width, height,200);
+    }
+});
+ipcMain.on('restore-output-window', () => {
+    if (outputWindow) {
+        animateWindowResize(outputWindow, 400, 300,200);
+    }
+});
+ipcMain.on('minimize-output-window', (event) => {
+    if (outputWindow) {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.minimize();
+    }
+});
+///
+ipcMain.on('close-settings-window', () => {
+    if (settingsWindow) {
+        settingsWindow.close();
+    }
+});
+ipcMain.on('fullscreen-settings-window', () => {
+    if (settingsWindow) {
+        const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+        animateWindowResize(settingsWindow, width, height,200);
+    }
+});
+ipcMain.on('restore-settings-window', () => {
+    if (settingsWindow) {
+        animateWindowResize(settingsWindow, 500, 500,200);
+    }
+});
+ipcMain.on('minimize-settings-window', (event) => {
+    if (settingsWindow) {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.minimize();
+    }
+});
 ipcMain.on('request-current-output-path', (event) => {
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
     const outputPath = config.outputPath;  // 使用最新的输出路径
@@ -66,8 +292,6 @@ function moveMessagesToKurisu() {
     fs.copyFileSync(sourceDefaultJson, targetDefaultJson);
     console.log('Default settings file copied to:', targetDefaultJson);
 }
-// 假设配置文件路径
-const configFilePath = path.join(kurisuPath, 'kirusu-config.json');
 function createOutputDirectory() {
     let outputPath;
 
@@ -101,7 +325,53 @@ function updateConfigFile(settings) {
 
     fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf8');
 }
+function animateWindowResize(window, targetWidth, targetHeight, duration) {
+    const currentBounds = window.getBounds();
+    const startTime = Date.now();
+    const initialX = currentBounds.x;
+    const initialY = currentBounds.y;
+    const initialWidth = currentBounds.width;
+    const initialHeight = currentBounds.height;
+    const steps = Math.round(duration / 16.67); // 大约每秒 60 帧
+    const stepWidth = (targetWidth - initialWidth) / steps;
+    const stepHeight = (targetHeight - initialHeight) / steps;
+    const stepX = (targetWidth - initialWidth) / (2 * steps);
+    const stepY = (targetHeight - initialHeight) / (2 * steps);
 
+    function step() {
+        const elapsedTime = Date.now() - startTime;
+        const progress = Math.min(elapsedTime / duration, 1);
+        const easeProgress = easeInOutQuad(progress);
+
+        const newWidth = initialWidth + (targetWidth - initialWidth) * easeProgress;
+        const newHeight = initialHeight + (targetHeight - initialHeight) * easeProgress;
+        const newX = initialX - (newWidth - initialWidth) / 2;
+        const newY = initialY - (newHeight - initialHeight) / 2;
+
+        window.setBounds({
+            x: Math.round(newX),
+            y: Math.round(newY),
+            width: Math.round(newWidth),
+            height: Math.round(newHeight)
+        });
+
+        if (progress < 1) {
+            setTimeout(step, 16.67); // 使用 setTimeout 来模拟 requestAnimationFrame 的效果
+        } else {
+            window.setBounds({
+                width: targetWidth,
+                height: targetHeight,
+                x: Math.round((screen.getPrimaryDisplay().workAreaSize.width - targetWidth) / 2),
+                y: Math.round((screen.getPrimaryDisplay().workAreaSize.height - targetHeight) / 2)
+            });
+        }
+    }
+
+    setTimeout(step, 16.67); // 初始调用
+}
+function easeInOutQuad(t) {
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+}
 function syncMessagesWithDefault() {
     // 检查 message.json 文件是否存在
     if (!fs.existsSync(messagesPath)) {
@@ -164,24 +434,6 @@ function syncMessagesWithDefault() {
         });
     }
 }
-
-ipcMain.on('console-log', (event, args) => {
-    console.log(...args);
-});
-
-ipcMain.on('console-error', (event, args) => {
-    console.error(...args);
-});
-ipcMain.on('update-naming-rule', (event, namingRule) => {
-    const config = getConfig();
-    config.namingRule = namingRule;
-    updateConfigFile(config);
-});
-ipcMain.on('request-settings', (event) => {
-    const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
-    event.sender.send('settings-data', config);
-});
-
 function getConfig() {
     if (fs.existsSync(configFilePath)) {
         const configData = fs.readFileSync(configFilePath, 'utf8');
@@ -205,25 +457,24 @@ function generateFileName(originalName) {
     }
 }
 function getFFmpegPath() {
-    if (process.platform === 'darwin') {
-        return path.join(__dirname, 'ffmpeg', 'ffmpeg_mac', 'ffmpeg');
-    } else if (process.platform === 'win32') {
-        return path.join(__dirname, 'ffmpeg', 'ffmpeg_win', 'bin', 'ffmpeg.exe');
-    } else {
-        throw new Error('Unsupported platform');
+    switch (os.platform()) {
+        case 'darwin': // macOS
+            return path.join(ffmpegmac);
+        case 'win32': // Windows
+            return path.join(ffmpegwin);
+        case 'linux': // Linux
+            const arch = os.arch();
+            if (arch === 'x64') {
+                return path.join(ffmpeglinux64);
+            } else if (arch === 'arm64') {
+                return path.join(ffmpeglinuxarm);
+            } else {
+                throw new Error('Unsupported Linux architecture: ' + arch);
+            }
+        default:
+            throw new Error('Unsupported platform');
     }
 }
-ipcMain.on('open-output-directory', () => {
-    const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
-    const outputPath = config.outputPath;  // 使用最新的输出路径
-
-    shell.openPath(outputPath).then(() => {
-        console.log('Output directory opened successfully:', outputPath);
-    }).catch(err => {
-        console.error('Failed to open output directory:', err);
-    });
-});
-const https = require('https');
 function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
     const originalFileName = path.basename(filePath, path.extname(filePath)); // 获取不含路径和后缀的文件名
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
@@ -251,8 +502,11 @@ function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
                 }
                 command = command.replace('${outputPath}', `"${path.join(outputPath, outputFileName)}"`);
                 command = command.replace(/\$\{\.\w+\}/, ''); // 移除后缀占位符
+                const ffmpegExecutablePath = getFFmpegPath();
+                command = command.replace(/ffmpeg/g, `"${ffmpegExecutablePath}"`);
                 return command;
             }).join(' || ');
+            outputWindow.webContents.send('ffmpeg-output', 'Received ffmpeg command: ' + commands);
             console.log('Using predefined command:', commands);
             return Promise.resolve(commands);
         }
@@ -330,69 +584,13 @@ function getCurrentTimestamp() {
         now.getMinutes().toString().padStart(2, '0') +
         now.getSeconds().toString().padStart(2, '0');
 }
-let totalDuration = 600; // 假设视频总时长是600秒
 
-// 确保关闭窗口时清理引用
-app.on('window-all-closed', () => {
-    if (outputWindow !== null) {
-        outputWindow.close();
+function getDefaultOutputPath() {
+    const defaultOutputPath = path.join(downloadsPath, 'kurisu', 'outputs');
+    if (!fs.existsSync(defaultOutputPath)) {
+        fs.mkdirSync(defaultOutputPath, { recursive: true });
     }
-    if (process.platform !== 'darwin') {
-        app.quit();
-    }
-});
-ipcMain.handle('generate-ffmpeg-command', async (event, filePathsString, userCommand) => {
-    const ffmpegPath = getFFmpegPath();
-    try {
-        const commandsString = await generateFFmpegCommand(filePathsString, userCommand, `"${ffmpegPath}"`);
-        const commands = commandsString.split('||'); // 使用新的分隔符
-        console.log("Received ffmpeg commands split by '||':", commands); // 打印拆分后的命令列表
-
-        for (let i = 0; i < commands.length; i++) {
-            const command = commands[i].trim();
-            mainWindow.webContents.send('update-progress', 0);
-            handleFFmpegCommand(mainWindow, command, totalDuration); // 确保传递正确的窗口对象
-        }
-
-
-        return "All commands executed successfully";
-    } catch (error) {
-        console.error(error);
-        throw error;
-    }
-});
-
-
-let outputWindow;
-function createOutputWindow() {
-    outputWindow = new BrowserWindow({
-        width: 400,
-        height: 300,
-        icon: path.join(__dirname, 'window_icon.png'),
-        show: false,
-        vibrancy: 'sidebar',
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false
-        }
-    });
-    outputWindow.setMenu(null);
-    let isMac = process.platform === 'darwin'; // 判断是否是 macOS
-    outputWindow.loadFile('ffmpeg_output.html');
-    // 将操作系统和主题模式信息发送到渲染进程
-    outputWindow.webContents.on('did-finish-load', () => {
-        outputWindow.webContents.send('platform-info', { isMac });
-    });
-    outputWindow.on('close', (event) => {
-        if (app.isQuitting) {
-            // 允许窗口关闭
-            outputWindow = null;
-        } else {
-            // 阻止窗口关闭，仅仅隐藏窗口
-            event.preventDefault();
-            outputWindow.hide();
-        }
-    });
+    return defaultOutputPath;
 }
 function getMediaDuration(filePath, callback) {
     const ffmpegExecutablePath = getFFmpegPath();  // 获取正确的ffmpeg路径
@@ -417,7 +615,12 @@ function getMediaDuration(filePath, callback) {
 function handleFFmpegCommand(win, command, totalDuration) {
     const options = { encoding: 'utf8' };
     const process = exec(command, options);
-
+    ipcMain.on('stop-ffmpeg', () => {
+        if (process) {
+            process.kill('SIGTERM');  // 发送终止信号
+            console.log('killed');
+        }
+    });
     process.stderr.on('data', (data) => {
         const dataString = data.toString();
         // 提取和更新持续时间
@@ -440,10 +643,12 @@ function handleFFmpegCommand(win, command, totalDuration) {
     });
 
     process.on('exit', (code) => {
-        if (code !== 0) {
+        if (code !== 0 && code !== 255) {
             console.error(`FFmpeg process exited with code ${code}`);
-            win.webContents.send('ffmpeg-error', `100% 处理失败：code ${code}`);
-        } else {
+            win.webContents.send('ffmpeg-error', `100% 失败了失败了失败了失败了：code ${code}`);
+        } else if (code == 255) {
+            win.webContents.send('ffmpeg-stop', `啊！突然叫我停下是闹哪般？`);
+        }else {
             win.webContents.send('update-progress', 100);
         }
         if (outputWindow) {
@@ -452,78 +657,53 @@ function handleFFmpegCommand(win, command, totalDuration) {
     });
 
     process.on('close', (code) => {
-        if (code !== 0) {
-            win.webContents.send('ffmpeg-error', `100% 处理失败：code ${code}`);
+        if (code !== 0 && code !== 255) {
+            win.webContents.send('ffmpeg-error', `100% 啊！失败了失败了失败了失败了：code ${code}`);
         }
     });
 }
-
-
-app.whenReady().then(() => {
-    process.env.PYTHONIOENCODING = 'utf8'; // 强制使用 UTF-8 编码
-    let kurisucachePath;
-    if (process.platform === 'win32') {
-        // 使用 __dirname 获取当前执行目录并拼接 C:\
-        kurisucachePath = path.join(__dirname, 'kurisu.json');
-    } else {
-        kurisucachePath = path.join(os.homedir(), 'Downloads', 'kurisu.json');
-    }
-    const data = { downloadsPath };
-    fs.writeFileSync(kurisucachePath, JSON.stringify(data, null, 2), 'utf8');
-    syncMessagesWithDefault();
-    if (process.platform === 'darwin') {
-        globalShortcut.register('Command+Q', () => {
-            app.quit();
-        });
-    }
-    moveMessagesToKurisu();
-    createOutputWindow();
-    createBiruWindow();
-    createOutputDirectory();
-    createSettingsWindow();
-    createWindow();
-});
 function parseTime(timeStr) {
     const parts = timeStr.split(':').map(part => parseFloat(part));
     return parts[0] * 3600 + parts[1] * 60 + parts[2];
 }
-
-let mainWindow = null;
-const menuTemplate = [
-    {
-        label: '菜单',
-        submenu: [
-            {
-                label: '关于',
-                click: () =>
-                    showBiruWindow()
-            },
-            {
-                label: '设置',
-                click: () =>
-                    showSettingsWindow()
-            },
-            {
-                label: '控制台',
-                click: () =>
-                    showOutputWindow()
-            }
-        ]
+function showBiruWindow() {
+    if (biruWindow === null) { // 如果窗口不存在，则创建它
+        createBiruWindow();
+        console.log('biru is created');
     }
-];
+    biruWindow.show();
+}
+function showSettingsWindow() {
+    if (settingsWindow === null) { // 如果窗口不存在，则创建它
+        createSettingsWindow();
+        console.log('settings is created');
+    }
+    settingsWindow.show();
+}
+function showOutputWindow() {
+    if (outputWindow === null) { // 如果窗口不存在，则创建它
+        createOutputWindow();
+    }
+    outputWindow.show(); // 显示窗口
+}
 function createWindow() {
     mainWindow = new BrowserWindow({
         width: 800,
         height: 600,
+        minWidth: 800,
+        minHeight: 600,
         icon: path.join(__dirname, 'window_icon.png'),
         titleBarStyle: 'hiddenInset',
+        fullscreen: false,
         vibrancy: 'sidebar',
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
-        }
+        },
+        autoHideMenuBar: !isMac,
+        titleBarStyle: isMac ? 'hiddenInset' : undefined,
+        frame: isMac ? undefined : false
     });
-    let isMac = process.platform === 'darwin'; // 判断是否是 macOS
     mainWindow.loadFile('index.html');
     // 将操作系统和主题模式信息发送到渲染进程
     mainWindow.webContents.on('did-finish-load', () => {
@@ -542,19 +722,55 @@ function createWindow() {
         app.quit(); // 结束应用程序
     });
 }
-let biruWindow;
+function createOutputWindow() {
+    outputWindow = new BrowserWindow({
+        width: 400,
+        height: 300,
+        icon: path.join(__dirname, 'window_icon.png'),
+        show: false,
+        vibrancy: 'sidebar',
+        fullscreen: false,
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        },
+        autoHideMenuBar: !isMac,
+        titleBarStyle: isMac ? 'hiddenInset' : undefined,
+        frame: isMac ? undefined : false
+    });
+    outputWindow.setMenu(null);
+    outputWindow.loadFile('ffmpeg_output.html');
+    // 将操作系统和主题模式信息发送到渲染进程
+    outputWindow.webContents.on('did-finish-load', () => {
+        outputWindow.webContents.send('platform-info', { isMac });
+    });
+    outputWindow.on('close', (event) => {
+        if (app.isQuitting) {
+            // 允许窗口关闭
+            outputWindow = null;
+        } else {
+            // 阻止窗口关闭，仅仅隐藏窗口
+            event.preventDefault();
+            outputWindow.hide();
+        }
+    });
+}
 function createBiruWindow() {
     biruWindow = new BrowserWindow({
         width: 500,
         height: 400,
         icon: path.join(__dirname, 'window_icon.png'),
         show: false,
+        fullscreen: false,
         alwaysOnTop: true,
         vibrancy: 'sidebar',
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
-        }
+        },
+        autoHideMenuBar: !isMac,
+        titleBarStyle: isMac ? 'hiddenInset' : undefined,
+        frame: isMac ? undefined : false
     });
     biruWindow.setMenu(null);
     biruWindow.loadFile('biru.html');
@@ -575,11 +791,15 @@ function createSettingsWindow() {
         height: 500,
         icon: path.join(__dirname, 'window_icon.png'),
         show: false,
+        fullscreen: false,
         vibrancy: 'sidebar',
         webPreferences: {
             nodeIntegration: true,
             contextIsolation: false
-        }
+        },
+        autoHideMenuBar: !isMac,
+        titleBarStyle: isMac ? 'hiddenInset' : undefined,
+        frame: isMac ? undefined : false
     });
     settingsWindow.setMenu(null);
     settingsWindow.loadFile('settings.html');
@@ -593,46 +813,4 @@ function createSettingsWindow() {
             settingsWindow.hide();
         }
     });
-}
-app.whenReady().then(() => {
-    app.setAppUserModelId('com.dfsteve.kurisu'); // 设置应用程序的 User Model ID
-    app.setBadgeCount(0); // 设置任务栏图标上的计数
-    app.dock.setIcon(path.join(__dirname, 'window_icon.png'));
-});
-app.on('before-quit', () => {
-    app.isQuitting = true;
-});
-app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
-    }
-});
-ipcMain.on('open-terminal-window', () => {
-    showOutputWindow(); // 调用函数来创建窗口
-});
-ipcMain.on('open-settings-window', () => {
-    showSettingsWindow(); // 调用函数来创建窗口
-});
-ipcMain.on('open-biru-window', () => {
-    showBiruWindow(); // 调用函数来创建窗口
-});
-function showBiruWindow() {
-    if (biruWindow === null) { // 如果窗口不存在，则创建它
-        createBiruWindow();
-        console.log('biru is created');
-    }
-    biruWindow.show();
-}
-function showSettingsWindow() {
-    if (settingsWindow === null) { // 如果窗口不存在，则创建它
-        createSettingsWindow();
-        console.log('settings is created');
-    }
-    settingsWindow.show();
-}
-function showOutputWindow() {
-    if (outputWindow === null) { // 如果窗口不存在，则创建它
-        createOutputWindow();
-    }
-    outputWindow.show(); // 显示窗口
 }

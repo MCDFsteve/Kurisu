@@ -4,9 +4,16 @@
 <head>
     <title>Kurisu</title>
     <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="close.css">
 </head>
 
 <body>
+    <div class="windowbutton">
+        <div id="close-button" style="display: none;"></div>
+        <div id="fullscreen-button" style="display: none;"></div>
+        <div id="restore-button" style="display: none;"></div>
+        <div id="minimize-button" style="display: none;"></div>
+    </div>
     <div class="container">
         <div class="left-panel">
             <div class="input-container">
@@ -21,6 +28,7 @@
                 <img src="icons/biru.png" alt="关于" class="icon-button" id="birubutton">
                 <img src="icons/settings.png" alt="设置" class="icon-button" id="settingsbutton">
                 <img src="icons/terminal.png" alt="控制台" class="icon-button" id="terminalbutton">
+                <div id="version-text">ver114.514</div>
                 <!--<img src="icons/about.png" alt="帮助" class="icon-button" id="aboutbutton"> -->
             </div>
         </div>
@@ -31,7 +39,8 @@
                         <textarea id="userInput" placeholder=" 哼！在这里说！想让我做什么？"></textarea>
                         <div id="progressFrame"></div> <!-- 新的进度条容器 -->
                         <div class="button-container">
-                            <button id="confirmButton" onclick="sendRequest()">执行当前任务</button>
+                            <button id="confirmButton" onclick="sendRequest()" style="display: block;">执行当前任务</button>
+                            <button id="stopButton" style="display: none;">终止当前任务</button>
                             <button onclick="openOutputDir()">打开输出目录</button>
                             <button id="saveButton">对话存至预设</button>
                         </div>
@@ -42,14 +51,11 @@
                     </div>
                 </div>
             </div>
-            <div id="center-bar"></div>
-            <div id="center-bar-wall"></div>
             <div class="center-panel">
                 <div id="messageContainer"></div>   
             </div>
             <div class="bottom-panel">
             </div>
-            <div id="version-text">ver114.514</div>
         </div>
 
     </div>
