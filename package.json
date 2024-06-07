@@ -1,7 +1,7 @@
 {
   "name": "kurisu",
   "productName": "Kurisu",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "助手～",
   "main": "main.js",
   "dependencies": {
@@ -42,7 +42,7 @@
       "!**/electron-builder.yml",
       "!**/.DS_Store",
       "!**/*.bak",
-      "!**/ffmpeg/ffmpeg_mac",
+      "!**/ffmpeg/ffmpeg_win",
       "!**/ffmpeg/ffmpeg_linux64",
       "!**/ffmpeg/ffmpeg_linuxarm"
     ],
