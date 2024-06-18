@@ -1,7 +1,7 @@
 {
   "name": "kurisu",
   "productName": "Kurisu",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "助手～",
   "main": "main.js",
   "dependencies": {
@@ -19,7 +19,8 @@
     "prebuild:linux": "node scripts/prebuild.js linux",
     "win": "npm run prebuild:win && electron-builder --win --x64",
     "woa": "npm run prebuild:win && electron-builder --win --arm64",
-    "mac": "npm run prebuild:mac && electron-builder --mac",
+    "mac": "npm run prebuild:mac && electron-builder --mac --universal",
+    "macarm": "npm run prebuild:mac && electron-builder --mac",
     "macx64": "npm run prebuild:mac && electron-builder --mac --x64",
     "linux": "npm run prebuild:linux && electron-builder --linux --x64",
     "linuxarm": "npm run prebuild:linux && electron-builder --linux",
@@ -58,7 +59,8 @@
       "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
       "identity": null,
       "entitlements": "entitlements.mac.plist",
-      "entitlementsInherit": "entitlements.mac.inherit.plist"
+      "entitlementsInherit": "entitlements.mac.inherit.plist",
+      "x64ArchFiles": "**/ffmpeg_mac"
     },
     "nsis": {
       "oneClick": false,
