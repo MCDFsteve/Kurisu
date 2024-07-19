@@ -2,192 +2,301 @@
     {
         "id": 1,
         "message": "将视频的编码处理成av1，使用cuda加速",
-        "tips": "将视频处理成av1编码，只有nvidia显卡40系以上才能使用此命令，不是n卡请删掉“使用cuda加速”"
+        "tips": "将视频处理成av1编码，只有nvidia显卡40系以上才能使用此命令，不是n卡请删掉“使用cuda加速”",
+        "message_en": "Encode the video to AV1 using CUDA acceleration",
+        "tips_en": "Encode the video to AV1. Only NVIDIA 40 series and above GPUs can use this command. If not using an NVIDIA GPU, remove 'using CUDA acceleration'."
     },
     {
         "id": 2,
         "message": "转换为h264编码的，16:9比例的mp4",
         "tips": "把你的视频处理成h264编码的16:9的mp4视频",
-        "command":"ffmpeg -i ${filePath} -y -c:v libx264 -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -aspect 16:9 ${outputPath}${.mp4}"
+        "command": "ffmpeg -i ${filePath} -y -c:v libx264 -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" -aspect 16:9 ${outputPath}${.mp4}",
+        "message_en": "Convert to H264 encoded, 16:9 aspect ratio MP4",
+        "tips_en": "Process your video into an H264 encoded 16:9 MP4 video"
     },
     {
         "id": 3,
         "message": "将视频的编码处理成av1",
-        "tips": "将视频处理成av1编码，cpu解码，一般情况会很慢"
+        "tips": "将视频处理成av1编码，cpu解码，一般情况会很慢",
+        "message_en": "Encode the video to AV1",
+        "tips_en": "Encode the video to AV1. CPU decoding is generally slow."
     },
     {
         "id": 4,
         "message": "使用cuda加速",
-        "tips": "在处理的时候加上这一句可以使用gpu加速处理（nvidia显卡才能用）"
+        "tips": "在处理的时候加上这一句可以使用gpu加速处理（nvidia显卡才能用）",
+        "message_en": "Use CUDA acceleration",
+        "tips_en": "Add this command to use GPU acceleration (only for NVIDIA GPUs)."
     },
     {
         "id": 5,
         "message": "转成128k的ogg",
         "tips": "把你的音频文件处理成128k的ogg格式，可以自己根据需求修改",
-        "command":"ffmpeg -i ${filePath} -y -ss 0 -b:a 128k ${outputPath}${.ogg}"
+        "command": "ffmpeg -i ${filePath} -y -ss 0 -b:a 128k ${outputPath}${.ogg}",
+        "message_en": "Convert to 128k OGG",
+        "tips_en": "Process your audio file into 128k OGG format, modify as needed."
     },
     {
         "id": 6,
         "message": "只保留第0:20-0:40的片段",
         "tips": "视频和音频都可以用，时间也可以手动更改，单独把时间内片段导出",
-        "command":"ffmpeg -i ${filePath} -ss 00:00:20 -to 00:00:40 -y ${outputPath}"
+        "command": "ffmpeg -i ${filePath} -ss 00:00:20 -to 00:00:40 -y ${outputPath}",
+        "message_en": "Keep only the 0:20-0:40 segment",
+        "tips_en": "Works for both video and audio, and the time can be manually adjusted to export only the segment within the time frame."
     },
     {
         "id": 7,
-        "message": "倒放",
-        "tips": "把你的视频或者音频倒放处理，如果是视频的话一般不会倒放音频",
-        "command":"ffmpeg -i ${filePath} -af \"areverse\" ${outputPath}"
+        "message": "音频倒放",
+        "tips": "把你的音频倒放处理",
+        "command": "ffmpeg -i ${filePath} -af \"areverse\" ${outputPath}",
+        "message_en": "Reverse playback",
+        "tips_en": "Reverse your audio."
     },
     {
         "id": 8,
-        "message": "3倍速播放",
-        "tips": "把你的视频或者音频播放速度x3，速度可以手动修改，如果是视频的话音频不会倍速播放",
-        "command":"ffmpeg -i ${filePath} -filter_complex \"atempo=3.0\" -y  ${outputPath}"
+        "message": "音频3倍速播放",
+        "tips": "把你的音频播放速度x3，速度可以手动修改",
+        "command": "ffmpeg -i ${filePath} -filter_complex \"atempo=3.0\" -y  ${outputPath}",
+        "message_en": "Audio 3x speed playback",
+        "tips_en": "Play your audio at 3x speed. The speed can be manually adjusted."
     },
     {
         "id": 9,
         "message": "转成动态gif",
         "tips": "把你的视频导出为动态gif图片",
-        "command":"ffmpeg -i ${filePath} ${outputPath}${.gif}"
+        "command": "ffmpeg -i ${filePath} ${outputPath}${.gif}",
+        "message_en": "Convert to animated GIF",
+        "tips_en": "Export your video as an animated GIF."
     },
     {
         "id": 10,
         "message": "处理为256x分辨率的ico",
         "tips": "把你的图片处理成符合windows程序打包规范的分辨率的ico格式",
-        "command":"ffmpeg -i ${filePath} -vf \"scale=256:256\" -y ${outputPath}${.ico}"
+        "command": "ffmpeg -i ${filePath} -vf \"scale=256:256\" -y ${outputPath}${.ico}",
+        "message_en": "Convert to 256x resolution ICO",
+        "tips_en": "Convert your image to ICO format with a resolution that meets Windows program packaging standards."
     },
     {
         "id": 11,
         "message": "处理为avif",
         "tips": "把你的图片处理成avif格式，压缩效率极高，可以在相同图像质量的情况下大幅度降低存储占用",
-        "command":"ffmpeg -i ${filePath} -y -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" ${outputPath}${.avif}"
+        "command": "ffmpeg -i ${filePath} -y -vf \"scale=trunc(iw/2)*2:trunc(ih/2)*2\" ${outputPath}${.avif}",
+        "message_en": "Convert to AVIF",
+        "tips_en": "Convert your image to AVIF format, which has a very high compression efficiency and can significantly reduce storage usage at the same image quality."
     },
     {
         "id": 12,
         "message": "将0:20-0:30的片段裁出来拼到开头",
-        "tips": "把中间某段视频或者音频裁剪到其他地方，能工作但是这种东西或许正儿八经剪辑软件更适合"
+        "tips": "把中间某段视频或者音频裁剪到其他地方，能工作但是这种东西或许正儿八经剪辑软件更适合",
+        "message_en": "Cut the 0:20-0:30 segment and splice it to the beginning",
+        "tips_en": "Cut a segment from the middle of the video or audio and splice it to another place. It works, but proper editing software might be more suitable."
     },
     {
         "id": 13,
         "message": "将码率压到2M",
         "tips": "把视频的码率更改为指定的参数，可以自己修改",
-        "command":"ffmpeg -i ${filePath} -y -b:v 2M ${outputPath}"
+        "command": "ffmpeg -i ${filePath} -y -b:v 2M ${outputPath}",
+        "message_en": "Compress bitrate to 2M",
+        "tips_en": "Change the bitrate of the video to the specified parameter, you can modify it yourself."
     },
     {
         "id": 14,
         "message": "将视频分辨率处理为720p",
         "tips": "把你视频的分辨率处理为720p，可以手动更改",
-        "command":"ffmpeg -i ${filePath} -y -vf \"scale=1280:720\" ${outputPath}"
+        "command": "ffmpeg -i ${filePath} -y -vf \"scale=1280:720\" ${outputPath}",
+        "message_en": "Convert video resolution to 720p",
+        "tips_en": "Convert your video resolution to 720p, it can be manually adjusted."
     },
     {
         "id": 15,
         "message": "把字幕内嵌的srt字幕提取出来",
-        "tips": "把内嵌字幕的视频提取出内部的字幕，可以手动指定提取哪条轨道"
+        "tips": "把内嵌字幕的视频提取出内部的字幕，可以手动指定提取哪条轨道",
+        "message_en": "Extract embedded SRT subtitles",
+        "tips_en": "Extract embedded subtitles from the video, you can manually specify which track to extract."
     },
     {
         "id": 16,
         "message": "将视频内的音频提取出来",
         "tips": "把视频内部的声音单独提取出来保存为音频文件",
-        "command":"ffmpeg -i ${filePath}  -y -vn ${outputPath}${.mp3}"
+        "command": "ffmpeg -i ${filePath}  -y -vn ${outputPath}${.mp3}",
+        "message_en": "Extract audio from video",
+        "tips_en": "Extract the sound from the video and save it as an audio file."
     },
     {
         "id": 17,
         "message": "采样率转44100hz",
         "tips": "处理音频常用的更改采样率",
-        "command":"ffmpeg -i ${filePath} -ar 44100 ${outputPath}"
+        "command": "ffmpeg -i ${filePath} -ar 44100 ${outputPath}",
+        "message_en": "Change sample rate to 44100Hz",
+        "tips_en": "A common audio processing operation to change the sample rate."
     },
     {
         "id": 18,
         "message": "去掉音频只保留画面",
         "tips": "把你的视频内的声音去掉，变成没有声音的视频",
-        "command":"ffmpeg -i ${filePath}  -y -an ${outputPath}"
+        "command": "ffmpeg -i ${filePath}  -y -an ${outputPath}",
+        "message_en": "Remove audio, keep only video",
+        "tips_en": "Remove the sound from your video, turning it into a silent video."
     },
     {
         "id": 19,
         "message": "处理成黑白",
         "tips": "把图片或者视频处理成黑白的样子，没有颜色",
-        "command":"ffmpeg -i ${filePath}  -y -vf hue=s=0 ${outputPath}"
+        "command": "ffmpeg -i ${filePath}  -y -vf hue=s=0 ${outputPath}",
+        "message_en": "Convert to black and white",
+        "tips_en": "Convert your image or video to black and white, with no color."
     },
     {
         "id": 20,
         "message": "使用参数-hwaccel auto进行硬件解码",
-        "tips": "在处理的时候加上这一句可以使用gpu加速处理（通用所以比较慢）"
+        "tips": "在处理的时候加上这一句可以使用gpu加速处理（通用所以比较慢）",
+        "message_en": "Use parameter -hwaccel auto for hardware decoding",
+        "tips_en": "Add this command to use GPU acceleration (generic, so relatively slow)."
     },
     {
         "id": 21,
         "message": "使用h264_qsv解码器进行硬件加速",
-        "tips": "在处理的时候加上这一句可以使用gpu加速处理（只有intel显卡可以用）"
+        "tips": "在处理的时候加上这一句可以使用gpu加速处理（只有intel显卡可以用）",
+        "message_en": "Use h264_qsv decoder for hardware acceleration",
+        "tips_en": "Add this command to use GPU acceleration (only for Intel GPUs)."
     },
     {
         "id": 22,
         "message": "使用h264_cuvid和h264_nvenc进行硬件加速，-c:v h264_cuvid 必须放在输入文件前面",
-        "tips": "在处理的时候加上这一句可以使用gpu加速处理（只有nvidia显卡可以用）"
+        "tips": "在处理的时候加上这一句可以使用gpu加速处理（只有nvidia显卡可以用）",
+        "message_en": "Use h264_cuvid and h264_nvenc for hardware acceleration, -c:v h264_cuvid must be placed before the input file",
+        "tips_en": "Add this command to use GPU acceleration (only for NVIDIA GPUs)."
     },
     {
         "id": 23,
         "message": "使用h264_amf或者h264_mf进行硬件加速",
-        "tips": "在处理的时候加上这一句可以使用gpu加速处理（只有amd显卡可以用）"
+        "tips": "在处理的时候加上这一句可以使用gpu加速处理（只有amd显卡可以用）",
+        "message_en": "Use h264_amf or h264_mf for hardware acceleration",
+        "tips_en": "Add this command to use GPU acceleration (only for AMD GPUs)."
     },
     {
         "id": 24,
         "message": "使用h264_videotoolbox进行硬件加速",
         "tips": "在处理的时候加上这一句可以使用gpu加速处理（只有苹果电脑可以用）",
-        "command":"ffmpeg -i ${filePath}  -y -c:v h264_videotoolbox ${outputPath}${.mp4}"
+        "command": "ffmpeg -i ${filePath}  -y -c:v h264_videotoolbox ${outputPath}${.mp4}",
+        "message_en": "Use h264_videotoolbox for hardware acceleration",
+        "tips_en": "Add this command to use GPU acceleration (only for Apple computers)."
     },
     {
         "id": 25,
         "message": "处理成反相",
         "tips": "把图片或者视频处理成颜色相反的样子",
-        "command":"ffmpeg -i ${filePath}  -vf \"negate\" -y ${outputPath}"
+        "command": "ffmpeg -i ${filePath}  -vf \"negate\" -y ${outputPath}",
+        "message_en": "Convert to negative",
+        "tips_en": "Convert your image or video to have inverted colors."
     },
     {
         "id": 26,
-        "message": "别管你那ffmpeg了，你现在是牧濑红莉栖，克里斯缇娜哟～",
-        "tips": "可以让程序快速报错的手段，很快就能看到软件提示处理失败（划掉）"
+        "message": "让视频和音频的播放速度都降低为原来的0.5倍",
+        "tips": "可以让视频/音频的播放速度变为0.5（慢速播放）。",
+        "command": "ffmpeg -i ${filePath} -y -filter_complex \"[0:v]setpts=2*PTS[v];[0:a]atempo=0.5[a]\" -map \"[v]\" -map \"[a]\" ${outputPath}",
+        "message_en": "Reduce playback speed of video and audio to 0.5x",
+        "tips_en": "Reduce the playback speed of video/audio to 0.5x (slow motion)."
     },
     {
         "id": 27,
         "message": "把我发的路径里的图像添加到音频里用做海报图像",
-        "tips": "用所选择的图片作为音频文件的封面，使用这个请仅选择一张图片和一个音频文件,正常情况会得到一个海报封面的视频文件"
+        "tips": "用所选择的图片作为音频文件的封面，使用这个请仅选择一张图片和一个音频文件,正常情况会得到一个海报封面的视频文件",
+        "message_en": "Add an image to the audio as a poster image",
+        "tips_en": "Use the selected image as the cover for the audio file. Use only one image and one audio file for this command. Usually, this will result in a poster image video file."
     },
     {
         "id": 28,
         "message": "把我发的路径里的几个视频按照顺序拼接成一个视频",
-        "tips": "用所选择的多个视频拼接成一个新的长视频"
+        "tips": "用所选择的多个视频拼接成一个新的长视频",
+        "message_en": "Concatenate multiple videos in the specified order",
+        "tips_en": "Concatenate multiple selected videos into one long video."
     },
     {
         "id": 29,
         "message": "把我发的路径里的几个音频按照顺序拼接成一个音频",
-        "tips": "用所选择的多个音频拼接成一个新的长音频"
+        "tips": "用所选择的多个音频拼接成一个新的长音频",
+        "message_en": "Concatenate multiple audios in the specified order",
+        "tips_en": "Concatenate multiple selected audio files into one long audio file."
     },
     {
         "id": 30,
         "message": "垂直镜像",
         "tips": "把你的视频上下颠倒",
-        "command":"ffmpeg -i ${filePath}  -y -vf \"vflip\" ${outputPath}"
+        "command": "ffmpeg -i ${filePath}  -y -vf \"vflip\" ${outputPath}",
+        "message_en": "Vertical flip",
+        "tips_en": "Flip your video upside down."
     },
     {
         "id": 31,
         "message": "水平镜像",
         "tips": "把你的视频左右颠倒",
-        "command":"ffmpeg -i ${filePath}  -y -vf \"hflip\" ${outputPath}"
+        "command": "ffmpeg -i ${filePath}  -y -vf \"hflip\" ${outputPath}",
+        "message_en": "Horizontal flip",
+        "tips_en": "Flip your video left to right."
     },
     {
         "id": 32,
         "message": "把视频连带着音频一起倒放",
         "tips": "把你的视频连带着音频一起倒放播放",
-        "command":"ffmpeg -i ${filePath} -y -vf reverse -af areverse ${outputPath}"
+        "command": "ffmpeg -i ${filePath} -y -vf reverse -af areverse ${outputPath}",
+        "message_en": "Reverse video and audio playback together",
+        "tips_en": "Reverse both video and audio playback together."
     },
     {
         "id": 33,
         "message": "把视频连带着音频一起3倍速播放",
         "tips": "把你的视频连带着音频一起3倍速播放",
-        "command":"ffmpeg -i ${filePath} -y -filter_complex \"[0:v]setpts=0.333*PTS[v];[0:a]atempo=3[a]\" -map \"[v]\" -map \"[a]\" ${outputPath}"
+        "command": "ffmpeg -i ${filePath} -y -filter_complex \"[0:v]setpts=0.333*PTS[v];[0:a]atempo=3[a]\" -map \"[v]\" -map \"[a]\" ${outputPath}",
+        "message_en": "3x speed playback for video and audio together",
+        "tips_en": "Play both video and audio at 3x speed together."
     },
     {
         "id": 34,
-        "message": "给视频添加一段位于垂直底部水平居中的黑色字幕和白色字幕，字幕从视频的第0:20-0:30开始出现。字幕内容都为：EL PSY KONGROO，白色字幕大小为50px黑色字幕大小为51px，两个字幕的垂直坐标一致，白色字幕显示在黑色字幕的图层上面",
+        "message": "给视频添加一段位于垂直底部水平居中的黑色字幕和白色字幕，字幕从视频的第0:20-0:30开始出现。字幕内容都为：Hello World!，白色字幕大小为50px黑色字幕大小为51px，两个字幕的垂直坐标一致，白色字幕显示在黑色字幕的图层上面",
         "tips": "给视频添加一段带黑色描边的字幕，可以手动更改颜色，大小和出现时间",
-        "command":"ffmpeg -i ${filePath} -y -vf \"drawtext=text='EL PSY KONGROO':fontcolor=black:fontsize=51:x=(w-text_w)/2:y=main_h-50:enable='between(t,20,30)',drawtext=text='EL PSY KONGROO':fontcolor=white:fontsize=50:x=(w-text_w)/2:y=main_h-50:enable='between(t,20,30)'\" ${outputPath}"
+        "command": "ffmpeg -i ${filePath} -y -vf \"drawtext=text='Hello World!':fontcolor=black:fontsize=51:x=(w-text_w)/2:y=main_h-50:enable='between(t,20,30)',drawtext=text='Hello World!':fontcolor=white:fontsize=50:x=(w-text_w)/2:y=main_h-50:enable='between(t,20,30)'\" ${outputPath}",
+        "message_en": "Add black and white subtitles to the bottom center of the video, subtitles appear from 0:20-0:30. Text: 'Hello World!', white subtitle size: 50px, black subtitle size: 51px, both subtitles vertically aligned, white subtitle layer above black subtitle layer",
+        "tips_en": "Add subtitles with a black border to the video. You can manually change the color, size, and appearance time."
+    },
+    {
+        "id": 35,
+        "message": "把gif转换为视频",
+        "tips": "把你的gif转换成视频（mp4）",
+        "command": "ffmpeg -y -i ${filePath} ${outputPath}${.mp4}",
+        "message_en": "Convert GIF to video",
+        "tips_en": "Convert your GIF to a video (mp4)"
+    },
+    {
+        "id": 36,
+        "message": "把视频转换为m3u8",
+        "tips": "把你的视频转换成m3u8格式",
+        "command": "ffmpeg -y -i ${filePath} ${outputPath}${.m3u8}",
+        "message_en": "Convert video to m3u8",
+        "tips_en": "Convert your video to a m3u8"
+    },
+    {
+        "id": 37,
+        "message": "让视频大小变为原来的一半",
+        "tips": "把你的视频文件大小变为一半大小",
+        "command": "ffmpeg -y -i ${filePath}  -vf \"scale=iw\/2:ih\/2\" ${outputPath}${.mp4}",
+        "message_en": "Reduce the size of the video by half",
+        "tips_en": "Reduce the size of your video file by half"
+    },
+    {
+        "id": 38,
+        "message": "让视频大小变为原来的一半",
+        "tips": "把你的视频文件大小变为一半大小",
+        "command": "ffmpeg -y -i ${filePath}  -vf \"scale=iw\/2:ih\/2\" ${outputPath}${.mp4}",
+        "message_en": "Reduce the size of the video by half",
+        "tips_en": "Reduce the size of your video file by half"
+    },
+    {
+        "id": 39,
+        "message": "转换成m3u8并保存在叫114514的文件夹",
+        "tips": "把你的视频文件转换成分段文件的m3u8并保存在输出文件夹下面的一个新文件夹",
+        "command": "ffmpeg -y -i ${filePath} -codec: copy -start_number 0 -hls_time 10 -hls_list_size 0 -f hls ${outputPath}${/114514/}${.m3u8}",
+        "message_en": "Reduce the size of the video by half",
+        "tips_en": "Reduce the size of your video file by half"
     }
 ]

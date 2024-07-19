@@ -50,7 +50,7 @@ switch (targetOS) {
       targetSpecificFiles = [
         "!**/ffmpeg/ffmpeg_mac",
         "!**/ffmpeg/ffmpeg_win",
-        "!**/ffmpeg/ffmpeg_linux64"
+        "!**/ffmpeg/ffmpeg_linuxarm"
       ];
     } else {
       targetSpecificFiles = [

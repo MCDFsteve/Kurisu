@@ -232,7 +232,7 @@
     /* 线条宽度 */
     height: 12px;
     /* 线条高度 */
-    border: 1.5px solid #2c2c2c;
+    border: 2px solid #2c2c2c;
     /* 线条颜色为深灰色 */
     border-radius: 2px;
     /* 圆角效果 */
@@ -289,7 +289,7 @@
     /* 矩形的宽度 */
     height: 8px;
     /* 矩形的高度 */
-    border: 1.5px solid #2c2c2c;
+    border: 2px solid #2c2c2c;
     /* 线条颜色为深灰色 */
     background: none;
 }
@@ -301,7 +301,7 @@
     right: 4px;
     width: 10px;
     height: 8px;
-    border: 1.5px solid #2c2c2c;
+    border: 2px solid #2c2c2c;
     background: none;
 }
 

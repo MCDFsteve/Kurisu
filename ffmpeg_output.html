@@ -19,6 +19,11 @@
         color: #000000;
     }
 
+    body {
+        background-color: #ffffff;
+        color: #000000;
+    }
+
     .drag-area {
         position: fixed;
         top: 0;
@@ -38,7 +43,12 @@
             background-color: rgb(22, 22, 22);
         }
     }
-
+    @media (prefers-color-scheme: dark) {
+        body {
+            color: #ffffff;
+            background-color: rgb(22, 22, 22);
+        }
+    }
     /* 设置滚动条的宽度和轨道颜色 */
     ::-webkit-scrollbar {
         width: 8px;
@@ -89,11 +99,11 @@
             if (isMac) {
                 const styleSheet = document.createElement('style');
                 styleSheet.textContent = `
-        #ffmpegOutput {
+        #ffmpegOutput,body {
             background-color: initial !important;
         }
         @media (prefers-color-scheme: dark) {
-            #ffmpegOutput {
+            #ffmpegOutput,body {
             background-color: initial !important;
         }
     }
@@ -139,43 +149,59 @@
             }
         });
         function isMacOS() {
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-}
-if (isMacOS()) {
-    console.log('mac');
-} else {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    closeButton.classList.add('close-button-other');
-    closeButton.style.display = 'block';
-    closeButton.addEventListener('click', () => {
-        console.log('nipa');
-        ipcRenderer.send('close-output-window');
-    });
-    fullscreenButton.classList.add('fullscreen-button-other');
-    fullscreenButton.style.display = 'block';
-    fullscreenButton.addEventListener('click', () => {
-        console.log('nipa');
-        fullscreenButton.style.display = 'none';
-        restoreButton.style.display = 'block';
-        ipcRenderer.send('fullscreen-output-window');
-    });
-    restoreButton.classList.add('restore-button-other');
-    restoreButton.addEventListener('click', () => {
-        console.log('nipa');
-        fullscreenButton.style.display = 'block';
-        restoreButton.style.display = 'none';
-        ipcRenderer.send('restore-output-window');
-    });
-    miniButton.classList.add('minimize-button-other');
-    miniButton.style.display = 'block';
-    miniButton.addEventListener('click', () => {
-        console.log('nipa');
-        ipcRenderer.send('minimize-output-window');
-    });
-}
+            return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+        }
+        ipcRenderer.on('full-progress', (event) => {
+            const closeButton = document.getElementById('close-button');
+            const miniButton = document.getElementById('minimize-button');
+            const fullscreenButton = document.getElementById('fullscreen-button');
+            const restoreButton = document.getElementById('restore-button');
+            fullscreenButton.style.display = 'none';
+            restoreButton.style.display = 'block';
+        });
+        ipcRenderer.on('restore-progress', (event) => {
+            const closeButton = document.getElementById('close-button');
+            const miniButton = document.getElementById('minimize-button');
+            const fullscreenButton = document.getElementById('fullscreen-button');
+            const restoreButton = document.getElementById('restore-button');
+            fullscreenButton.style.display = 'block';
+            restoreButton.style.display = 'none';
+        });
+        if (isMacOS()) {
+            console.log('mac');
+        } else {
+            const closeButton = document.getElementById('close-button');
+            const miniButton = document.getElementById('minimize-button');
+            const fullscreenButton = document.getElementById('fullscreen-button');
+            const restoreButton = document.getElementById('restore-button');
+            closeButton.classList.add('close-button-other');
+            closeButton.style.display = 'block';
+            closeButton.addEventListener('click', () => {
+                console.log('nipa');
+                ipcRenderer.send('close-output-window');
+            });
+            fullscreenButton.classList.add('fullscreen-button-other');
+            fullscreenButton.style.display = 'block';
+            fullscreenButton.addEventListener('click', () => {
+                console.log('nipa');
+                fullscreenButton.style.display = 'none';
+                restoreButton.style.display = 'block';
+                ipcRenderer.send('fullscreen-output-window');
+            });
+            restoreButton.classList.add('restore-button-other');
+            restoreButton.addEventListener('click', () => {
+                console.log('nipa');
+                fullscreenButton.style.display = 'block';
+                restoreButton.style.display = 'none';
+                ipcRenderer.send('restore-output-window');
+            });
+            miniButton.classList.add('minimize-button-other');
+            miniButton.style.display = 'block';
+            miniButton.addEventListener('click', () => {
+                console.log('nipa');
+                ipcRenderer.send('minimize-output-window');
+            });
+        }
     </script>
 </body>
 

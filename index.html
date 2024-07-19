@@ -25,7 +25,7 @@
             </div>
             <!-- 图像按钮容器 -->
             <div class="icon-container">
-                <img src="icons/biru.png" alt="关于" class="icon-button" id="birubutton">
+                <img src="icons/biru.png" alt="关于" class="icon-button" id="birubutton" style= "display:none;">
                 <img src="icons/settings.png" alt="设置" class="icon-button" id="settingsbutton">
                 <img src="icons/terminal.png" alt="控制台" class="icon-button" id="terminalbutton">
                 <div id="version-text">ver114.514</div>
@@ -41,7 +41,7 @@
                         <div class="button-container">
                             <button id="confirmButton" onclick="sendRequest()" style="display: block;">执行当前任务</button>
                             <button id="stopButton" style="display: none;">终止当前任务</button>
-                            <button onclick="openOutputDir()">打开输出目录</button>
+                            <button id="openButton" onclick="openOutputDir()">打开输出目录</button>
                             <button id="saveButton">对话存至预设</button>
                         </div>
                     </div>

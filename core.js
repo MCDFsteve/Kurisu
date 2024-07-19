@@ -3,8 +3,19 @@ const { ipcRenderer } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const stopButton = document.getElementById('stopButton');
+const confirmButton = document.getElementById('confirmButton');
 let kurisucachePath;
-if (process.platform === 'win32') {
+let SYSlanguage;
+let WebWarnText;
+let YesText;
+let DoneText;
+let NoText;
+let Loadtext;
+let ConsoleText;
+let MessageLang;
+let TipsLang;
+if (process.platform === 'win32' || process.platform === 'linux') {
     // 使用 __dirname 获取当前执行目录并拼接 C:\
     kurisucachePath = path.join(__dirname, 'kurisu.json');
 } else {
@@ -13,6 +24,7 @@ if (process.platform === 'win32') {
 const fileJson = JSON.parse(fs.readFileSync(path.join(kurisucachePath), 'utf8'));
 const downloadsPath = fileJson.downloadsPath;
 const kurisuPath = path.join(downloadsPath, 'kurisu');
+const configFilePath = path.join(kurisuPath, 'kirusu-config.json');
 const messagesFolderPath = path.join(kurisuPath, 'messages');
 const filePath = path.join(messagesFolderPath, 'message.json');
 // 覆盖console.log
@@ -24,8 +36,8 @@ const appVersion = packageJson.version;
 const versionText = document.getElementById('version-text');
 versionText.textContent = `ver${appVersion}`;
 function checkInternetConnection() {
-    return axios.get('https://www.bilibili.com', {
-        timeout: 5000  // 设置较短的超时时间，例如5秒
+    return axios.get('https://www.baidu.com', {
+        timeout: 10000  // 设置较短的超时时间，例如5秒
     })
         .then(response => true)  // 网络正常
         .catch(error => false);  // 网络连接失败
@@ -35,9 +47,53 @@ console.log = function (...args) {
     ipcRenderer.send('console-log', args);
     originalLog.apply(console, args);
 };
-document.addEventListener('DOMContentLoaded', function () {
-    const stopButton = document.getElementById('stopButton');
+ipcRenderer.on('language-update', (event) => {
+    LanguageUp();
+});
+function LanguageUp() {
+    const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
+    const fileLabel = document.getElementById('fileLabel');
     const confirmButton = document.getElementById('confirmButton');
+    const stopButton = document.getElementById('stopButton');
+    const openButton = document.getElementById('openButton');
+    const saveButton = document.getElementById('saveButton');
+    const textarea = document.getElementById('userInput');
+    SYSlanguage = config.langRule.trim().replace(/^'+|'+$/g, '');
+    console.log('SYSlanguage by Core:', SYSlanguage);
+    if (SYSlanguage === 'en') {
+        fileLabel.textContent = 'Click/Drag to Upload Files';
+        textarea.placeholder = 'Hmph! Speak here! What do you want me to do?';
+        confirmButton.textContent = 'Execute Current Task';
+        stopButton.textContent = 'Terminate Current Task';
+        openButton.textContent = 'Open Output Directory';
+        saveButton.textContent = 'Save Dialogue to Preset';
+        WebWarnText = 'Connection timed out, please check your network environment.';
+        YesText = '100% Hmph! Handled it for you!!';
+        DoneText = '100% Ah! Why are you suddenly asking me to stop?';
+        NoText = '100% Ah! Failed, failed, failed, failed:';
+        Loadtext = 'Loading';
+        ConsoleText = 'Please check the console';
+        MessageLang = 'message_en';
+        TipsLang = 'tips_en';
+    } else if (SYSlanguage === 'zh_cn') {
+        fileLabel.textContent = '点击/拖放上传文件';
+        textarea.placeholder = '哼！在这里说！想让我做什么？';
+        confirmButton.textContent = '执行当前任务';
+        stopButton.textContent = '终止当前任务';
+        openButton.textContent = '打开输出目录';
+        saveButton.textContent = '对话存至预设';
+        WebWarnText = '连接超时，请检查网络环境。';
+        YesText = '100% 哼！帮你处理好了！！';
+        DoneText = '100% 啊！突然叫我停下是闹哪般？';
+        NoText = '100% 啊！失败了失败了失败了失败了：';
+        Loadtext = '连接中';
+        ConsoleText = '请查看控制台';
+        MessageLang = 'message';
+        TipsLang = 'tips';
+    }
+}
+document.addEventListener('DOMContentLoaded', function () {
+    LanguageUp();
     if (stopButton) {
         stopButton.addEventListener('click', function () {
             stopButton.style.display = 'none';
@@ -134,10 +190,16 @@ function deleteMessage(index) {
     });
 }
 function selectMessage(selectedMessage, messages) {
-    console.log('选中的消息:', selectedMessage.message); // 调试输出
+    let MessageMess;
+    if (TipsLang === 'tips_en') {
+        MessageMess = selectedMessage.message_en;
+    } else if (TipsLang === 'tips') {
+        MessageMess = selectedMessage.message;
+    }
+    console.log('选中的消息:', MessageMess); // 调试输出
     const userInput = document.getElementById('userInput');
     if (userInput) {
-        userInput.value = selectedMessage.message; // 将选中的文本放入输入框
+        userInput.value = MessageMess; // 将选中的文本放入输入框
     } else {
         console.error('找不到用户输入框元素');
         return;
@@ -187,14 +249,22 @@ function displayMessages(messages) {
             bottomPanel.className = '';
         }
     });
-
+    let MessageTips;
+    let MessageMess;
     messages.forEach((message, index) => {
+        if (TipsLang === 'tips_en') {
+            MessageTips = message.tips_en;
+            MessageMess = message.message_en;
+        } else if (TipsLang === 'tips') {
+            MessageTips = message.tips;
+            MessageMess = message.message;
+        }
         const messageDiv = document.createElement('div');
         messageDiv.className = 'selected-message';
-        messageDiv.dataset.tips = message.tips || ''; // 存储tips在元素上，方便访问
+        messageDiv.dataset.tips = MessageTips || ''; // 存储tips在元素上，方便访问
 
         const textSpan = document.createElement('span');
-        textSpan.textContent = message.message;
+        textSpan.textContent = MessageMess;
         messageDiv.appendChild(textSpan);
 
         messageDiv.onclick = () => selectMessage(message, messages);
@@ -343,17 +413,19 @@ function updateProgress(progress, errorMessage = null) {
     // 根据错误状态更新进度条和文本
     if (errorMessage) {
         clearInterval(dotsInterval);
-        progressText.textContent = errorMessage + " 请查看控制台";
+        progressText.textContent = errorMessage + `${ConsoleText}`;
         progressLine.style.backgroundColor = 'rgb(211, 105, 105)';  // 错误时显示红色
         progressBar.style.width = '100%';
         confirmButton.disabled = false;  // 仅在完成时启用按钮
         confirmButton.style.opacity = 1;
     } else {
+        stopButton.disabled = false;
+        stopButton.style.opacity = 1;
         progressBar.style.width = progress + '%';
         progressText.textContent = progress.toFixed(0) + '%';
         progressLine.style.backgroundColor = 'rgb(105, 131, 211)';  // 重置颜色为默认或成功颜色
         if (progress === 100) {
-            progressText.textContent = '100% 哼！帮你处理好了！！';  // Success message
+            progressText.textContent = `${YesText}`;  // Success message
         }
     }
 
@@ -377,27 +449,29 @@ async function sendRequest() {
     const filePaths = Array.from(fileInput.files).map(file => file.path);
     const filePathsString = filePaths.join(', ');
     if (!isConnected) {
-        progressText.textContent = '连接超时，请检查网络环境';
+        progressText.textContent = `${WebWarnText}`;
         progressBar.style.backgroundColor = 'rgb(211, 105, 105)'; // 红色进度条
         confirmButton.disabled = false;
         confirmButton.style.opacity = 1;
         return;  // 直接返回，不继续执行后续代码
     }
     // 初始化请求，显示连接中动画
-    progressText.textContent = '连接中';
+    progressText.textContent = `${Loadtext}`;
     let dotCount = 0;
     const dotsInterval = setInterval(() => {
-        progressText.textContent = '连接中' + '.'.repeat(dotCount % 4);
+        progressText.textContent = `${Loadtext}` + '.'.repeat(dotCount % 4);
         dotCount++;
+        stopButton.disabled = true;
+        stopButton.style.opacity = 0.5;
     }, 500); // 每500毫秒更新一次文本
     progressBar.value = 0;
     confirmButton.disabled = true;
     confirmButton.style.display = 'none';
     stopButton.style.display = 'block';
     // 设置超时处理
-    const timeoutId = setTimeout(() => {
+    let timeoutId = setTimeout(() => {
         clearInterval(dotsInterval);
-        progressText.textContent = '连接超时，请检查网络环境';
+        progressText.textContent = `${WebWarnText}`;
         progressBar.style.backgroundColor = 'rgb(211, 105, 105)'; // 红色进度条
         confirmButton.disabled = false;
         confirmButton.style.display = 'block';
@@ -418,7 +492,7 @@ async function sendRequest() {
     ipcRenderer.on('ffmpeg-error', (event, message) => {
         console.error(message); // 可以在控制台输出错误信息
         clearInterval(dotsInterval);
-        progressText.textContent = message + " 请查看控制台";
+        progressText.textContent = `${NoText}` + `${message}` + `${ConsoleText}`;
         progressLine.style.backgroundColor = 'rgb(211, 105, 105)';  // 错误时显示红色
         progressBar.style.width = '100%';
         confirmButton.disabled = false;  // 仅在完成时启用按钮
@@ -427,7 +501,7 @@ async function sendRequest() {
     });
     ipcRenderer.on('ffmpeg-stop', (event, message) => {
         clearInterval(dotsInterval);
-        progressText.textContent = message;
+        progressText.textContent = `${DoneText}`;
         progressLine.style.backgroundColor = 'rgb(211, 179, 105)';
         progressBar.style.width = '100%';
         confirmButton.style.display = 'block';
@@ -568,6 +642,22 @@ window.onresize = adjustInputHeight;
 function isMacOS() {
     return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
 }
+ipcRenderer.on('full-progress', (event) => {
+    const closeButton = document.getElementById('close-button');
+    const miniButton = document.getElementById('minimize-button');
+    const fullscreenButton = document.getElementById('fullscreen-button');
+    const restoreButton = document.getElementById('restore-button');
+    fullscreenButton.style.display = 'none';
+    restoreButton.style.display = 'block';
+});
+ipcRenderer.on('restore-progress', (event) => {
+    const closeButton = document.getElementById('close-button');
+    const miniButton = document.getElementById('minimize-button');
+    const fullscreenButton = document.getElementById('fullscreen-button');
+    const restoreButton = document.getElementById('restore-button');
+    fullscreenButton.style.display = 'block';
+    restoreButton.style.display = 'none';
+});
 if (isMacOS()) {
     console.log('mac');
 } else {

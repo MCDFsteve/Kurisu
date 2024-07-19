@@ -10,12 +10,15 @@
             user-select: none;
         }
 
-        #settingsui {
+        #settingsui,
+        body {
             background-color: #ffffff;
         }
 
         @media (prefers-color-scheme: dark) {
-            #settingsui {
+
+            #settingsui,
+            body {
                 background-color: #202020;
             }
         }
@@ -294,7 +297,7 @@
             /* 线条宽度 */
             height: 12px;
             /* 线条高度 */
-            border: 1.5px solid #2c2c2c;
+            border: 2px solid #2c2c2c;
             /* 线条颜色为深灰色 */
             border-radius: 2px;
             /* 圆角效果 */
@@ -353,7 +356,7 @@
             /* 矩形的宽度 */
             height: 8px;
             /* 矩形的高度 */
-            border: 1.5px solid #2c2c2c;
+            border: 2px solid #2c2c2c;
             /* 线条颜色为深灰色 */
             background: none;
         }
@@ -365,7 +368,7 @@
             right: 4px;
             width: 10px;
             height: 8px;
-            border: 1.5px solid #2c2c2c;
+            border: 2px solid #2c2c2c;
             background: none;
         }
 
@@ -396,120 +399,32 @@
     </div>
     <div class="drag-area"></div>
     <pre id="settingsui"></pre>
-    <h1>设置</h1>
-    <h3>输出文件位置</h3>
+    <h1 id="title">设置</h1>
+    <h3 id="title2">输出文件位置</h3>
     <div class="divider"></div>
     <div class="settings-container">
-        <p>当前输出目录: <span id="currentOutputPath"></span></p>
+        <p id="outputLang">当前输出目录: <span id="currentOutputPath"></span></p>
         <button id="changeOutputDir">更换输出文件夹</button>
         <button id="resetToDefault">恢复默认文件夹</button>
     </div>
     <div class="divider"></div>
-    <h3 for="namingRule">文件命名规则</h3>
+    <h3 for="namingRule" id="nameLang">文件命名规则</h3>
     <div class="divider"></div>
-    <p class="settings-container">当前文件命名: <span id="currentNamingRule"></span></p>
+    <p class="settings-container" id="nowFile">当前文件命名: <span id="currentNamingRule"></span></p>
     <select id="namingRule">
-        <option value="timestamp">当前时间</option>
-        <option value="original">保持原名</option>
+        <option value="timestamp" id="timeLang">当前时间</option>
+        <option value="original" id="originLang">保持原名</option>
+    </select>
+    <div class="divider"></div>
+    <h3 for="langRule" id="langLang">语言</h3>
+    <div class="divider"></div>
+    <p class="settings-container" id="nowLang">当前语言: <span id="currentLangRule"></span></p>
+    <select id="langRule">
+        <option value="zh_cn">简体中文</option>
+        <option value="en">English</option>
     </select>
 
-    <script>
-        const { ipcRenderer } = require('electron');
-        const currentOutputPathDisplay = document.getElementById('currentOutputPath');
-        ipcRenderer.on('platform-info', (event, { isMac }) => {
-            if (isMac) {
-                const styleSheet = document.createElement('style');
-                styleSheet.textContent = `
-                #settingsui {
-            background-color: initial !important;
-        }
-        @media (prefers-color-scheme: dark) {
-            #settingsui {
-            background-color: initial !important;
-        }
-    }
-      `;
-                document.head.appendChild(styleSheet);
-            }
-        });
-        // 当文档加载完成后，请求当前的输出路径
-        document.addEventListener('DOMContentLoaded', () => {
-            ipcRenderer.send('request-current-output-path');
-        });
-        document.getElementById('resetToDefault').addEventListener('click', () => {
-            ipcRenderer.send('reset-output-directory-to-default');
-        });
-        document.addEventListener('DOMContentLoaded', () => {
-            ipcRenderer.send('request-settings');
-        });
-        // 从主进程接收当前输出路径并显示
-        ipcRenderer.on('current-output-path', (event, path) => {
-            currentOutputPathDisplay.textContent = path;
-        });
-
-        // 当用户点击更换输出目录按钮时
-        document.getElementById('changeOutputDir').addEventListener('click', () => {
-            ipcRenderer.send('open-output-directory-dialog');
-        });
-
-        // 从主进程接收更新的输出路径并更新显示
-        ipcRenderer.on('output-path-updated', (event, newPath) => {
-            currentOutputPathDisplay.textContent = newPath;
-        });
-        ipcRenderer.on('settings-data', (event, settings) => {
-            document.getElementById('namingRule').value = settings.namingRule;
-            updateCurrentNamingRuleDisplay(settings.namingRule);
-        });
-
-        document.getElementById('namingRule').addEventListener('change', (event) => {
-            const selectedOption = event.target.value;
-            ipcRenderer.send('update-naming-rule', selectedOption);
-            updateCurrentNamingRuleDisplay(selectedOption);
-        });
-
-        function updateCurrentNamingRuleDisplay(namingRule) {
-            const namingRuleDisplay = document.getElementById('currentNamingRule');
-            namingRuleDisplay.textContent = namingRule === 'timestamp' ? '当前时间' : '保持原名';
-        }
-        function isMacOS() {
-            return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-        }
-        if (isMacOS()) {
-            console.log('mac');
-        } else {
-            const closeButton = document.getElementById('close-button');
-            const miniButton = document.getElementById('minimize-button');
-            const fullscreenButton = document.getElementById('fullscreen-button');
-            const restoreButton = document.getElementById('restore-button');
-            closeButton.classList.add('close-button-other');
-            closeButton.style.display = 'block';
-            closeButton.addEventListener('click', () => {
-                console.log('nipa');
-                ipcRenderer.send('close-settings-window');
-            });
-            fullscreenButton.classList.add('fullscreen-button-other');
-            fullscreenButton.style.display = 'block';
-            fullscreenButton.addEventListener('click', () => {
-                console.log('nipa');
-                fullscreenButton.style.display = 'none';
-                restoreButton.style.display = 'block';
-                ipcRenderer.send('fullscreen-settings-window');
-            });
-            restoreButton.classList.add('restore-button-other');
-            restoreButton.addEventListener('click', () => {
-                console.log('nipa');
-                fullscreenButton.style.display = 'block';
-                restoreButton.style.display = 'none';
-                ipcRenderer.send('restore-settings-window');
-            });
-            miniButton.classList.add('minimize-button-other');
-            miniButton.style.display = 'block';
-            miniButton.addEventListener('click', () => {
-                console.log('nipa');
-                ipcRenderer.send('minimize-settings-window');
-            });
-        }
-    </script>
+    <script src="settings.js"></script>
 </body>
 
 </html>

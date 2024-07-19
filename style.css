@@ -455,6 +455,19 @@ h1 {
     margin-bottom: 10px;
     /* 按钮之间的间距 */
     text-align: center;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    background-color: #131313;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.4);
+    user-select: none;
+    display: flex; /* 使用flex布局 */
+    justify-content: flex-start; /* 使内部文本靠左对齐 */
+    width: 100%; /* 确保按钮宽度一致 */
 }
 
 button {
@@ -518,7 +531,7 @@ button {
 
 @media (prefers-color-scheme: dark) {
 
-    button,
+    button,.button-container button,
     .selected-message {
         background-color: #444444;
         color: #b8b8b8;
