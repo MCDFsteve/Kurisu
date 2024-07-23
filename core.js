@@ -8,10 +8,12 @@ const confirmButton = document.getElementById('confirmButton');
 let kurisucachePath;
 let SYSlanguage;
 let WebWarnText;
+let LoadText;
 let YesText;
 let DoneText;
 let NoText;
-let Loadtext;
+let Load2text;
+let Loadatext;
 let ConsoleText;
 let MessageLang;
 let TipsLang;
@@ -71,10 +73,11 @@ function LanguageUp() {
         YesText = '100% Hmph! Handled it for you!!';
         DoneText = '100% Ah! Why are you suddenly asking me to stop?';
         NoText = '100% Ah! Failed, failed, failed, failed:';
-        Loadtext = 'Loading';
+        LoadText = 'Loading';
         ConsoleText = 'Please check the console';
         MessageLang = 'message_en';
         TipsLang = 'tips_en';
+        Load2text = 'Processing file';
     } else if (SYSlanguage === 'zh_cn') {
         fileLabel.textContent = '点击/拖放上传文件';
         textarea.placeholder = '哼！在这里说！想让我做什么？';
@@ -86,10 +89,77 @@ function LanguageUp() {
         YesText = '100% 哼！帮你处理好了！！';
         DoneText = '100% 啊！突然叫我停下是闹哪般？';
         NoText = '100% 啊！失败了失败了失败了失败了：';
-        Loadtext = '连接中';
+        LoadText = '连接中';
         ConsoleText = '请查看控制台';
         MessageLang = 'message';
         TipsLang = 'tips';
+        Load2text = '文件处理中';
+    }
+    else if (SYSlanguage === 'jp') {
+        fileLabel.textContent = 'クリック/ドラッグしてファイルをアップロード';
+        textarea.placeholder = 'うん！ここで言って！私に何をさせたいの？';
+        confirmButton.textContent = '現在のタスクを実行';
+        stopButton.textContent = '現在のタスクを中止';
+        openButton.textContent = '出力ディレクトリを開く';
+        saveButton.textContent = '対話をプリセットに保存';
+        WebWarnText = '接続がタイムアウトしました。ネットワーク環境を確認してください。';
+        YesText = '100% うん！処理完了！！';
+        DoneText = '100% ああ！急に止めるのはどういうこと？';
+        NoText = '100% ああ！失敗した、失敗した、失敗した、失敗した：';
+        LoadText = '接続中';
+        ConsoleText = 'コンソールを確認してください';
+        MessageLang = 'message_jp';
+        TipsLang = 'tips_jp';
+        Load2text = 'ファイル処理中';
+    }
+    else if (SYSlanguage === 'zh_tw') {
+        fileLabel.textContent = '點擊/拖放上傳文件';
+        textarea.placeholder = '哼！在這裡說！想讓我做什麼？';
+        confirmButton.textContent = '執行當前任務';
+        stopButton.textContent = '終止當前任務';
+        openButton.textContent = '打開輸出目錄';
+        saveButton.textContent = '對話存至預設';
+        WebWarnText = '連接超時，請檢查網絡環境。';
+        YesText = '100% 哼！幫你處理好了！！';
+        DoneText = '100% 啊！突然叫我停下是鬧哪般？';
+        NoText = '100% 啊！失敗了失敗了失敗了失敗了：';
+        LoadText = '連接中';
+        ConsoleText = '請查看控制台';
+        MessageLang = 'message';
+        TipsLang = 'tips_zh_tw';
+        Load2text = '文件處理中';
+    } else if (SYSlanguage === 'ru') {
+        fileLabel.textContent = 'Щелкните/перетащите для загрузки файла';
+        textarea.placeholder = 'Хм! Говори здесь! Что ты хочешь, чтобы я сделал?';
+        confirmButton.textContent = 'Выполнить текущую задачу';
+        stopButton.textContent = 'Остановить текущую задачу';
+        openButton.textContent = 'Открыть выходной каталог';
+        saveButton.textContent = 'Сохранить диалог в предустановки';
+        WebWarnText = 'Тайм-аут подключения, проверьте сетевую среду.';
+        YesText = '100% Хм! Я всё сделал!!';
+        DoneText = '100% Ах! Почему ты вдруг сказал мне остановиться?';
+        NoText = '100% Ах! Не удалось, не удалось, не удалось, не удалось:';
+        LoadText = 'Подключение';
+        ConsoleText = 'Пожалуйста, проверьте консоль';
+        MessageLang = 'message';
+        TipsLang = 'tips_ru';
+        Load2text = 'Обработка файла';
+    } else if (SYSlanguage === 'ko') {
+        fileLabel.textContent = '클릭/드래그하여 파일 업로드';
+        textarea.placeholder = '흥! 여기서 말해봐! 내가 뭘 해줬으면 좋겠어?';
+        confirmButton.textContent = '현재 작업 수행';
+        stopButton.textContent = '현재 작업 중지';
+        openButton.textContent = '출력 디렉토리 열기';
+        saveButton.textContent = '대화를 프리셋에 저장';
+        WebWarnText = '연결 시간 초과, 네트워크 환경을 확인하세요.';
+        YesText = '100% 흥! 다 처리했어!!';
+        DoneText = '100% 아! 갑자기 멈추라니 무슨 소리야?';
+        NoText = '100% 아! 실패했어, 실패했어, 실패했어, 실패했어:';
+        LoadText = '연결 중';
+        ConsoleText = '콘솔을 확인하세요';
+        MessageLang = 'message';
+        TipsLang = 'tips_ko';
+        Load2text = '파일 처리 중';
     }
 }
 document.addEventListener('DOMContentLoaded', function () {
@@ -120,7 +190,12 @@ function saveInput() {
     const timestamp = new Date().toISOString();
     const newEntry = {
         timestamp: timestamp,
-        message: userInput
+        message: userInput,
+        message_en: userInput,
+        message_jp: userInput,
+        message_zh_tw: userInput,
+        message_ru: userInput,
+        message_ko: userInput
     };
 
     fs.readFile(filePath, { encoding: 'utf8' }, (readErr, data) => {
@@ -195,7 +270,16 @@ function selectMessage(selectedMessage, messages) {
         MessageMess = selectedMessage.message_en;
     } else if (TipsLang === 'tips') {
         MessageMess = selectedMessage.message;
+    } else if (TipsLang === 'tips_jp') {
+        MessageMess = selectedMessage.message_jp;
+    } else if (TipsLang === 'tips_zh_tw') {
+        MessageMess = selectedMessage.message_zh_tw;
+    } else if (TipsLang === 'tips_ru') {
+        MessageMess = selectedMessage.message_ru;
+    } else if (TipsLang === 'tips_ko') {
+        MessageMess = selectedMessage.message_ko;
     }
+
     console.log('选中的消息:', MessageMess); // 调试输出
     const userInput = document.getElementById('userInput');
     if (userInput) {
@@ -258,6 +342,18 @@ function displayMessages(messages) {
         } else if (TipsLang === 'tips') {
             MessageTips = message.tips;
             MessageMess = message.message;
+        } else if (TipsLang === 'tips_jp') {
+            MessageTips = message.tips_jp;
+            MessageMess = message.message_jp;
+        } else if (TipsLang === 'tips_zh_tw') {
+            MessageTips = message.tips_zh_tw;
+            MessageMess = message.message_zh_tw;
+        } else if (TipsLang === 'tips_ru') {
+            MessageTips = message.tips_ru;
+            MessageMess = message.message_ru;
+        } else if (TipsLang === 'tips_ko') {
+            MessageTips = message.tips_ko;
+            MessageMess = message.message_ko;
         }
         const messageDiv = document.createElement('div');
         messageDiv.className = 'selected-message';
@@ -456,13 +552,14 @@ async function sendRequest() {
         return;  // 直接返回，不继续执行后续代码
     }
     // 初始化请求，显示连接中动画
-    progressText.textContent = `${Loadtext}`;
+    Loadatext = LoadText;
+    stopButton.disabled = true;
+    stopButton.style.opacity = 0.5;
+    progressText.textContent = `${Loadatext}`;
     let dotCount = 0;
-    const dotsInterval = setInterval(() => {
-        progressText.textContent = `${Loadtext}` + '.'.repeat(dotCount % 4);
+    let dotsInterval = setInterval(() => {
+        progressText.textContent = `${Loadatext}` + '.'.repeat(dotCount % 4);
         dotCount++;
-        stopButton.disabled = true;
-        stopButton.style.opacity = 0.5;
     }, 500); // 每500毫秒更新一次文本
     progressBar.value = 0;
     confirmButton.disabled = true;
@@ -479,11 +576,17 @@ async function sendRequest() {
     }, 60000); // 20秒超时
     const userCommand = userInput.value;
     ipcRenderer.on('update-progress', (event, progress) => {
-        if (progress > 0) {
-            clearInterval(dotsInterval);  // 取消“连接中”动画
+        if (progress < 0) {
+            Loadatext = Load2text;
+            stopButton.disabled = false;
+            stopButton.style.opacity = 1;
         }
-        updateProgress(progress);  // 使用新函数来更新进度条
+        else if (progress > 0) {
+            clearInterval(dotsInterval);
+            updateProgress(progress);  // 取消“连接中”动画
+        } // 使用新函数来更新进度条
         if (progress === 100) {
+            Loadatext = LoadText;
             confirmButton.disabled = false;  // 仅在完成时启用按钮
             confirmButton.style.display = 'block';
             stopButton.style.display = 'none';
@@ -538,8 +641,8 @@ function executeCommandsSequentially(commands, index) {
     console.log(`Executing command ${index + 1}:`, command); // Debug: 打印正在执行的命令
     executeFFmpegCommand(command).then(() => {
         const progress = ((index + 1) / commands.length) * 100;
-        progressBar.value = progress;
-        progressText.textContent = `${progress.toFixed(0)}%`;
+        progress.value = progress;
+        progress.textContent = `${progress.toFixed(0)}%`;
         if (index === commands.length - 1) {
             statusText.innerText = '处理完成';
             confirmButton.disabled = false;
@@ -551,7 +654,7 @@ function executeCommandsSequentially(commands, index) {
     });
 }
 function simulateProgress(startProgress) {
-    let progress = Math.max(startProgress, progressBar.value);
+    let progress = Math.max(startProgress, progress.value);
     const intervalId = setInterval(() => {
         if (progress < 100) {
             progress += 1; // 每次增加 1%
@@ -631,6 +734,24 @@ document.addEventListener('keydown', function (event) {
                     console.log('粘贴成功！');
                 }
                 event.preventDefault();  // 阻止默认的粘贴事件
+            }
+            break;
+        case 'z': // 撤回
+            if (isCtrlCmdPressed) {
+                if (document.activeElement === userInput) {
+                    document.execCommand('undo');
+                    console.log('撤回成功！');
+                }
+                event.preventDefault();  // 阻止默认的撤回事件
+            }
+            break;
+        case 'y': // 重做
+            if (isCtrlCmdPressed) {
+                if (document.activeElement === userInput) {
+                    document.execCommand('redo');
+                    console.log('重做成功！');
+                }
+                event.preventDefault();  // 阻止默认的重做事件
             }
             break;
     }

@@ -3,9 +3,9 @@
 }
 /* 关闭按钮的样式 */
 .close-button-other {
-    margin: 10px;
+    margin: 0px;
     right:0px;
-    position: fixed;
+    position: absolute;
     /* 绝对定位，方便放置在特定位置 */
     width: 30px;
     /* 按钮宽度 30 像素 */
@@ -16,7 +16,7 @@
     /* 鼠标悬停时显示为指针 */
     background:none;
     /* 无背景色 */
-    border: none;
+    border:none;
     /* 无边框 */
     outline: none;
     /* 无轮廓 */
@@ -31,7 +31,7 @@
     content: '';
     /* 伪元素内容为空 */
     position: absolute;
-    top: calc(22% - 20px);
+    top: 20%;
     left: 50%;
     transform: translate(-50%, -50%);
     /* 绝对定位 */
@@ -74,9 +74,9 @@
 }
 /* 最小化按钮的样式 */
 .minimize-button-other {
-    margin: 10px;
+    margin: 0px;
     right:60px;
-    position: fixed;
+    position: absolute;
     /* 绝对定位，方便放置在特定位置 */
     /* 距离右侧 40 像素 */
     width: 30px;
@@ -87,7 +87,7 @@
     /* 鼠标悬停时显示为指针 */
     background:none;
     /* 无背景色 */
-    border: none;
+    border:none;
     /* 无边框 */
     outline: none;
     /* 无轮廓 */
@@ -101,7 +101,7 @@
     content: '';
     /* 伪元素内容为空 */
     position: absolute;
-    top: calc(50% - 20px);
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     /* 绝对定位 */
@@ -129,9 +129,9 @@
 }
 /* 全屏按钮的样式 */
 .fullscreen-button-other {
-    margin: 10px;
+    margin: 0px;
     right: 30px;
-    position: fixed;
+    position: absolute;
     /* 绝对定位，方便放置在特定位置 */
     width: 30px;
     /* 按钮宽度 30 像素 */
@@ -142,7 +142,7 @@
     /* 鼠标悬停时显示为指针 */
     background: none;
     /* 无背景色 */
-    border: none;
+    border:none;
     /* 无边框 */
     outline: none;
     /* 无轮廓 */
@@ -157,7 +157,7 @@
     content: '';
     /* 伪元素内容为空 */
     position: absolute;
-    top: calc(50% - 20px);
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     /* 绝对定位 */
@@ -187,9 +187,9 @@
 }
 /* 窗口化按钮的样式 */
 .restore-button-other {
-    margin: 10px;
+    margin: 0px;
     right: 30px;
-    position: fixed;
+    position: absolute;
     /* 绝对定位，方便放置在特定位置 */
     width: 30px;
     /* 按钮宽度 30 像素 */
@@ -200,7 +200,7 @@
     /* 鼠标悬停时显示为指针 */
     background: none;
     /* 无背景色 */
-    border: none;
+    border:none;
     /* 无边框 */
     outline: none;
     /* 无轮廓 */
@@ -214,7 +214,7 @@
     content: '';
     /* 伪元素内容为空 */
     position: absolute;
-    top: calc(56% - 20px);
+    top: 60%;
     left: 50%;
     transform: translate(-50%, -50%);
     /* 绝对定位 */
@@ -230,7 +230,7 @@
 .restore-button-other::after {
     content: '';
     position: absolute;
-    top: calc(6.2px - 20px);
+    top: 25%;
     right: 4px;
     width: 10px;
     height: 8px;

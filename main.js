@@ -9,6 +9,7 @@ let ffmpegcode = 0;
 let menuTemplate;
 let menu;
 let durationMatch;
+let cuda_switch;
 const { app, BrowserWindow, ipcMain, shell, screen, Menu, globalShortcut, dialog, } = require('electron');
 const axios = require('axios');
 const fs = require('fs-extra');
@@ -140,6 +141,12 @@ ipcMain.on('update-lang-rule', (event, langRule) => {
     updateConfigFile(config);
     MenuLang();
 });
+ipcMain.on('update-cuda', (event, cuda) => {
+    const config = getConfig();
+    config.cuda_switch = cuda;
+    console.log("传输时的cuda状态：",cuda);
+    updateConfigFile(config);
+});
 ipcMain.on('request-settings', (event) => {
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
     event.sender.send('settings-data', config);
@@ -178,15 +185,16 @@ ipcMain.on('close-biru-window', () => {
         biruWindow.close();
     }
 });
-ipcMain.on('fullscreen-biru-window', () => {
+ipcMain.on('fullscreen-biru-window', (event) => {
     if (biruWindow) {
-        const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-        animateWindowResize(biruWindow, width, height, 200);
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.maximize();
     }
 });
-ipcMain.on('restore-biru-window', () => {
+ipcMain.on('restore-biru-window', (event) => {
     if (biruWindow) {
-        animateWindowResize(biruWindow, 500, 400, 200);
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.unmaximize();
     }
 });
 ipcMain.on('minimize-biru-window', (event) => {
@@ -280,15 +288,28 @@ function moveMessagesToKurisu() {
     const targetDefaultJson = path.join(targetMessagesPath, 'default.json');
     fs.copyFileSync(sourceDefaultJson, targetDefaultJson);
     console.log('Default settings file copied to:', targetDefaultJson);
-}function getSystemLangRule() {
+} function getSystemLangRule() {
     const locale = app.getLocale();
-    return locale.startsWith('zh') ? 'zh_cn' : 'en';
+    if (locale.startsWith('zh')) {
+        if (locale === 'zh-TW' || locale === 'zh_Hant_TW') {
+            return 'zh_tw';
+        }
+        return 'zh_cn';
+    } else if (locale.startsWith('ja')) {
+        return 'jp';
+    } else if (locale.startsWith('ru')) {
+        return 'ru';
+    } else if (locale.startsWith('ko')) {
+        return 'ko';
+    } else {
+        return 'en';
+    }
 }
-
 function createOutputDirectory() {
     let outputPath;
     let namingRule = 'timestamp';
-    let langRule = getSystemLangRule();  // 根据系统语言环境动态设置 langRule
+    let langRule = getSystemLangRule(); 
+    let cuda_switch = false; // 根据系统语言环境动态设置 langRule
 
     // 尝试从配置文件读取输出目录
     if (fs.existsSync(configFilePath)) {
@@ -307,6 +328,11 @@ function createOutputDirectory() {
             config.namingRule = namingRule;
         } else {
             namingRule = config.namingRule;  // 使用配置文件中的值
+        }
+        if (!config.cuda_switch) {
+            config.cuda_switch = cuda_switch;
+        } else {
+            cuda_switch = config.cuda_switch;  // 使用配置文件中的值
         }
 
         // 更新配置文件以确保默认值被写入
@@ -441,10 +467,30 @@ function syncMessagesWithDefault() {
 
                 defaults.forEach(def => {
                     const correspondingMessage = messagesById.get(def.id);
-                    if (!correspondingMessage || correspondingMessage.message !== def.message || correspondingMessage.tips !== def.tips ||correspondingMessage.message_en !== def.message_en || correspondingMessage.tips_en !== def.tips_en) {
+                    if (!correspondingMessage ||
+                        correspondingMessage.message !== def.message ||
+                        correspondingMessage.tips !== def.tips ||
+                        correspondingMessage.message_en !== def.message_en ||
+                        correspondingMessage.tips_en !== def.tips_en ||
+                        correspondingMessage.message_jp !== def.message_jp ||
+                        correspondingMessage.tips_jp !== def.tips_jp ||
+                        correspondingMessage.message_zh_tw !== def.message_zh_tw ||
+                        correspondingMessage.tips_zh_tw !== def.tips_zh_tw ||
+                        correspondingMessage.message_ru !== def.message_ru ||
+                        correspondingMessage.tips_ru !== def.tips_ru ||
+                        correspondingMessage.message_ko !== def.message_ko ||
+                        correspondingMessage.tips_ko !== def.tips_ko) {
                         if (correspondingMessage) {
                             correspondingMessage.message_en = def.message_en;
                             correspondingMessage.tips_en = def.tips_en;
+                            correspondingMessage.message_jp = def.message_jp;
+                            correspondingMessage.tips_jp = def.tips_jp;
+                            correspondingMessage.message_zh_tw = def.message_zh_tw;
+                            correspondingMessage.tips_zh_tw = def.tips_zh_tw;
+                            correspondingMessage.message_ru = def.message_ru;
+                            correspondingMessage.tips_ru = def.tips_ru;
+                            correspondingMessage.message_ko = def.message_ko;
+                            correspondingMessage.tips_ko = def.tips_ko;
                         } else {
                             messages.push(def);
                         }
@@ -473,8 +519,9 @@ function getConfig() {
         // 如果配置文件不存在，返回默认配置
         const defaultConfig = {
             outputPath: getDefaultOutputPath(),
-            namingRule: 'timestamp' ,
-            langRule:'zh_cn',// 默认命名规则
+            namingRule: 'timestamp',
+            langRule: 'en',// 默认命名规则
+            cuda_switch: false,// 是否使用CUDA加速
         };
         updateConfigFile(defaultConfig); // 创建配置文件
         return defaultConfig;
@@ -515,8 +562,21 @@ function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
     // 检查 default.json 文件中的命令
     const defaultPath = path.join(messagesFolderPath, 'default.json');
     if (fs.existsSync(defaultPath)) {
+        let selectedMessage;
         const defaultData = JSON.parse(fs.readFileSync(defaultPath, 'utf8'));
-        const selectedMessage = defaultData.find(item => item.message === userCommand);
+        if (SYSlanguage === 'en') {
+            selectedMessage = defaultData.find(item => item.message_en === userCommand);
+        } else if (SYSlanguage === 'zh_cn') {
+            selectedMessage = defaultData.find(item => item.message === userCommand);
+        } else if (SYSlanguage === 'zh_tw') {
+            selectedMessage = defaultData.find(item => item.message_zh_tw === userCommand);
+        } else if (SYSlanguage === 'jp') {
+            selectedMessage = defaultData.find(item => item.message_jp === userCommand);
+        } else if (SYSlanguage === 'ru') {
+            selectedMessage = defaultData.find(item => item.message_ru === userCommand);
+        } else if (SYSlanguage === 'ko') {
+            selectedMessage = defaultData.find(item => item.message_ko === userCommand);
+        }
         if (selectedMessage && selectedMessage.command) {
             // 处理 ${.gif} 这样的占位符
             let commands = filePaths.map((fp, index) => {
@@ -545,14 +605,21 @@ function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
     if (userCommand == "") {
         userCommand = "转成mp4";
     }
+    let cuda;
+    console.log("关键词前的cuda状态：",config.cuda_switch);
+    if (config.cuda_switch){
+        cuda = "使用cuda加速"
+    }else{
+        cuda = ""
+    }
     const message1 = "从现在开始直到对话结束,你来扮演一个只会输出ffmpeg命令的终端（由于是终端所以只会输出命令,输出命令以外的任何你的话都会失去角色扮演属性。命令也不要拿代码框包裹而是直接打出来.扮演从现在就已经开始了，你不需要回复收到而是直接进入角色，将我输入给你的内容处理成可用的ffmpeg命令。因此请务必在最开头写上ffmpeg,我会在句首给出";
-    const message2 = "输入和输出的文件路径都请完整保留原貌，不管怎么样都不许随意更改增减。如果文件夹名字是 影，那不要改成 影下。那如果没说是视频还是音频，那你直接看输入文件的后缀名是什么，是视频的话涉及到倍速，倒放什么的功能请连带音频一起处理。命令中请加入-y参数并放在-i之前。更改视频宽度和高度请确认为偶数，若为积数请px+1。如果遇到了使用-vf命令的情况则请用引号包裹-vf参数，-ss命令则请将-ss参数放在-i之前。只回复ffmpeg命令不回复除此之外的任何东西";
+    const message2 = "输入和输出的文件路径都请完整保留原貌，不管怎么样都不许随意更改增减。如果文件夹名字是 影，那不要改成 影下。那如果没说是视频还是音频，那你直接看输入文件的后缀名是什么，是视频的话涉及到倍速，倒放什么的功能请连带音频一起处理。命令中请加入-y参数并放在-i之前。更改视频宽度和高度请确认为偶数，若为积数请px+1。如果遇到了使用-vf命令的情况则请用引号包裹-vf参数，-ss命令则请将-ss参数放在-i之前。只回复ffmpeg命令不回复除此之外的任何东西。";
     let content;
     console.log('filePaths:', filePaths);
     if (filePaths.length > 1) {
-        content = `${message1}多个输入文件的路径（逗号隔开）,输入输出文件路径用双引号括起来，请按顺序生成多个ffmpeg命令并使用 || 符号分隔给出，同时输出的文件名字请继承输入的文件名字。默认的输出文件请放在${outputPath}下。${message2} "${filePath}" ${userCommand}`;
+        content = `${message1}多个输入文件的路径（逗号隔开）,输入输出文件路径用双引号括起来，请按顺序生成多个ffmpeg命令并使用 || 符号分隔给出，同时输出的文件名字请继承输入的文件名字。默认的输出文件请放在${outputPath}下。${message2} "${filePath}" ${userCommand}${cuda}`;
     } else {
-        content = `${message1}输入文件的路径,输入输出文件路径用双引号括起来。默认的输出文件请放在${outputPath}下，、输出文件命名为${generateFileName(originalFileName)}（如果在描述里手动指定了新的路径则请使用指定的命名）。没指定输出文件的后缀名的情况则和输入文件一样。${message2} "${filePath}" ${userCommand}`;
+        content = `${message1}输入文件的路径,输入输出文件路径用双引号括起来。默认的输出文件请放在${outputPath}下，、输出文件命名为${generateFileName(originalFileName)}（如果在描述里手动指定了新的路径则请使用指定的命名）。没指定输出文件的后缀名的情况则和输入文件一样。${message2} "${filePath}" ${userCommand}${cuda}`;
     }
 
     const postData = JSON.stringify({
@@ -666,6 +733,7 @@ function getOutputFilePathFromCommand(command) {
     return null;
 }
 function handleFFmpegCommand(win, command, totalDuration) {
+    win.webContents.send('update-progress', -1);
     const outputFilePath = getOutputFilePathFromCommand(command);
     if (outputFilePath) {
         ensureDirectoryExistence(outputFilePath);
@@ -676,30 +744,34 @@ function handleFFmpegCommand(win, command, totalDuration) {
     }
     let durationExtracted;
     const options = { encoding: 'utf8' };
-    const process = exec(command, options);
+    const processffmpeg = exec(command, options);
     ffmpegcode = 0;
     let stderrBuffer = '';
     ipcMain.on('stop-ffmpeg', () => {
-        if (process) {
-            process.kill(); // 发送终止信号
+        if (processffmpeg) {
+            if (process.platform === 'win32') {
+                processffmpeg.kill('SIGTERM'); // 发送终止信号
+            }else {
+                processffmpeg.kill('SIGKILL'); // 发送终止信号
+            }
             console.log('killed');
             ffmpegcode = 1;
             //process.exit(0);
         }
     });
-    process.stderr.on('data', (data) => {
+    processffmpeg.stderr.on('data', (data) => {
         stderrBuffer += data.toString();
         // 提取和更新持续时间
         const durationMatch0 = stderrBuffer.match(/Duration: (\d{2}:\d{2}:\d{2}\.\d{2})/);
         //console.log('stderrBuffer:', stderrBuffer);
-        if (durationMatch0 != null || durationMatch0 != undefined){
+        if (durationMatch0 != null || durationMatch0 != undefined) {
             durationMatch = durationMatch0;
             //console.log('durationMatch:', durationMatch);
         }
         if (durationMatch) {
             totalDuration = parseTime(durationMatch[1]);
             durationExtracted = true;
-        }else{
+        } else {
             totalDuration = 350;
         }
         // 在这里可以添加额外的错误日志处理
@@ -715,7 +787,7 @@ function handleFFmpegCommand(win, command, totalDuration) {
         }
     });
 
-    process.on('exit', (code) => {
+    processffmpeg.on('exit', (code) => {
         if (code !== 0 && code !== 255) {
             console.error(`FFmpeg process exited with code ${code}`);
             win.webContents.send('ffmpeg-error', `${code}`);
@@ -729,7 +801,7 @@ function handleFFmpegCommand(win, command, totalDuration) {
         }
     });
 
-    process.on('close', (code) => {
+    processffmpeg.on('close', (code) => {
         if (code !== 0 && code !== 255 && code != null) {
             win.webContents.send('ffmpeg-error', `1${code}`);
         } else if (code == null) {
@@ -868,10 +940,10 @@ function createBiruWindow() {
 }
 function createSettingsWindow() {
     settingsWindow = new BrowserWindow({
-        width: 500,
-        height: 650,
-        minwidth: 500,
-        minheight: 650,
+        width: 600,
+        height: 800,
+        minwidth: 600,
+        minheight: 800,
         icon: path.join(__dirname, 'window_icon.png'),
         show: false,
         fullscreen: false,
@@ -908,22 +980,51 @@ function MenuLang() {
     let menuSettings;
     let menuTmux;
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
+    cuda_switch = config.cuda_switch;
     SYSlanguage = config.langRule.trim().replace(/^'+|'+$/g, '');
-    console.log('SYSlanguage:', SYSlanguage);
+    console.log('SYSlanguage and cuda:', SYSlanguage,cuda_switch);
     if (SYSlanguage === 'en') {
+        menuBiru = "Changelog";
         menuMenu = 'Menu';
         menuSettings = 'Settings';
         menuTmux = 'Console';
     } else if (SYSlanguage === 'zh_cn') {
+        menuBiru = "更新日志";
         menuMenu = "菜单";
         menuSettings = "设置";
         menuTmux = "控制台";
+    }
+    else if (SYSlanguage === 'jp') {
+        menuBiru = "更新履歴";
+        menuMenu = "メニュー";
+        menuSettings = "設定";
+        menuTmux = "コンソール";
+    }else if (SYSlanguage === 'zh_tw') {
+        menuBiru = "更新日誌";
+        menuMenu = "選單";
+        menuSettings = "設定";
+        menuTmux = "主控台";
+    }else if (SYSlanguage === 'ru') {
+        menuBiru = "История обновлений";
+        menuMenu = "Меню";
+        menuSettings = "Настройки";
+        menuTmux = "Консоль";
+    }else if (SYSlanguage === 'ko') {
+        menuBiru = "업데이트 로그";
+        menuMenu = "메뉴";
+        menuSettings = "설정";
+        menuTmux = "콘솔";
     }
     console.log("菜单：", menuMenu, menuSettings, menuTmux);
     menuTemplate = [
         {
             label: `${menuMenu}`,
             submenu: [
+                {
+                    label: `${menuBiru}`,
+                    click: () =>
+                        showBiruWindow()
+                },
                 {
                     label: `${menuSettings}`,
                     click: () =>
@@ -950,5 +1051,8 @@ function MenuLang() {
     if (settingsWindow) {
         settingsWindow.webContents.send('language-update');
         settingsWindow.loadFile('settings.html');
+    }
+    if (biruWindow) {
+        biruWindow.webContents.send('language-update');
     }
 }

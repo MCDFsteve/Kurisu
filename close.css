@@ -15,7 +15,6 @@
     /* Electron的拖动区域 */
     /* 确保这个区域位于其他内容上方 */
 }
-
 .close-button-mac {
     position: absolute;
     top: 10px;
@@ -70,7 +69,7 @@
 }
 /* 关闭按钮的样式 */
 .close-button-other {
-    margin: 10px;
+    margin: 0px;
     right:0px;
     position: absolute;
     /* 绝对定位，方便放置在特定位置 */
@@ -83,7 +82,7 @@
     /* 鼠标悬停时显示为指针 */
     background:none;
     /* 无背景色 */
-    border: none;
+    border:none;
     /* 无边框 */
     outline: none;
     /* 无轮廓 */
@@ -98,7 +97,7 @@
     content: '';
     /* 伪元素内容为空 */
     position: absolute;
-    top: calc(22% - 10px);
+    top: 20%;
     left: 50%;
     transform: translate(-50%, -50%);
     /* 绝对定位 */
@@ -141,7 +140,7 @@
 }
 /* 最小化按钮的样式 */
 .minimize-button-other {
-    margin: 10px;
+    margin: 0px;
     right:60px;
     position: absolute;
     /* 绝对定位，方便放置在特定位置 */
@@ -154,7 +153,7 @@
     /* 鼠标悬停时显示为指针 */
     background:none;
     /* 无背景色 */
-    border: none;
+    border:none;
     /* 无边框 */
     outline: none;
     /* 无轮廓 */
@@ -168,7 +167,7 @@
     content: '';
     /* 伪元素内容为空 */
     position: absolute;
-    top: calc(50% - 10px);
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     /* 绝对定位 */
@@ -196,7 +195,7 @@
 }
 /* 全屏按钮的样式 */
 .fullscreen-button-other {
-    margin: 10px;
+    margin: 0px;
     right: 30px;
     position: absolute;
     /* 绝对定位，方便放置在特定位置 */
@@ -209,7 +208,7 @@
     /* 鼠标悬停时显示为指针 */
     background: none;
     /* 无背景色 */
-    border: none;
+    border:none;
     /* 无边框 */
     outline: none;
     /* 无轮廓 */
@@ -224,7 +223,7 @@
     content: '';
     /* 伪元素内容为空 */
     position: absolute;
-    top: calc(50% - 10px);
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     /* 绝对定位 */
@@ -254,7 +253,7 @@
 }
 /* 窗口化按钮的样式 */
 .restore-button-other {
-    margin: 10px;
+    margin: 0px;
     right: 30px;
     position: absolute;
     /* 绝对定位，方便放置在特定位置 */
@@ -267,7 +266,7 @@
     /* 鼠标悬停时显示为指针 */
     background: none;
     /* 无背景色 */
-    border: none;
+    border:none;
     /* 无边框 */
     outline: none;
     /* 无轮廓 */
@@ -281,7 +280,7 @@
     content: '';
     /* 伪元素内容为空 */
     position: absolute;
-    top: calc(56% - 10px);
+    top: 60%;
     left: 50%;
     transform: translate(-50%, -50%);
     /* 绝对定位 */
@@ -297,7 +296,7 @@
 .restore-button-other::after {
     content: '';
     position: absolute;
-    top: calc(6.2px - 10px);
+    top: 25%;
     right: 4px;
     width: 10px;
     height: 8px;

@@ -6,8 +6,62 @@
     <title>设置</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        /* 隐藏默认的复选框 */
+        input[type="checkbox"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            border: 1.5px solid #000000;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            display: inline-block;
+            vertical-align: top;
+            position: relative;
+        }
+
+        /* 复选框选中时的样式 */
+        input[type="checkbox"]:checked {
+            background-color: #000;
+        }
+
+        /* 复选框选中时显示的对勾 */
+        input[type="checkbox"]:checked::before {
+            content: '';
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(45deg);
+            width: 5px;
+            height: 8px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            input[type="checkbox"] {
+                border: 1.5px solid #ffffff;
+            }
+
+            /* 复选框选中时的样式 */
+            input[type="checkbox"]:checked {
+                background-color: #ffffff;
+            }
+
+            /* 复选框选中时显示的对勾 */
+            input[type="checkbox"]:checked::before {
+                border: solid #000000;
+                border-width: 0 2px 2px 0;
+            }
+
+            /* 悬停时线条颜色变为绿色 */
+        }
+
         body {
             user-select: none;
+            overflow-y: auto;
         }
 
         #settingsui,
@@ -133,7 +187,7 @@
 
         /* 关闭按钮的样式 */
         .close-button-other {
-            margin: 10px;
+            margin: 0px;
             right: 0px;
             position: absolute;
             /* 绝对定位，方便放置在特定位置 */
@@ -161,7 +215,7 @@
             content: '';
             /* 伪元素内容为空 */
             position: absolute;
-            top: 22%;
+            top: 20%;
             left: 50%;
             transform: translate(-50%, -50%);
             /* 绝对定位 */
@@ -205,7 +259,7 @@
 
         /* 最小化按钮的样式 */
         .minimize-button-other {
-            margin: 10px;
+            margin: 0px;
             right: 60px;
             position: absolute;
             /* 绝对定位，方便放置在特定位置 */
@@ -261,7 +315,7 @@
 
         /* 全屏按钮的样式 */
         .fullscreen-button-other {
-            margin: 10px;
+            margin: 0px;
             right: 30px;
             position: absolute;
             /* 绝对定位，方便放置在特定位置 */
@@ -321,7 +375,7 @@
 
         /* 窗口化按钮的样式 */
         .restore-button-other {
-            margin: 10px;
+            margin: 0px;
             right: 30px;
             position: absolute;
             /* 绝对定位，方便放置在特定位置 */
@@ -348,7 +402,7 @@
             content: '';
             /* 伪元素内容为空 */
             position: absolute;
-            top: 56%;
+            top: 60%;
             left: 50%;
             transform: translate(-50%, -50%);
             /* 绝对定位 */
@@ -364,7 +418,7 @@
         .restore-button-other::after {
             content: '';
             position: absolute;
-            top: 6.2px;
+            top: 25%;
             right: 4px;
             width: 10px;
             height: 8px;
@@ -421,9 +475,18 @@
     <p class="settings-container" id="nowLang">当前语言: <span id="currentLangRule"></span></p>
     <select id="langRule">
         <option value="zh_cn">简体中文</option>
+        <option value="zh_tw">繁體中文</option>
+        <option value="jp">日本語</option>
+        <option value="ko">한국어</option>
         <option value="en">English</option>
+        <option value="ru">Русский</option>
     </select>
-
+    <div class="divider"></div>
+    <h3 id="otherlang">其他</h3>
+    <div class="divider"></div>
+    <p class="settings-container"><label for="cudaSwitch" id="cudatext">启用CUDA加速（出现问题请关掉）</label>
+        <input type="checkbox" id="cudaSwitch">
+    </p>
     <script src="settings.js"></script>
 </body>
 
