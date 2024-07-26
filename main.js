@@ -18,6 +18,7 @@ const exec = require('child_process').exec;
 const os = require('os');
 // 定义原始 messages 文件夹的路径
 const originalMessagesPath = path.join(__dirname, 'messages');
+const shareFolderPath = path.join(originalMessagesPath, 'share');
 const originaldefaultPath = path.join(__dirname, 'messages', 'default.json');
 // 定义目标路径，即用户下载文件夹下的 kurisu 文件夹
 const downloadsPath = app.getPath('userData');
@@ -31,12 +32,26 @@ const ffmpeglinux64 = path.join(__dirname, 'ffmpeg', 'ffmpeg_linux64');
 const ffmpeglinuxarm = path.join(__dirname, 'ffmpeg', 'ffmpeg_linuxarm');
 const ffmpegwin = path.join(__dirname, 'ffmpeg', 'ffmpeg_win', 'bin', 'ffmpeg.exe')
 const https = require('https');
+const Steamworks = require('steamworks.js');
+let steamClient;
+const ItemState = {
+    None: 0,
+    Subscribed: 1 << 0,
+    LegacyItem: 1 << 1,
+    Installed: 1 << 2,
+    NeedsUpdate: 1 << 3,
+    Downloading: 1 << 4,
+    DownloadPending: 1 << 5
+};
 // 假设配置文件路径
 const configFilePath = path.join(kurisuPath, 'kirusu-config.json');
 // 忽略证书错误
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 // 确保关闭窗口时清理引用
 app.on('window-all-closed', () => {
+    if (steamClient) {
+        steamClient.dispose();
+    }
     if (outputWindow !== null) {
         outputWindow.close();
     }
@@ -53,6 +68,9 @@ app.on('browser-window-blur', () => {
     unregisterShortcuts();
 });
 app.whenReady().then(() => {
+    if (isSteamRunning()) {
+        initializeSteamWorkshop();
+    }
     process.env.PYTHONIOENCODING = 'utf8'; // 强制使用 UTF-8 编码
     let kurisucachePath;
     if (process.platform === 'win32' || process.platform === 'linux') {
@@ -144,7 +162,7 @@ ipcMain.on('update-lang-rule', (event, langRule) => {
 ipcMain.on('update-cuda', (event, cuda) => {
     const config = getConfig();
     config.cuda_switch = cuda;
-    console.log("传输时的cuda状态：",cuda);
+    console.log("传输时的cuda状态：", cuda);
     updateConfigFile(config);
 });
 ipcMain.on('request-settings', (event) => {
@@ -308,7 +326,7 @@ function moveMessagesToKurisu() {
 function createOutputDirectory() {
     let outputPath;
     let namingRule = 'timestamp';
-    let langRule = getSystemLangRule(); 
+    let langRule = getSystemLangRule();
     let cuda_switch = false; // 根据系统语言环境动态设置 langRule
 
     // 尝试从配置文件读取输出目录
@@ -430,87 +448,110 @@ function unregisterShortcuts() {
     globalShortcut.unregister('CommandOrControl+Q');
 }
 function syncMessagesWithDefault() {
-    // 检查 message.json 文件是否存在
-    if (!fs.existsSync(messagesPath)) {
-        // 如果不存在，从 default.json 读取内容并创建 message.json
-        fs.readFile(originaldefaultPath, { encoding: 'utf8' }, (err, defaultData) => {
-            if (err) {
-                console.error('读取 default.json 文件时出错:', err);
-                return;
-            }
-            // 将 default.json 的内容写入新创建的 message.json
-            fs.writeFile(messagesPath, defaultData, { encoding: 'utf8' }, (err) => {
-                if (err) {
-                    console.error('创建 message.json 文件时出错:', err);
-                } else {
-                    console.log('message.json 文件已创建并初始化');
+    let messages = [];
+
+    // 如果 message.json 文件存在，读取其内容
+    if (fs.existsSync(messagesPath)) {
+        try {
+            const messageData = fs.readFileSync(messagesPath, 'utf8');
+            messages = JSON.parse(messageData);
+        } catch (err) {
+            console.error('读取 message.json 文件时出错:', err);
+        }
+    }
+
+    const messagesById = new Map(messages.map(msg => [msg.id, msg]));
+    let updated = false;
+
+    // 读取 default.json 并同步内容
+    if (fs.existsSync(defaultPath)) {
+        try {
+            const defaultData = fs.readFileSync(defaultPath, 'utf8');
+            const defaults = JSON.parse(defaultData);
+
+            defaults.forEach(def => {
+                const correspondingMessage = messagesById.get(def.id);
+                if (!correspondingMessage) {
+                    messages.push(def);
+                    messagesById.set(def.id, def);
+                    updated = true;
+                } else if (
+                    correspondingMessage.message !== def.message ||
+                    correspondingMessage.tips !== def.tips ||
+                    correspondingMessage.message_en !== def.message_en ||
+                    correspondingMessage.tips_en !== def.tips_en ||
+                    correspondingMessage.message_jp !== def.message_jp ||
+                    correspondingMessage.tips_jp !== def.tips_jp ||
+                    correspondingMessage.message_zh_tw !== def.message_zh_tw ||
+                    correspondingMessage.tips_zh_tw !== def.tips_zh_tw ||
+                    correspondingMessage.message_ru !== def.message_ru ||
+                    correspondingMessage.tips_ru !== def.tips_ru ||
+                    correspondingMessage.message_ko !== def.message_ko ||
+                    correspondingMessage.tips_ko !== def.tips_ko
+                ) {
+                    correspondingMessage.message_en = def.message_en;
+                    correspondingMessage.tips_en = def.tips_en;
+                    correspondingMessage.message_jp = def.message_jp;
+                    correspondingMessage.tips_jp = def.tips_jp;
+                    correspondingMessage.message_zh_tw = def.message_zh_tw;
+                    correspondingMessage.tips_zh_tw = def.tips_zh_tw;
+                    correspondingMessage.message_ru = def.message_ru;
+                    correspondingMessage.tips_ru = def.tips_ru;
+                    correspondingMessage.message_ko = def.message_ko;
+                    correspondingMessage.tips_ko = def.tips_ko;
+                    updated = true;
                 }
             });
-        });
-    } else {
-        // 如果文件已存在，执行现有的同步逻辑
-        fs.readFile(messagesPath, { encoding: 'utf8' }, (err, messageData) => {
-            if (err) {
-                console.error('读取 message.json 文件时出错:', err);
-                return;
-            }
-            fs.readFile(defaultPath, { encoding: 'utf8' }, (err, defaultData) => {
-                if (err) {
-                    console.error('读取 default.json 文件时出错:', err);
-                    return;
-                }
+        } catch (err) {
+            console.error('读取 default.json 文件时出错:', err);
+        }
+    }
 
-                const messages = JSON.parse(messageData);
-                const defaults = JSON.parse(defaultData);
-                const messagesById = new Map(messages.map(msg => [msg.id, msg]));
-                let updated = false;
+    // 检测 share 文件夹中的所有 JSON 文件并将其内容写入 message.json
+    if (fs.existsSync(shareFolderPath)) {
+        const jsonFiles = fs.readdirSync(shareFolderPath).filter(file => path.extname(file).toLowerCase() === '.json');
 
-                defaults.forEach(def => {
-                    const correspondingMessage = messagesById.get(def.id);
-                    if (!correspondingMessage ||
-                        correspondingMessage.message !== def.message ||
-                        correspondingMessage.tips !== def.tips ||
-                        correspondingMessage.message_en !== def.message_en ||
-                        correspondingMessage.tips_en !== def.tips_en ||
-                        correspondingMessage.message_jp !== def.message_jp ||
-                        correspondingMessage.tips_jp !== def.tips_jp ||
-                        correspondingMessage.message_zh_tw !== def.message_zh_tw ||
-                        correspondingMessage.tips_zh_tw !== def.tips_zh_tw ||
-                        correspondingMessage.message_ru !== def.message_ru ||
-                        correspondingMessage.tips_ru !== def.tips_ru ||
-                        correspondingMessage.message_ko !== def.message_ko ||
-                        correspondingMessage.tips_ko !== def.tips_ko) {
-                        if (correspondingMessage) {
-                            correspondingMessage.message_en = def.message_en;
-                            correspondingMessage.tips_en = def.tips_en;
-                            correspondingMessage.message_jp = def.message_jp;
-                            correspondingMessage.tips_jp = def.tips_jp;
-                            correspondingMessage.message_zh_tw = def.message_zh_tw;
-                            correspondingMessage.tips_zh_tw = def.tips_zh_tw;
-                            correspondingMessage.message_ru = def.message_ru;
-                            correspondingMessage.tips_ru = def.tips_ru;
-                            correspondingMessage.message_ko = def.message_ko;
-                            correspondingMessage.tips_ko = def.tips_ko;
-                        } else {
-                            messages.push(def);
-                        }
+        jsonFiles.forEach(jsonFile => {
+            const filePath = path.join(shareFolderPath, jsonFile);
+            console.log(`处理文件: ${jsonFile}`);  // 打印文件名
+            try {
+                const fileData = fs.readFileSync(filePath, 'utf8');
+                const additionalMessages = JSON.parse(fileData);
+
+                additionalMessages.forEach(additionalMessage => {
+                    const correspondingMessage = messagesById.get(additionalMessage.id);
+                    if (!correspondingMessage) {
+                        messages.push(additionalMessage);
+                        messagesById.set(additionalMessage.id, additionalMessage);
                         updated = true;
                     }
                 });
-
-                if (updated) {
-                    fs.writeFile(messagesPath, JSON.stringify(messages, null, 2), (err) => {
-                        if (err) {
-                            console.error('写入更新的 message.json 文件时出错:', err);
-                        } else {
-                            console.log('message.json 文件已更新');
-                        }
-                    });
-                }
-            });
+            } catch (err) {
+                console.error(`读取 ${jsonFile} 文件时出错:`, err);
+            }
         });
     }
+
+    if (updated) {
+        try {
+            fs.writeFileSync(messagesPath, JSON.stringify(messages, null, 2), 'utf8');
+            console.log('message.json 文件已更新');
+        } catch (err) {
+            console.error('写入更新的 message.json 文件时出错:', err);
+        }
+    }
 }
+
+// 初始化时调用一次
+syncMessagesWithDefault();
+
+// 使用 fs.watch 监控 share 文件夹
+fs.watch(shareFolderPath, (eventType, filename) => {
+    if (filename && path.extname(filename).toLowerCase() === '.json') {
+        console.log(`检测到文件变动: ${filename}`);
+        syncMessagesWithDefault();
+    }
+});
 function getConfig() {
     if (fs.existsSync(configFilePath)) {
         const configData = fs.readFileSync(configFilePath, 'utf8');
@@ -606,10 +647,10 @@ function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
         userCommand = "转成mp4";
     }
     let cuda;
-    console.log("关键词前的cuda状态：",config.cuda_switch);
-    if (config.cuda_switch){
+    console.log("关键词前的cuda状态：", config.cuda_switch);
+    if (config.cuda_switch) {
         cuda = "使用cuda加速"
-    }else{
+    } else {
         cuda = ""
     }
     const message1 = "从现在开始直到对话结束,你来扮演一个只会输出ffmpeg命令的终端（由于是终端所以只会输出命令,输出命令以外的任何你的话都会失去角色扮演属性。命令也不要拿代码框包裹而是直接打出来.扮演从现在就已经开始了，你不需要回复收到而是直接进入角色，将我输入给你的内容处理成可用的ffmpeg命令。因此请务必在最开头写上ffmpeg,我会在句首给出";
@@ -751,7 +792,7 @@ function handleFFmpegCommand(win, command, totalDuration) {
         if (processffmpeg) {
             if (process.platform === 'win32') {
                 processffmpeg.kill('SIGTERM'); // 发送终止信号
-            }else {
+            } else {
                 processffmpeg.kill('SIGKILL'); // 发送终止信号
             }
             console.log('killed');
@@ -982,7 +1023,7 @@ function MenuLang() {
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
     cuda_switch = config.cuda_switch;
     SYSlanguage = config.langRule.trim().replace(/^'+|'+$/g, '');
-    console.log('SYSlanguage and cuda:', SYSlanguage,cuda_switch);
+    console.log('SYSlanguage and cuda:', SYSlanguage, cuda_switch);
     if (SYSlanguage === 'en') {
         menuBiru = "Changelog";
         menuMenu = 'Menu';
@@ -999,17 +1040,17 @@ function MenuLang() {
         menuMenu = "メニュー";
         menuSettings = "設定";
         menuTmux = "コンソール";
-    }else if (SYSlanguage === 'zh_tw') {
+    } else if (SYSlanguage === 'zh_tw') {
         menuBiru = "更新日誌";
         menuMenu = "選單";
         menuSettings = "設定";
         menuTmux = "主控台";
-    }else if (SYSlanguage === 'ru') {
+    } else if (SYSlanguage === 'ru') {
         menuBiru = "История обновлений";
         menuMenu = "Меню";
         menuSettings = "Настройки";
         menuTmux = "Консоль";
-    }else if (SYSlanguage === 'ko') {
+    } else if (SYSlanguage === 'ko') {
         menuBiru = "업데이트 로그";
         menuMenu = "메뉴";
         menuSettings = "설정";
@@ -1055,4 +1096,88 @@ function MenuLang() {
     if (biruWindow) {
         biruWindow.webContents.send('language-update');
     }
+}
+function isSteamRunning() {
+    try {
+        steamClient = Steamworks.init(3034460); // 使用你的应用程序ID
+        console.log("Steam client initialized:", steamClient);
+        console.log("Workshop API:", steamClient.workshop);
+        if (steamClient && steamClient.workshop) {
+            console.log("Steam client is running and Steamworks Workshop API initialized successfully.");
+            return true;
+        } else {
+            console.error("Failed to initialize Steamworks Workshop API. steamClient.workshop is undefined.");
+            return false;
+        }
+    } catch (error) {
+        console.error("Steam is not running or Steam client install directory could not be determined:", error);
+        return false;
+    }
+}
+
+async function initializeSteamWorkshop() {
+    try {
+        await downloadSubscribedItems();
+        startDownloadCheckLoop();
+    } catch (error) {
+        console.error("Failed to download subscribed items:", error);
+    }
+}
+
+async function getSubscribedItems() {
+    try {
+        const subscribedItems = await steamClient.workshop.getSubscribedItems();
+        return subscribedItems;
+    } catch (error) {
+        console.error("Error getting subscribed items:", error);
+        return [];
+    }
+}
+
+async function downloadSubscribedItems() {
+    const subscribedItems = await getSubscribedItems();
+    for (const itemId of subscribedItems) {
+        try {
+            await steamClient.workshop.download(itemId, true);
+        } catch (error) {
+            console.error("Error downloading item:", itemId, error);
+        }
+    }
+}
+
+function startDownloadCheckLoop() {
+    setInterval(async () => {
+        try {
+            const subscribedItems = await getSubscribedItems();
+            for (const itemId of subscribedItems) {
+                const itemState = await steamClient.workshop.state(itemId);
+                //console.log("Item state for", itemId, ":", itemState);
+                if (itemState & ItemState.Installed) {
+                    const itemInstallInfo = await steamClient.workshop.installInfo(itemId);
+                    if (itemInstallInfo) {
+                        const { folder } = itemInstallInfo;
+                        moveWorkshopFilesToShareFolder(folder);
+
+                        // 更新文件状态并通知 Steam 客户端
+                        await steamClient.workshop.downloadInfo(itemId, true);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error("Error in download check loop:", error);
+        }
+    }, 10000); // 每10秒检查一次
+}
+
+function moveWorkshopFilesToShareFolder(workshopFolder) {
+    if (!fs.existsSync(shareFolderPath)) {
+        fs.mkdirSync(shareFolderPath);
+    }
+
+    const files = fs.readdirSync(workshopFolder);
+    files.forEach(file => {
+        const srcPath = path.join(workshopFolder, file);
+        const destPath = path.join(shareFolderPath, file);
+        fs.renameSync(srcPath, destPath);
+    });
 }

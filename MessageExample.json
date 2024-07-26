@@ -1,0 +1,32 @@
+[
+    {
+        "id": 2024072501,
+        "message": "把图片转成jpg",
+        "tips": "将图片处理成jpg格式",
+        "command": "ffmpeg -i ${filePath} ${outputPath}${.jpg}"
+    },
+    {
+        "id": 2024072502,
+        "message": "把图片转成png",
+        "tips": "将图片处理成png格式",
+        "command": "ffmpeg -i ${filePath} ${outputPath}${.png}"
+    },
+    {
+        "id": 2024072503,
+        "message": "把图片转成gif",
+        "tips": "将图片处理成gif格式",
+        "command": "ffmpeg -i ${filePath} ${outputPath}${.gif}"
+    },
+    {
+        "id": 2024072504,
+        "message": "把图片转成webp",
+        "tips": "将图片处理成webp格式",
+        "command": "ffmpeg -i ${filePath} ${outputPath}${.webp}"
+    },
+    {
+        "id": 2024072505,
+        "message": "把图片转成avif",
+        "tips": "将图片处理成avif格式",
+        "command": "ffmpeg -i ${filePath} ${outputPath}${.avif}"
+    }
+]
