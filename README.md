@@ -10,6 +10,8 @@
 
 FFmpeg来自 https://ffmpeg.org/ 使用了官网编译好的二进制可执行文件
 
+如果你想自己编译项目或者修改项目，请在拉取项目以后对照<code>package.json</code>内对所需要的库进行<code>npm install</code>拉取。
+
 ### macOS用户请注意，直接运行程序会提示已损坏，请在终端输入sudo xattr -dr com.apple.quarantine 程序.app的运行路径（可以从访达拖放），输入密码以后就能正常打开了
 <img width="800" alt="image" src="https://github.com/MCDFsteve/Kurisu/assets/71605531/4ee5bab1-84c2-4609-bf66-d4c2a19447af">
 
