@@ -1,0 +1,173 @@
+.default-message:hover {
+    background-color: #030303!important;
+    color: #fff!important;
+}
+.default-message {
+    background-color: #dfdfdf!important;
+    color: #535353!important;
+}
+@media (prefers-color-scheme: dark) {
+    .default-message {
+        background-color: #585858!important;
+        color: #ffffff!important;
+    }
+    .default-message:hover {
+        background-color: #3c3c3c!important;
+        color: #ffffff!important;
+    }
+}
+/*红-0*/
+.class-0 {
+    background-color: #eedede!important;
+}
+.class-0:hover {
+    background-color: #432b2b!important;
+}
+@media (prefers-color-scheme: dark) {
+    .class-0 {
+        background-color: #503333!important;
+    }
+    .class-0:hover {
+        background-color: #432b2b!important;
+    }
+}
+/*橙-1*/
+.class-1 {
+    background-color: #eee2de!important;
+}
+.class-1:hover {
+    background-color: #43362b!important;
+}
+@media (prefers-color-scheme: dark) {
+    .class-1 {
+        background-color: #504233!important;
+    }
+    .class-1:hover {
+        background-color: #43362b!important;
+    }
+}
+/*黄-2*/
+.class-2 {
+    background-color: #eeecde!important;
+}
+.class-2:hover {
+    background-color: #43402b!important;
+}
+@media (prefers-color-scheme: dark) {
+    .class-2 {
+        background-color: #504733!important;
+    }
+    .class-2:hover {
+        background-color: #433c2b!important;
+    }
+}
+/*绿-3*/
+.class-3 {
+    background-color: #e6eede!important;
+}
+.class-3:hover {
+    background-color: #3b432b!important;
+}
+@media (prefers-color-scheme: dark) {
+    .class-3 {
+        background-color: #435033!important;
+    }
+    .class-3:hover {
+        background-color: #3b432b!important;
+    }
+}
+
+/*蓝-4*/
+.class-4 {
+    background-color: #dee9ee!important;
+}
+.class-4:hover {
+    background-color: #2b3943!important;
+}
+@media (prefers-color-scheme: dark) {
+    .class-4 {
+        background-color: #334350!important;
+    }
+    .class-4:hover {
+        background-color: #2b3943!important;
+    }
+}
+
+/*靛-5*/
+.class-5 {
+    background-color: #dee2ee!important;
+}
+.class-5:hover {
+    background-color: #2b3243!important;
+}
+@media (prefers-color-scheme: dark) {
+    .class-5 {
+        background-color: #333650!important;
+    }
+    .class-5:hover {
+        background-color: #2b3243!important;
+    }
+}
+
+/*紫-6*/
+.class-6 {
+    background-color: #e8deee!important;
+}
+.class-6:hover {
+    background-color: #3e2b43!important;
+}
+@media (prefers-color-scheme: dark) {
+    .class-6 {
+        background-color: #503350!important;
+    }
+    .class-6:hover {
+        background-color: #3e2b43!important;
+    }
+}
+
+/*粉-7*/
+.class-7 {
+    background-color: #eedee6!important;
+}
+.class-7:hover {
+    background-color: #432b3b!important;
+}
+@media (prefers-color-scheme: dark) {
+    .class-7 {
+        background-color: #503343!important;
+    }
+    .class-7:hover {
+        background-color: #432b3b!important;
+    }
+}
+/*香草青-8*/
+.class-8 {
+    background-color: #e0f2f1!important;
+}
+.class-8:hover {
+    background-color: #3e736e!important;
+}
+@media (prefers-color-scheme: dark) {
+    .class-8 {
+        background-color: #40635f!important;
+    }
+    .class-8:hover {
+        background-color: #3e736e!important;
+    }
+}
+
+/*石榴红-9*/
+.class-9 {
+    background-color: #f9e6e7!important;
+}
+.class-9:hover {
+    background-color: #a43e4a!important;
+}
+@media (prefers-color-scheme: dark) {
+    .class-9 {
+        background-color: #7d2e35!important;
+    }
+    .class-9:hover {
+        background-color: #a43e4a!important;
+    }
+}

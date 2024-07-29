@@ -34,6 +34,7 @@ const ffmpegwin = path.join(__dirname, 'ffmpeg', 'ffmpeg_win', 'bin', 'ffmpeg.ex
 const https = require('https');
 const Steamworks = require('steamworks.js');
 let steamClient;
+let previousSubscribedItems = new Set();
 const ItemState = {
     None: 0,
     Subscribed: 1 << 0,
@@ -45,6 +46,7 @@ const ItemState = {
 };
 // 假设配置文件路径
 const configFilePath = path.join(kurisuPath, 'kirusu-config.json');
+const WorkFilePath = path.join(kurisuPath, 'kirusu-work.json');
 // 忽略证书错误
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
 // 确保关闭窗口时清理引用
@@ -81,7 +83,6 @@ app.whenReady().then(() => {
     }
     const data = { downloadsPath };
     fs.writeFileSync(kurisucachePath, JSON.stringify(data, null, 2), 'utf8');
-    syncMessagesWithDefault();
     moveMessagesToKurisu();
     createOutputDirectory();
     createOutputWindow();
@@ -89,6 +90,7 @@ app.whenReady().then(() => {
     createSettingsWindow();
     createWindow();
     MenuLang();
+    syncMessagesWithDefault();
 });
 app.whenReady().then(() => {
     app.setAppUserModelId('com.dfsteve.kurisu'); // 设置应用程序的 User Model ID
@@ -454,13 +456,17 @@ function syncMessagesWithDefault() {
     if (fs.existsSync(messagesPath)) {
         try {
             const messageData = fs.readFileSync(messagesPath, 'utf8');
-            messages = JSON.parse(messageData);
+            if (messageData) {
+                messages = JSON.parse(messageData);
+            } else {
+                console.warn('message.json 文件为空');
+            }
         } catch (err) {
             console.error('读取 message.json 文件时出错:', err);
         }
     }
 
-    const messagesById = new Map(messages.map(msg => [msg.id, msg]));
+    const messagesById = new Map(messages.filter(msg => msg.id).map(msg => [msg.id, msg]));
     let updated = false;
 
     // 读取 default.json 并同步内容
@@ -507,22 +513,40 @@ function syncMessagesWithDefault() {
         }
     }
 
-    // 检测 share 文件夹中的所有 JSON 文件并将其内容写入 message.json
+    // 重新加载并覆盖 share 目录中的内容
     if (fs.existsSync(shareFolderPath)) {
         const jsonFiles = fs.readdirSync(shareFolderPath).filter(file => path.extname(file).toLowerCase() === '.json');
 
         jsonFiles.forEach(jsonFile => {
             const filePath = path.join(shareFolderPath, jsonFile);
-            console.log(`处理文件: ${jsonFile}`);  // 打印文件名
             try {
                 const fileData = fs.readFileSync(filePath, 'utf8');
                 const additionalMessages = JSON.parse(fileData);
 
                 additionalMessages.forEach(additionalMessage => {
+                    if (!additionalMessage.id) {
+                        // 跳过没有 id 的条目
+                        return;
+                    }
                     const correspondingMessage = messagesById.get(additionalMessage.id);
                     if (!correspondingMessage) {
                         messages.push(additionalMessage);
                         messagesById.set(additionalMessage.id, additionalMessage);
+                        updated = true;
+                    } else {
+                        // 更新已有的消息
+                        correspondingMessage.message = additionalMessage.message;
+                        correspondingMessage.tips = additionalMessage.tips;
+                        correspondingMessage.message_en = additionalMessage.message_en;
+                        correspondingMessage.tips_en = additionalMessage.tips_en;
+                        correspondingMessage.message_jp = additionalMessage.message_jp;
+                        correspondingMessage.tips_jp = additionalMessage.tips_jp;
+                        correspondingMessage.message_zh_tw = additionalMessage.message_zh_tw;
+                        correspondingMessage.tips_zh_tw = additionalMessage.tips_zh_tw;
+                        correspondingMessage.message_ru = additionalMessage.message_ru;
+                        correspondingMessage.tips_ru = additionalMessage.tips_ru;
+                        correspondingMessage.message_ko = additionalMessage.message_ko;
+                        correspondingMessage.tips_ko = additionalMessage.tips_ko;
                         updated = true;
                     }
                 });
@@ -531,6 +555,32 @@ function syncMessagesWithDefault() {
             }
         });
     }
+
+    // 重新生成 messages 数组，确保只有一个相同 id 的条目
+    messages = Array.from(messagesById.values());
+
+    // 检查 message.json 中的消息是否在 default.json 和 share 文件夹中都找不到对应的文件
+    messages = messages.filter(message => {
+        if (!message.id) {
+            // 跳过没有 id 的条目
+            return true;
+        }
+        const existsInDefault = fs.existsSync(defaultPath) && JSON.parse(fs.readFileSync(defaultPath, 'utf8')).some(def => def.id === message.id);
+        const existsInShare = fs.existsSync(shareFolderPath) && fs.readdirSync(shareFolderPath).filter(file => path.extname(file).toLowerCase() === '.json').some(jsonFile => {
+            const filePath = path.join(shareFolderPath, jsonFile);
+            const fileData = fs.readFileSync(filePath, 'utf8');
+            const additionalMessages = JSON.parse(fileData);
+            return additionalMessages.some(additionalMessage => additionalMessage.id === message.id);
+        });
+
+        if (!existsInDefault && !existsInShare) {
+            messagesById.delete(message.id);
+            updated = true;
+            return false;
+        }
+
+        return true;
+    });
 
     if (updated) {
         try {
@@ -541,17 +591,42 @@ function syncMessagesWithDefault() {
         }
     }
 }
-
 // 初始化时调用一次
-syncMessagesWithDefault();
 
 // 使用 fs.watch 监控 share 文件夹
 fs.watch(shareFolderPath, (eventType, filename) => {
     if (filename && path.extname(filename).toLowerCase() === '.json') {
         console.log(`检测到文件变动: ${filename}`);
-        syncMessagesWithDefault();
+        if (fs.existsSync(messagesPath)) {
+            syncMessagesWithDefault();
+        }
+    }
+    if (eventType === 'rename' && filename && !fs.existsSync(path.join(shareFolderPath, filename))) {
+        console.log(`检测到文件删除: ${filename}`);
+        if (fs.existsSync(messagesPath)) {
+            syncMessagesWithDefault();
+        }
     }
 });
+
+if (fs.existsSync(messagesPath)) {
+    fs.watch(messagesPath, (eventType, filename) => {
+    if (filename) {
+        console.log(`检测到 message.json 文件变动: ${filename}`);
+        if (fs.existsSync(messagesPath)) {
+            //syncMessagesWithDefault();
+        }
+    }
+})};
+if (fs.existsSync(defaultPath)) {
+fs.watch(defaultPath, (eventType, filename) => {
+    if (filename) {
+        console.log(`检测到 default.json 文件变动: ${filename}`);
+        if (fs.existsSync(messagesPath)) {
+            syncMessagesWithDefault();
+        }
+    }
+})};
 function getConfig() {
     if (fs.existsSync(configFilePath)) {
         const configData = fs.readFileSync(configFilePath, 'utf8');
@@ -601,7 +676,7 @@ function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
     const outputPath = config.outputPath;  // 使用最新的输出路径
     const filePaths = filePath.split('？').map(fp => fp.trim());
     // 检查 default.json 文件中的命令
-    const defaultPath = path.join(messagesFolderPath, 'default.json');
+    const defaultPath = path.join(messagesFolderPath, 'message.json');
     if (fs.existsSync(defaultPath)) {
         let selectedMessage;
         const defaultData = JSON.parse(fs.readFileSync(defaultPath, 'utf8'));
@@ -1097,11 +1172,9 @@ function MenuLang() {
         biruWindow.webContents.send('language-update');
     }
 }
-function isSteamRunning() {
+async function isSteamRunning() {
     try {
         steamClient = Steamworks.init(3034460); // 使用你的应用程序ID
-        console.log("Steam client initialized:", steamClient);
-        console.log("Workshop API:", steamClient.workshop);
         if (steamClient && steamClient.workshop) {
             console.log("Steam client is running and Steamworks Workshop API initialized successfully.");
             return true;
@@ -1129,7 +1202,7 @@ async function getSubscribedItems() {
         const subscribedItems = await steamClient.workshop.getSubscribedItems();
         return subscribedItems;
     } catch (error) {
-        console.error("Error getting subscribed items:", error);
+        //console.error("Error getting subscribed items:", error);
         return [];
     }
 }
@@ -1149,14 +1222,25 @@ function startDownloadCheckLoop() {
     setInterval(async () => {
         try {
             const subscribedItems = await getSubscribedItems();
+            const currentSubscribedItems = new Set(subscribedItems);
+
+            // 找出被取消订阅的项目
+            const unsubscribedItems = [...previousSubscribedItems].filter(itemId => !currentSubscribedItems.has(itemId));
+            for (const itemId of unsubscribedItems) {
+                await removeWorkshopFiles(itemId);
+            }
+
+            // 更新当前订阅项目列表
+            previousSubscribedItems = currentSubscribedItems;
+
+            // 处理当前订阅的项目
             for (const itemId of subscribedItems) {
                 const itemState = await steamClient.workshop.state(itemId);
-                //console.log("Item state for", itemId, ":", itemState);
                 if (itemState & ItemState.Installed) {
                     const itemInstallInfo = await steamClient.workshop.installInfo(itemId);
                     if (itemInstallInfo) {
                         const { folder } = itemInstallInfo;
-                        moveWorkshopFilesToShareFolder(folder);
+                        moveWorkshopFilesToShareFolder(folder, itemId);
 
                         // 更新文件状态并通知 Steam 客户端
                         await steamClient.workshop.downloadInfo(itemId, true);
@@ -1166,10 +1250,10 @@ function startDownloadCheckLoop() {
         } catch (error) {
             console.error("Error in download check loop:", error);
         }
-    }, 10000); // 每10秒检查一次
+    }, 3000); // 每10秒检查一次
 }
 
-function moveWorkshopFilesToShareFolder(workshopFolder) {
+function moveWorkshopFilesToShareFolder(workshopFolder, itemId) {
     if (!fs.existsSync(shareFolderPath)) {
         fs.mkdirSync(shareFolderPath);
     }
@@ -1179,5 +1263,50 @@ function moveWorkshopFilesToShareFolder(workshopFolder) {
         const srcPath = path.join(workshopFolder, file);
         const destPath = path.join(shareFolderPath, file);
         fs.renameSync(srcPath, destPath);
+        // 记录 itemId 和文件路径的映射关系
+        recordFileMapping(itemId, destPath);
     });
+}
+
+function recordFileMapping(itemId, filePath) {
+    let mapping = {};
+    if (fs.existsSync(WorkFilePath)) {
+        mapping = JSON.parse(fs.readFileSync(WorkFilePath, 'utf-8'));
+    }
+    if (!mapping[itemId]) {
+        mapping[itemId] = [];
+    }
+    mapping[itemId].push(filePath);
+    fs.writeFileSync(WorkFilePath, JSON.stringify(mapping, null, 2), 'utf-8');
+}
+
+async function removeWorkshopFiles(itemId) {
+    try {
+        if (fs.existsSync(WorkFilePath)) {
+            const mapping = JSON.parse(fs.readFileSync(WorkFilePath, 'utf-8'));
+            if (mapping[itemId]) {
+                mapping[itemId].forEach(filePath => {
+                    if (fs.existsSync(filePath)) {
+                        fs.rmSync(filePath, { recursive: true, force: true });
+                        console.log(`已移除取消订阅的项目文件: ${filePath}`);
+                    } else {
+                        console.log(`未找到要移除的项目文件: ${filePath}`);
+                    }
+                });
+                delete mapping[itemId];
+                fs.writeFileSync(WorkFilePath, JSON.stringify(mapping, null, 2), 'utf-8');
+            } else {
+                console.log(`未找到 itemId ${itemId} 的文件映射。`);
+            }
+        } else {
+            console.log(`未找到映射文件。`);
+        }
+    } catch (error) {
+        console.error(`Error removing files for item: ${itemId}`, error);
+    }
+}
+
+// 初始化时调用一次
+if (isSteamRunning()) {
+    initializeSteamWorkshop();
 }

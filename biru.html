@@ -45,7 +45,7 @@
             color: #515151;
         }
 
-        .section a {
+        a {
             color: rgb(135, 135, 135);
         }
 
@@ -137,7 +137,14 @@
     <div class="drag-area"></div>
     <pre id="biruui"></pre>
     <h1 id="uplog">更新日志</h1>
+    <p id="gpl3">本软件使用<a href="http://ffmpeg.org">FFmpeg</a>代码，根据<a href="http://www.gnu.org/licenses/gpl-3.0.html">GPLv3</a>许可，其<a href="https://www.github.com/mcdfsteve/kurisu" target="_blank">源代码</a>可以下载。</p>
     <div class="section">
+        <h2>1.0.13-2024.07.27</h2>
+        <p id="log1013"></p>
+        <div class="divider"></div>
+        <h2>1.0.12-2024.07.26</h2>
+        <p id="log1012"></p>
+        <div class="divider"></div>
         <h2>1.0.11-2024.07.25</h2>
         <p id="log1011"></p>
         <div class="divider"></div>
@@ -150,7 +157,19 @@
         <h2>1.0.8-2024.07.20</h2>
         <p id="log108">·现在上方可以按住拖动了。<br>·现在设置里新增了 CUDA加速 选项，NVIDIA显卡使用可以提高一些文件的处理速度。<br>·优化了 终止任务 的效果。</p>
     </div>
-    <script src="biru.js">
+    <script src="biru.js"></script>
+    <script>
+        window.onload=function(){
+            const links = document.querySelectorAll('a[href]');
+            links.forEach(link => {
+                link.addEventListener('click', e => {
+                    const url = link.getAttribute('href');
+                    e.preventDefault();
+                    const { shell } = require('electron');
+                    shell.openExternal(url);
+                });
+            });
+        }
     </script>
 </body>
 

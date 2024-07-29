@@ -307,7 +307,12 @@ function updateMessagesAndBindEvents(newMessages) {
         }
     });
 }
-
+function getFirstDigit(num) {
+    while (num >= 10) {
+        num = Math.floor(num / 10);
+    }
+    return num;
+}
 function displayMessages(messages) {
     const container = document.getElementById('messageContainer');
     const bottomPanel = document.getElementsByClassName('bottom-panel')[0];
@@ -357,6 +362,45 @@ function displayMessages(messages) {
         }
         const messageDiv = document.createElement('div');
         messageDiv.className = 'selected-message';
+        if (message.id >= 1 && message.id <= 99) {
+            messageDiv.classList.add('default-message');
+        }else if (message.id > 99) {
+            const firstDigit = getFirstDigit(message.id);
+            //console.log('helloaaa:',firstDigit);
+            if (firstDigit === 0) {
+                messageDiv.classList.add('class-0');
+                //console.log(`ID ${message.id} added class-0`);
+            } else if (firstDigit === 1) {
+                messageDiv.classList.add('class-1');
+                //console.log(`ID ${message.id} added class-1`);
+            } else if (firstDigit === 2) {
+                messageDiv.classList.add('class-2');
+                //console.log(`ID ${message.id} added class-2`);
+            } else if (firstDigit === 3) {
+                messageDiv.classList.add('class-3');
+                //console.log(`ID ${message.id} added class-3`);
+            } else if (firstDigit === 4) {
+                messageDiv.classList.add('class-4');
+                //console.log(`ID ${message.id} added class-4`);
+            } else if (firstDigit === 5) {
+                messageDiv.classList.add('class-5');
+                //console.log(`ID ${message.id} added class-5`);
+            } else if (firstDigit === 6) {
+                messageDiv.classList.add('class-6');
+                //console.log(`ID ${message.id} added class-6`);
+            } else if (firstDigit === 7) {
+                messageDiv.classList.add('class-7');
+                //console.log(`ID ${message.id} added class-7`);
+            } else if (firstDigit === 8) {
+                messageDiv.classList.add('class-8');
+                //console.log(`ID ${message.id} added class-8`);
+            } else if (firstDigit === 9) {
+                messageDiv.classList.add('class-9');
+                //console.log(`ID ${message.id} added class-9`);
+            } else {
+                //console.log(`ID ${message.id} does not match any class.`);
+            }
+        }
         messageDiv.dataset.tips = MessageTips || ''; // 存储tips在元素上，方便访问
 
         const textSpan = document.createElement('span');

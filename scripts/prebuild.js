@@ -76,8 +76,8 @@ try {
   
   fs.writeFileSync(configPath, JSON.stringify(packageJson, null, 2), 'utf-8');
   
-  console.log(`Updated electron-builder config for ${targetOS} (${arch})`);
-  console.log(JSON.stringify(packageJson.build.files, null, 2));
+  //console.log(`Updated electron-builder config for ${targetOS} (${arch})`);
+  //console.log(JSON.stringify(packageJson.build.files, null, 2));
 } catch (error) {
   console.error(`Failed to update config: ${error.message}`);
 }

@@ -482,7 +482,6 @@ button {
     box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.4);
     user-select: none;
 }
-
 .selected-message {
     background-color: rgba(227, 227, 227, 0.8);
     color: #737373;

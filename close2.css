@@ -1,9 +1,12 @@
 .windowbutton{
-    position: flex;
+    position: fixed;
+    top:0;
+    right:0;
 }
 /* 关闭按钮的样式 */
 .close-button-other {
     margin: 0px;
+    top:0px;
     right:0px;
     position: absolute;
     /* 绝对定位，方便放置在特定位置 */
@@ -75,6 +78,7 @@
 /* 最小化按钮的样式 */
 .minimize-button-other {
     margin: 0px;
+    top:0px;
     right:60px;
     position: absolute;
     /* 绝对定位，方便放置在特定位置 */
@@ -130,6 +134,7 @@
 /* 全屏按钮的样式 */
 .fullscreen-button-other {
     margin: 0px;
+    top:0px;
     right: 30px;
     position: absolute;
     /* 绝对定位，方便放置在特定位置 */
@@ -188,6 +193,7 @@
 /* 窗口化按钮的样式 */
 .restore-button-other {
     margin: 0px;
+    top:0px;
     right: 30px;
     position: absolute;
     /* 绝对定位，方便放置在特定位置 */
