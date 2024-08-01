@@ -3,17 +3,11 @@ const fs = require('fs');
 const os = require('os');
 const { ipcRenderer } = require('electron');
 let SYSlanguage;
-let kurisucachePath;
 let TimeText;
 let OriginText;
 // 初始化cuda_switch变量
 let cuda_switch;
-if (process.platform === 'win32' || process.platform === 'linux') {
-    // 使用 __dirname 获取当前执行目录并拼接 C:\
-    kurisucachePath = path.join(__dirname, 'kurisu.json');
-} else {
-    kurisucachePath = path.join(os.homedir(), 'Downloads', 'kurisu.json');
-}
+const kurisucachePath = path.join(__dirname, 'kurisu.json');
 const fileJson = JSON.parse(fs.readFileSync(path.join(kurisucachePath), 'utf8'));
 const downloadsPath = fileJson.downloadsPath;
 const kurisuPath = path.join(downloadsPath, 'kurisu');

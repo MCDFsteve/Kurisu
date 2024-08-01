@@ -3,6 +3,7 @@ let isMac = process.platform === 'darwin';
 let outputWindow;
 let biruWindow;
 let settingsWindow;
+let pluginsWindow;
 let totalDuration; // 假设视频总时长是600秒
 let mainWindow = null;
 let ffmpegcode = 0;
@@ -74,13 +75,7 @@ app.whenReady().then(() => {
         initializeSteamWorkshop();
     }
     process.env.PYTHONIOENCODING = 'utf8'; // 强制使用 UTF-8 编码
-    let kurisucachePath;
-    if (process.platform === 'win32' || process.platform === 'linux') {
-        // 使用 __dirname 获取当前执行目录并拼接 C:\
-        kurisucachePath = path.join(__dirname, 'kurisu.json');
-    } else {
-        kurisucachePath = path.join(os.homedir(), 'Downloads', 'kurisu.json');
-    }
+    const kurisucachePath = path.join(__dirname, 'kurisu.json');;
     const data = { downloadsPath };
     fs.writeFileSync(kurisucachePath, JSON.stringify(data, null, 2), 'utf8');
     moveMessagesToKurisu();
@@ -88,6 +83,7 @@ app.whenReady().then(() => {
     createOutputWindow();
     createBiruWindow();
     createSettingsWindow();
+    createPluginsWindow();
     createWindow();
     MenuLang();
     syncMessagesWithDefault();
@@ -110,6 +106,9 @@ ipcMain.on('open-terminal-window', () => {
 });
 ipcMain.on('open-settings-window', () => {
     showSettingsWindow(); // 调用函数来创建窗口
+});
+ipcMain.on('open-plugins-window', () => {
+    showPluginsWindow(); // 调用函数来创建窗口
 });
 ipcMain.on('open-biru-window', () => {
     showBiruWindow(); // 调用函数来创建窗口
@@ -159,6 +158,9 @@ ipcMain.on('update-lang-rule', (event, langRule) => {
     const config = getConfig();
     config.langRule = langRule;
     updateConfigFile(config);
+    MenuLang();
+});
+ipcMain.on('update-plugins', (event) => {
     MenuLang();
 });
 ipcMain.on('update-cuda', (event, cuda) => {
@@ -219,6 +221,30 @@ ipcMain.on('restore-biru-window', (event) => {
 });
 ipcMain.on('minimize-biru-window', (event) => {
     if (biruWindow) {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.minimize();
+    }
+});
+///
+ipcMain.on('close-plugins-window', () => {
+    if (pluginsWindow) {
+        pluginsWindow.close();
+    }
+});
+ipcMain.on('fullscreen-plugins-window', (event) => {
+    if (pluginsWindow) {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.maximize();
+    }
+});
+ipcMain.on('restore-plugins-window', (event) => {
+    if (pluginsWindow) {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.unmaximize();
+    }
+});
+ipcMain.on('minimize-plugins-window', (event) => {
+    if (pluginsWindow) {
         const window = BrowserWindow.fromWebContents(event.sender);
         window.minimize();
     }
@@ -382,53 +408,6 @@ function updateConfigFile(settings) {
 
     fs.writeFileSync(configFilePath, JSON.stringify(config, null, 2), 'utf8');
 }
-function animateWindowResize(window, targetWidth, targetHeight, duration) {
-    const currentBounds = window.getBounds();
-    const startTime = Date.now();
-    const initialX = currentBounds.x;
-    const initialY = currentBounds.y;
-    const initialWidth = currentBounds.width;
-    const initialHeight = currentBounds.height;
-    const steps = Math.round(duration / 16.67); // 大约每秒 60 帧
-    const stepWidth = (targetWidth - initialWidth) / steps;
-    const stepHeight = (targetHeight - initialHeight) / steps;
-    const stepX = (targetWidth - initialWidth) / (2 * steps);
-    const stepY = (targetHeight - initialHeight) / (2 * steps);
-
-    function step() {
-        const elapsedTime = Date.now() - startTime;
-        const progress = Math.min(elapsedTime / duration, 1);
-        const easeProgress = easeInOutQuad(progress);
-
-        const newWidth = initialWidth + (targetWidth - initialWidth) * easeProgress;
-        const newHeight = initialHeight + (targetHeight - initialHeight) * easeProgress;
-        const newX = initialX - (newWidth - initialWidth) / 2;
-        const newY = initialY - (newHeight - initialHeight) / 2;
-
-        window.setBounds({
-            x: Math.round(newX),
-            y: Math.round(newY),
-            width: Math.round(newWidth),
-            height: Math.round(newHeight)
-        });
-
-        if (progress < 1) {
-            setTimeout(step, 16.67); // 使用 setTimeout 来模拟 requestAnimationFrame 的效果
-        } else {
-            window.setBounds({
-                width: targetWidth,
-                height: targetHeight,
-                x: Math.round((screen.getPrimaryDisplay().workAreaSize.width - targetWidth) / 2),
-                y: Math.round((screen.getPrimaryDisplay().workAreaSize.height - targetHeight) / 2)
-            });
-        }
-    }
-
-    setTimeout(step, 16.67); // 初始调用
-}
-function easeInOutQuad(t) {
-    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-}
 function registerShortcuts() {
     const ret = globalShortcut.register('CommandOrControl+Q', () => {
         const allWindows = BrowserWindow.getAllWindows();
@@ -467,46 +446,43 @@ function syncMessagesWithDefault() {
     }
 
     const messagesById = new Map(messages.filter(msg => msg.id).map(msg => [msg.id, msg]));
+    const messagesByTimestamp = new Map(messages.filter(msg => msg.timestamp).map(msg => [msg.timestamp, msg]));
     let updated = false;
+
+    function updateOrAddMessage(message) {
+        if (message.id) {
+            const correspondingMessage = messagesById.get(message.id);
+            if (!correspondingMessage) {
+                messages.push(message);
+                messagesById.set(message.id, message);
+                updated = true;
+            } else {
+                if (message.id !== 1) { // 跳过 id 为 1 的条目
+                    Object.assign(correspondingMessage, message);
+                    updated = true;
+                }
+            }
+        } else if (message.timestamp) {
+            const correspondingMessage = messagesByTimestamp.get(message.timestamp);
+            if (!correspondingMessage) {
+                messages.push(message);
+                messagesByTimestamp.set(message.timestamp, message);
+                updated = true;
+            } else {
+                Object.assign(correspondingMessage, message);
+                updated = true;
+            }
+        }
+    }
 
     // 读取 default.json 并同步内容
     if (fs.existsSync(defaultPath)) {
         try {
             const defaultData = fs.readFileSync(defaultPath, 'utf8');
             const defaults = JSON.parse(defaultData);
-
             defaults.forEach(def => {
-                const correspondingMessage = messagesById.get(def.id);
-                if (!correspondingMessage) {
-                    messages.push(def);
-                    messagesById.set(def.id, def);
-                    updated = true;
-                } else if (
-                    correspondingMessage.message !== def.message ||
-                    correspondingMessage.tips !== def.tips ||
-                    correspondingMessage.message_en !== def.message_en ||
-                    correspondingMessage.tips_en !== def.tips_en ||
-                    correspondingMessage.message_jp !== def.message_jp ||
-                    correspondingMessage.tips_jp !== def.tips_jp ||
-                    correspondingMessage.message_zh_tw !== def.message_zh_tw ||
-                    correspondingMessage.tips_zh_tw !== def.tips_zh_tw ||
-                    correspondingMessage.message_ru !== def.message_ru ||
-                    correspondingMessage.tips_ru !== def.tips_ru ||
-                    correspondingMessage.message_ko !== def.message_ko ||
-                    correspondingMessage.tips_ko !== def.tips_ko
-                ) {
-                    correspondingMessage.message_en = def.message_en;
-                    correspondingMessage.tips_en = def.tips_en;
-                    correspondingMessage.message_jp = def.message_jp;
-                    correspondingMessage.tips_jp = def.tips_jp;
-                    correspondingMessage.message_zh_tw = def.message_zh_tw;
-                    correspondingMessage.tips_zh_tw = def.tips_zh_tw;
-                    correspondingMessage.message_ru = def.message_ru;
-                    correspondingMessage.tips_ru = def.tips_ru;
-                    correspondingMessage.message_ko = def.message_ko;
-                    correspondingMessage.tips_ko = def.tips_ko;
-                    updated = true;
-                }
+                def.family = 'default'; // 添加 family 参数，并去掉 .json 后缀名
+                updateOrAddMessage(def);
             });
         } catch (err) {
             console.error('读取 default.json 文件时出错:', err);
@@ -516,49 +492,20 @@ function syncMessagesWithDefault() {
     // 重新加载并覆盖 share 目录中的内容
     if (fs.existsSync(shareFolderPath)) {
         const jsonFiles = fs.readdirSync(shareFolderPath).filter(file => path.extname(file).toLowerCase() === '.json');
-
         jsonFiles.forEach(jsonFile => {
             const filePath = path.join(shareFolderPath, jsonFile);
             try {
                 const fileData = fs.readFileSync(filePath, 'utf8');
                 const additionalMessages = JSON.parse(fileData);
-
                 additionalMessages.forEach(additionalMessage => {
-                    if (!additionalMessage.id) {
-                        // 跳过没有 id 的条目
-                        return;
-                    }
-                    const correspondingMessage = messagesById.get(additionalMessage.id);
-                    if (!correspondingMessage) {
-                        messages.push(additionalMessage);
-                        messagesById.set(additionalMessage.id, additionalMessage);
-                        updated = true;
-                    } else {
-                        // 更新已有的消息
-                        correspondingMessage.message = additionalMessage.message;
-                        correspondingMessage.tips = additionalMessage.tips;
-                        correspondingMessage.message_en = additionalMessage.message_en;
-                        correspondingMessage.tips_en = additionalMessage.tips_en;
-                        correspondingMessage.message_jp = additionalMessage.message_jp;
-                        correspondingMessage.tips_jp = additionalMessage.tips_jp;
-                        correspondingMessage.message_zh_tw = additionalMessage.message_zh_tw;
-                        correspondingMessage.tips_zh_tw = additionalMessage.tips_zh_tw;
-                        correspondingMessage.message_ru = additionalMessage.message_ru;
-                        correspondingMessage.tips_ru = additionalMessage.tips_ru;
-                        correspondingMessage.message_ko = additionalMessage.message_ko;
-                        correspondingMessage.tips_ko = additionalMessage.tips_ko;
-                        updated = true;
-                    }
+                    additionalMessage.family = path.basename(jsonFile, '.json'); // 添加 family 参数，并去掉 .json 后缀名
+                    updateOrAddMessage(additionalMessage);
                 });
             } catch (err) {
                 console.error(`读取 ${jsonFile} 文件时出错:`, err);
             }
         });
     }
-
-    // 重新生成 messages 数组，确保只有一个相同 id 的条目
-    messages = Array.from(messagesById.values());
-
     // 检查 message.json 中的消息是否在 default.json 和 share 文件夹中都找不到对应的文件
     messages = messages.filter(message => {
         if (!message.id) {
@@ -581,7 +528,6 @@ function syncMessagesWithDefault() {
 
         return true;
     });
-
     if (updated) {
         try {
             fs.writeFileSync(messagesPath, JSON.stringify(messages, null, 2), 'utf8');
@@ -591,7 +537,6 @@ function syncMessagesWithDefault() {
         }
     }
 }
-// 初始化时调用一次
 
 // 使用 fs.watch 监控 share 文件夹
 fs.watch(shareFolderPath, (eventType, filename) => {
@@ -611,22 +556,24 @@ fs.watch(shareFolderPath, (eventType, filename) => {
 
 if (fs.existsSync(messagesPath)) {
     fs.watch(messagesPath, (eventType, filename) => {
-    if (filename) {
-        console.log(`检测到 message.json 文件变动: ${filename}`);
-        if (fs.existsSync(messagesPath)) {
-            //syncMessagesWithDefault();
+        if (filename) {
+            console.log(`检测到 message.json 文件变动: ${filename}`);
+            if (fs.existsSync(messagesPath)) {
+                //syncMessagesWithDefault();
+            }
         }
-    }
-})};
+    })
+};
 if (fs.existsSync(defaultPath)) {
-fs.watch(defaultPath, (eventType, filename) => {
-    if (filename) {
-        console.log(`检测到 default.json 文件变动: ${filename}`);
-        if (fs.existsSync(messagesPath)) {
-            syncMessagesWithDefault();
+    fs.watch(defaultPath, (eventType, filename) => {
+        if (filename) {
+            console.log(`检测到 default.json 文件变动: ${filename}`);
+            if (fs.existsSync(messagesPath)) {
+                syncMessagesWithDefault();
+            }
         }
-    }
-})};
+    })
+};
 function getConfig() {
     if (fs.existsSync(configFilePath)) {
         const configData = fs.readFileSync(configFilePath, 'utf8');
@@ -670,11 +617,21 @@ function getFFmpegPath() {
             throw new Error('Unsupported platform');
     }
 }
-function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
+async function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
     const originalFileName = path.basename(filePath, path.extname(filePath)); // 获取不含路径和后缀的文件名
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
     const outputPath = config.outputPath;  // 使用最新的输出路径
-    const filePaths = filePath.split('？').map(fp => fp.trim());
+    const filePaths = filePath.split(', ').map(fp => fp.trim());
+
+    // 打印输入路径
+    if (filePaths.length === 1) {
+        console.log('输入路径:', filePaths[0]);
+    } else {
+        filePaths.forEach((fp, index) => {
+            console.log(`输入路径${index + 1}:`, fp);
+        });
+    }
+
     // 检查 default.json 文件中的命令
     const defaultPath = path.join(messagesFolderPath, 'message.json');
     if (fs.existsSync(defaultPath)) {
@@ -718,6 +675,8 @@ function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
             return Promise.resolve(commands);
         }
     }
+
+    // 如果没有预定义命令或没有匹配到，则生成默认命令
     if (userCommand == "") {
         userCommand = "转成mp4";
     }
@@ -733,6 +692,7 @@ function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
     let content;
     console.log('filePaths:', filePaths);
     if (filePaths.length > 1) {
+        console.log('多个文件');
         content = `${message1}多个输入文件的路径（逗号隔开）,输入输出文件路径用双引号括起来，请按顺序生成多个ffmpeg命令并使用 || 符号分隔给出，同时输出的文件名字请继承输入的文件名字。默认的输出文件请放在${outputPath}下。${message2} "${filePath}" ${userCommand}${cuda}`;
     } else {
         content = `${message1}输入文件的路径,输入输出文件路径用双引号括起来。默认的输出文件请放在${outputPath}下，、输出文件命名为${generateFileName(originalFileName)}（如果在描述里手动指定了新的路径则请使用指定的命名）。没指定输出文件的后缀名的情况则和输入文件一样。${message2} "${filePath}" ${userCommand}${cuda}`;
@@ -943,6 +903,13 @@ function showSettingsWindow() {
     }
     settingsWindow.show();
 }
+function showPluginsWindow() {
+    if (pluginsWindow === null) { // 如果窗口不存在，则创建它
+        createPluginsWindow();
+        console.log('settings is created');
+    }
+    pluginsWindow.show();
+}
 function showOutputWindow() {
     if (outputWindow === null) { // 如果窗口不存在，则创建它
         createOutputWindow();
@@ -1091,6 +1058,41 @@ function createSettingsWindow() {
         }
     });
 }
+function createPluginsWindow() {
+    pluginsWindow = new BrowserWindow({
+        width: 400,
+        height: 300,
+        icon: path.join(__dirname, 'window_icon.png'),
+        show: false,
+        fullscreen: false,
+        vibrancy: 'sidebar',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        },
+        autoHideMenuBar: !isMac,
+        titleBarStyle: isMac ? 'hiddenInset' : undefined,
+        frame: isMac ? undefined : false
+    });
+    pluginsWindow.on('maximize', (e) => {
+        pluginsWindow.webContents.send('full-progress');
+    })
+    pluginsWindow.on('unmaximize', (e) => {
+        pluginsWindow.webContents.send('restore-progress');
+    })
+    pluginsWindow.setMenu(null);
+    pluginsWindow.loadFile('plugins.html');
+    pluginsWindow.on('close', (event) => {
+        if (app.isQuitting) {
+            // 允许窗口关闭
+            pluginsWindow = null;
+        } else {
+            // 阻止窗口关闭，仅仅隐藏窗口
+            event.preventDefault();
+            pluginsWindow.hide();
+        }
+    });
+}
 function MenuLang() {
     let menuMenu;
     let menuSettings;
@@ -1170,6 +1172,10 @@ function MenuLang() {
     }
     if (biruWindow) {
         biruWindow.webContents.send('language-update');
+    }
+    if (pluginsWindow) {
+        pluginsWindow.webContents.send('language-update');
+        pluginsWindow.loadFile('plugins.html');
     }
 }
 async function isSteamRunning() {

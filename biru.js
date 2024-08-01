@@ -4,13 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 let SYSlanguage;
-let kurisucachePath;
-if (process.platform === 'win32' || process.platform === 'linux') {
-    // 使用 __dirname 获取当前执行目录并拼接 C:\
-    kurisucachePath = path.join(__dirname, 'kurisu.json');
-} else {
-    kurisucachePath = path.join(os.homedir(), 'Downloads', 'kurisu.json');
-}
+const kurisucachePath = path.join(__dirname, 'kurisu.json');;
 const fileJson = JSON.parse(fs.readFileSync(path.join(kurisucachePath), 'utf8'));
 const downloadsPath = fileJson.downloadsPath;
 const kurisuPath = path.join(downloadsPath, 'kurisu');
@@ -45,6 +39,8 @@ function LanguageUp() {
     const Log1011 = document.getElementById('log1011');
     const Log1012 = document.getElementById('log1012');
     const Log1013 = document.getElementById('log1013'); // 新增这一行
+    const Log1014 = document.getElementById('log1014');
+    const Log110 = document.getElementById('log110');
     SYSlanguage = config.langRule.trim().replace(/^'+|'+$/g, '');
     console.log('SYSlanguage by Biru:', SYSlanguage);
     if (SYSlanguage === 'en') {
@@ -55,6 +51,8 @@ function LanguageUp() {
         Log1011.innerHTML = `·Initial integration of the Workshop for sharing presets.`;
         Log1012.innerHTML = `·Fixed some button positions in the top right corner to be more reasonable instead of lower.<br>·Built-in presets and manually added presets now have subtle visual differences, but presets downloaded from the Workshop will have colored tags.`;
         Log1013.innerHTML = `·Fixed various program bugs and errors.<br>·Optimized Workshop-related logic.`; // 新增这一行
+        Log1014.innerHTML = `·Fixed an error when batch processing files using local presets.`; // 新增这一行
+        Log110.innerHTML = `·Added a preset management interface that allows modular toggling of preset displays.`;
     } else if (SYSlanguage === 'zh_cn') {
         UpLog.textContent = '更新日志';
         GPL3.innerHTML = `本软件使用<a href="http://ffmpeg.org">FFmpeg</a>代码，根据<a href="http://www.gnu.org/licenses/gpl-3.0.html">GPLv3</a>许可，其<a href="https://www.github.com/mcdfsteve/kurisu" target="_blank">源代码</a>可以下载。`
@@ -64,6 +62,8 @@ function LanguageUp() {
         Log1011.innerHTML = `·初步接入了创意工坊用于共享预设。`;
         Log1012.innerHTML = `·修复了一些窗口右上角按键的位置，现在会更合理而不是靠下。<br>·现在内置预设和手动添加的预设会有细微视觉上区别了，但是通过创意工坊下载的预设则会有彩色标签。`;
         Log1013.innerHTML = `·修复了各种程序bug和错误。<br>·优化了创意工坊相关逻辑。`; // 新增这一行
+        Log1014.innerHTML = `·修复了使用本地预设进行批量文件处理时的报错问题。`;
+        Log110.innerHTML = `·新增了 预设管理 界面，可以模块化开关预设的显示。`;
     } else if (SYSlanguage === 'zh_tw') {
         UpLog.textContent = '更新日誌';
         GPL3.innerHTML = `本軟體使用<a href="http://ffmpeg.org">FFmpeg</a>代碼，根據<a href="http://www.gnu.org/licenses/gpl-3.0.html">GPLv3</a>許可，其<a href="https://www.github.com/mcdfsteve/kurisu" target="_blank">源代碼</a>可以下載。`;
@@ -73,6 +73,8 @@ function LanguageUp() {
         Log1011.innerHTML = `·初步接入了創意工坊用於共享預設。`;
         Log1012.innerHTML = `·修復了一些窗口右上角按鍵的位置，現在會更合理而不是靠下。<br>·現在內置預設和手動添加的預設會有細微視覺上區別了，但是通過創意工坊下載的預設則會有彩色標籤。`;
         Log1013.innerHTML = `·修復了各種程序bug和錯誤。<br>·優化了創意工坊相關邏輯。`; // 新增这一行
+        Log1014.innerHTML = `·修復了使用本地預設進行批量文件處理時的報錯問題。`;
+        Log110.innerHTML = `·新增了 預設管理 界面，可以模組化開關預設的顯示。`;
     } else if (SYSlanguage === 'jp') {
         UpLog.textContent = '更新履歴';
         GPL3.innerHTML = `このソフトウェアは<a href="http://ffmpeg.org">FFmpeg</a>コードを使用しており、<a href="http://www.gnu.org/licenses/gpl-3.0.html">GPLv3</a>の下でライセンスされています。<a href="https://www.github.com/mcdfsteve/kurisu" target="_blank">ソースコード</a>をダウンロードできます。`;
@@ -82,6 +84,8 @@ function LanguageUp() {
         Log1011.innerHTML = `·プリセット共有のためのワークショップの初期統合。`;
         Log1012.innerHTML = `·右上隅のボタンの位置が下ではなく、より合理的になりました。<br>·内蔵プリセットと手動追加されたプリセットには微妙な視覚的違いがありますが、ワークショップからダウンロードされたプリセットにはカラフルなタグが付きます。`;
         Log1013.innerHTML = `·さまざまなプログラムのバグとエラーを修正しました。<br>·ワークショップ関連のロジックを最適化しました。`; // 新增这一行
+        Log1014.innerHTML = `·ローカルプリセットを使用してバッチファイルを処理する際のエラーを修正しました。`; 
+        Log110.innerHTML = `·プリセット管理画面を追加しました。モジュール化されたプリセットの表示のオンオフが可能です。`;
     } else if (SYSlanguage === 'ru') {
         UpLog.textContent = 'История изменений';
         GPL3.innerHTML = `Это программное обеспечение использует код <a href="http://ffmpeg.org">FFmpeg</a>, лицензированный по <a href="http://www.gnu.org/licenses/gpl-3.0.html">GPLv3</a>. Исходный <a href="https://www.github.com/mcdfsteve/kurisu" target="_blank">код</a> можно скачать.`;
@@ -91,6 +95,8 @@ function LanguageUp() {
         Log1011.innerHTML = `·Начальная интеграция Мастерской для обмена предустановками.`;
         Log1012.innerHTML = `·Исправлены некоторые положения кнопок в правом верхнем углу, чтобы они были более разумными, а не ниже.<br>·Встроенные пресеты и вручную добавленные пресеты теперь имеют незначительные визуальные различия, но пресеты, загруженные из Мастерской, будут иметь цветные теги.`;
         Log1013.innerHTML = `·Исправлены различные ошибки и баги программы.<br>·Оптимизирована логика, связанная с Мастерской.`; // 新增这一行
+        Log1014.innerHTML = `·Исправлена ошибка при пакетной обработке файлов с использованием локальных пресетов.`;
+        Log110.innerHTML = `·Добавлен интерфейс управления предустановками, который позволяет модульно включать и выключать отображение предустановок.`;
     } else if (SYSlanguage === 'ko') {
         UpLog.textContent = '변경 로그';
         GPL3.innerHTML = `이 소프트웨어는 <a href="http://ffmpeg.org">FFmpeg</a> 코드를 사용하며 <a href="http://www.gnu.org/licenses/gpl-3.0.html">GPLv3</a> 라이센스에 따라 라이센스됩니다. <a href="https://www.github.com/mcdfsteve/kurisu" target="_blank">소스 코드</a>를 다운로드할 수 있습니다.`;
@@ -100,6 +106,8 @@ function LanguageUp() {
         Log1011.innerHTML = `·프리셋 공유를 위한 워크숍의 초기 통합.`;
         Log1012.innerHTML = `·오른쪽 상단 버튼의 위치가 더 합리적으로 수정되었습니다.<br>·내장된 프리셋과 수동으로 추가된 프리셋에는 미세한 시각적 차이가 있지만, 워크숍에서 다운로드한 프리셋에는 컬러 태그가 있습니다.`;
         Log1013.innerHTML = `·다양한 프로그램 버그 및 오류가 수정되었습니다.<br>·워크숍 관련 로직이 최적화되었습니다.`; // 新增这一行
+        Log1014.innerHTML = `·로컬 프리셋을 사용하여 일괄 파일을 처리할 때의 오류가 수정되었습니다.`;
+        Log110.innerHTML = `·프리셋 관리 화면이 추가되었습니다. 모듈화된 프리셋 표시를 켜고 끌 수 있습니다.`;
     }
 }
 function isMacOS() {

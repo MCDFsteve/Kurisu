@@ -270,7 +270,7 @@
             /* 水平居中 */
             cursor: pointer;
             /* 鼠标悬停时显示为指针 */
-            background: none;
+            background:none;
             /* 无背景色 */
             border: none;
             /* 无边框 */
@@ -453,41 +453,10 @@
     </div>
     <div class="drag-area"></div>
     <pre id="settingsui"></pre>
-    <h1 id="title">设置</h1>
-    <h3 id="title2">输出文件位置</h3>
+    <h1 id="title">预设管理</h1>
     <div class="divider"></div>
-    <div class="settings-container">
-        <p id="outputLang">当前输出目录: <span id="currentOutputPath"></span></p>
-        <button id="changeOutputDir">更换输出文件夹</button>
-        <button id="resetToDefault">恢复默认文件夹</button>
-    </div>
-    <div class="divider"></div>
-    <h3 for="namingRule" id="nameLang">文件命名规则</h3>
-    <div class="divider"></div>
-    <p class="settings-container" id="nowFile">当前文件命名: <span id="currentNamingRule"></span></p>
-    <select id="namingRule">
-        <option value="timestamp" id="timeLang">当前时间</option>
-        <option value="original" id="originLang">保持原名</option>
-    </select>
-    <div class="divider"></div>
-    <h3 for="langRule" id="langLang">语言</h3>
-    <div class="divider"></div>
-    <p class="settings-container" id="nowLang">当前语言: <span id="currentLangRule"></span></p>
-    <select id="langRule">
-        <option value="zh_cn">简体中文</option>
-        <option value="zh_tw">繁體中文</option>
-        <option value="jp">日本語</option>
-        <option value="ko">한국어</option>
-        <option value="en">English</option>
-        <option value="ru">Русский</option>
-    </select>
-    <div class="divider"></div>
-    <h3 id="otherlang">其他</h3>
-    <div class="divider"></div>
-    <p class="settings-container"><label for="cudaSwitch" id="cudatext">启用CUDA加速（出现问题请关掉）</label>
-        <input type="checkbox" id="cudaSwitch">
-    </p>
-    <script src="settings.js"></script>
+    <h3 id="family"></h3>
+    <script src="plugins.js"></script>
 </body>
 
 </html>

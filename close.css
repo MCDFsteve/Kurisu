@@ -6,8 +6,8 @@
 .drag-area {
     position: fixed;
     top: 0;
-    left: 50px;
-    right: 50px;
+    left: 100px;
+    right: 100px;
     width: auto;
     height: 20px;
     /* 高度足够用于拖放和放置图标 */

@@ -5,7 +5,7 @@ const path = require('path');
 const os = require('os');
 const stopButton = document.getElementById('stopButton');
 const confirmButton = document.getElementById('confirmButton');
-let kurisucachePath;
+const kurisucachePath = path.join(__dirname, 'kurisu.json');;
 let SYSlanguage;
 let WebWarnText;
 let LoadText;
@@ -17,12 +17,6 @@ let Loadatext;
 let ConsoleText;
 let MessageLang;
 let TipsLang;
-if (process.platform === 'win32' || process.platform === 'linux') {
-    // 使用 __dirname 获取当前执行目录并拼接 C:\
-    kurisucachePath = path.join(__dirname, 'kurisu.json');
-} else {
-    kurisucachePath = path.join(os.homedir(), 'Downloads', 'kurisu.json');
-}
 const fileJson = JSON.parse(fs.readFileSync(path.join(kurisucachePath), 'utf8'));
 const downloadsPath = fileJson.downloadsPath;
 const kurisuPath = path.join(downloadsPath, 'kurisu');
@@ -239,7 +233,9 @@ function loadMessages() {
             console.error('读取文件时出错:', err);
             return;
         }
-        displayMessages(JSON.parse(data));
+        const messages = JSON.parse(data);
+        const filteredMessages = messages.filter(message => message.see !== 'no');
+        displayMessages(filteredMessages);
     });
 }
 
@@ -317,10 +313,8 @@ function displayMessages(messages) {
     const container = document.getElementById('messageContainer');
     const bottomPanel = document.getElementsByClassName('bottom-panel')[0];
 
-    // 首先清空现有内容和移除现有的所有事件监听器
     container.innerHTML = '';
 
-    // 重新绑定事件监听器
     container.addEventListener('mouseover', function (event) {
         if (event.target.closest('.selected-message')) {
             const messageDiv = event.target.closest('.selected-message');
@@ -338,6 +332,7 @@ function displayMessages(messages) {
             bottomPanel.className = '';
         }
     });
+
     let MessageTips;
     let MessageMess;
     messages.forEach((message, index) => {
@@ -362,47 +357,49 @@ function displayMessages(messages) {
         }
         const messageDiv = document.createElement('div');
         messageDiv.className = 'selected-message';
-        if (message.id >= 1 && message.id <= 99) {
+
+        if (message.id >= 0 && message.id <= 99) {
             messageDiv.classList.add('default-message');
-        }else if (message.id > 99) {
+        } else if (message.id > 99) {
             const firstDigit = getFirstDigit(message.id);
-            //console.log('helloaaa:',firstDigit);
-            if (firstDigit === 0) {
-                messageDiv.classList.add('class-0');
-                //console.log(`ID ${message.id} added class-0`);
-            } else if (firstDigit === 1) {
-                messageDiv.classList.add('class-1');
-                //console.log(`ID ${message.id} added class-1`);
-            } else if (firstDigit === 2) {
-                messageDiv.classList.add('class-2');
-                //console.log(`ID ${message.id} added class-2`);
-            } else if (firstDigit === 3) {
-                messageDiv.classList.add('class-3');
-                //console.log(`ID ${message.id} added class-3`);
-            } else if (firstDigit === 4) {
-                messageDiv.classList.add('class-4');
-                //console.log(`ID ${message.id} added class-4`);
-            } else if (firstDigit === 5) {
-                messageDiv.classList.add('class-5');
-                //console.log(`ID ${message.id} added class-5`);
-            } else if (firstDigit === 6) {
-                messageDiv.classList.add('class-6');
-                //console.log(`ID ${message.id} added class-6`);
-            } else if (firstDigit === 7) {
-                messageDiv.classList.add('class-7');
-                //console.log(`ID ${message.id} added class-7`);
-            } else if (firstDigit === 8) {
-                messageDiv.classList.add('class-8');
-                //console.log(`ID ${message.id} added class-8`);
-            } else if (firstDigit === 9) {
-                messageDiv.classList.add('class-9');
-                //console.log(`ID ${message.id} added class-9`);
-            } else {
-                //console.log(`ID ${message.id} does not match any class.`);
+            switch (firstDigit) {
+                case 0:
+                    messageDiv.classList.add('class-0');
+                    break;
+                case 1:
+                    messageDiv.classList.add('class-1');
+                    break;
+                case 2:
+                    messageDiv.classList.add('class-2');
+                    break;
+                case 3:
+                    messageDiv.classList.add('class-3');
+                    break;
+                case 4:
+                    messageDiv.classList.add('class-4');
+                    break;
+                case 5:
+                    messageDiv.classList.add('class-5');
+                    break;
+                case 6:
+                    messageDiv.classList.add('class-6');
+                    break;
+                case 7:
+                    messageDiv.classList.add('class-7');
+                    break;
+                case 8:
+                    messageDiv.classList.add('class-8');
+                    break;
+                case 9:
+                    messageDiv.classList.add('class-9');
+                    break;
+                default:
+                    // Handle unexpected cases if necessary
+                    break;
             }
         }
-        messageDiv.dataset.tips = MessageTips || ''; // 存储tips在元素上，方便访问
 
+        messageDiv.dataset.tips = MessageTips || '';
         const textSpan = document.createElement('span');
         textSpan.textContent = MessageMess;
         messageDiv.appendChild(textSpan);
@@ -414,7 +411,7 @@ function displayMessages(messages) {
             deleteButton.src = 'icons/delete.png';
             deleteButton.className = 'delete-icon';
             deleteButton.onclick = function (event) {
-                event.stopPropagation(); // 防止点击按钮时触发消息选择
+                event.stopPropagation();
                 deleteMessage(index);
             };
             messageDiv.appendChild(deleteButton);
@@ -522,6 +519,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (terminalButton) {
         terminalButton.addEventListener('click', function () {
             ipcRenderer.send('open-settings-window'); // 发送事件到主进程
+        });
+    }
+});
+document.addEventListener('DOMContentLoaded', function () {
+    const terminalButton = document.querySelector('img[id="pluginsbutton"]'); // 通过 alt 文本选择 terminal 按钮
+    if (terminalButton) {
+        terminalButton.addEventListener('click', function () {
+            ipcRenderer.send('open-plugins-window'); // 发送事件到主进程
         });
     }
 });
