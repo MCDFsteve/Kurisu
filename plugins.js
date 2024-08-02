@@ -183,14 +183,14 @@ function createFamilyCheckboxes() {
                     message.see = isChecked ? 'yes' : 'no';
                 });
                 fs.writeFileSync(messagesPath, JSON.stringify(messages, null, 2), 'utf8');
-                ipcRenderer.send('update-plugins');
+                //ipcRenderer.send('update-plugins');
             });
 
             settingsUi.appendChild(container);
         });
 
         // 更新文件以确保所有没有 see 标签且没有 timestamp 的消息都有 see 标签
-        fs.writeFileSync(messagesPath, JSON.stringify(messages, null, 2), 'utf8');
+        //fs.writeFileSync(messagesPath, JSON.stringify(messages, null, 2), 'utf8');
     } else {
         console.error('messages.json 文件不存在');
     }
