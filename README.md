@@ -9,6 +9,9 @@ Things like "convert to webm", "keep only the content between 10 seconds and 20 
 Then just click the buttons and wait for the progress bar to complete.
 It uses the integration of ChatGPT and FFmpeg.
 Please give it a try.
+
+# [Download](https://www.github.com/mcdfsteve/kurisu/releases). Supports Windows, Linux, macOS
+
 ### This software supports the following languages: Simplified Chinese, Traditional Chinese, Japanese, Korean, English, and Russian.
 
 ### ChatGPT uses GPT-4, which is provided for free. If you would like to sponsor, you can go to https://store.steampowered.com/app/3034460/ to purchase the Steam version of this software, where you can enjoy the Workshop feature, community, and automatic updates.
