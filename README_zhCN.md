@@ -1,5 +1,5 @@
 # Kurisu
-[简体中文](https://github.com/MCDFsteve/Kurisu/edit/main/README_zhCN.md)   [English](https://github.com/MCDFsteve/Kurisu/edit/main/README.md)   [日本語](https://github.com/MCDFsteve/Kurisu/edit/main/README_jp.md)
+[简体中文](https://github.com/MCDFsteve/Kurisu/blob/main/README_zhCN.md)  [English](https://github.com/MCDFsteve/Kurisu/blob/main/README.md)   [日本語](https://github.com/MCDFsteve/Kurisu/blob/main/README_jp.md)
 ## 一个靠口头描述来转换文件格式的程序
 ### 字面意思，就是口述。
 例如，你拖动或者上传了一份mp4，然后你只需在输入框内描述你想干的内容。
