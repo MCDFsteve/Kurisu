@@ -1,20 +1,20 @@
 # Kurisu
-## 一个靠口头描述来转换文件格式的程序
-### 字面意思，就是口述。
-例如，你拖动或者上传了一份mp4，然后你只需在输入框内描述你想干的内容。
-像是“转成webm”“只保留视频第10秒到20秒之间的内容”“提取音频文件”“将视频倒放”这类。
-然后点击按钮们等待进度条完成就行。
-运用了ChatGPT和FFmpeg的对接。
-请多多尝试。
+[简体中文](https://github.com/MCDFsteve/Kurisu/edit/main/README_zhCN.md)   [English](https://github.com/MCDFsteve/Kurisu/edit/main/README.md)   [日本語](https://github.com/MCDFsteve/Kurisu/edit/main/README_jp.md)
+## A Program for Converting File Formats by Verbal Description
+### Literally, just by talking.
+For example, you drag or upload an mp4 file, and then you simply describe what you want to do in the input box.
+Things like "convert to webm", "keep only the content between 10 seconds and 20 seconds of the video", "extract the audio file", or "reverse the video".
+Then just click the buttons and wait for the progress bar to complete.
+It uses the integration of ChatGPT and FFmpeg.
+Please give it a try.
+### This software supports the following languages: Simplified Chinese, Traditional Chinese, Japanese, Korean, English, and Russian.
 
-### ChatGPT使用了4o，它是免费提供使用的。如果您想进行赞助，可以前往 https://store.steampowered.com/app/3034460/ 购买此软件的Steam版本，此版本可以享受到创意工坊功能，社区以及自动更新。
+### ChatGPT uses GPT-4, which is provided for free. If you would like to sponsor, you can go to https://store.steampowered.com/app/3034460/ to purchase the Steam version of this software, where you can enjoy the Workshop feature, community, and automatic updates.
 
-FFmpeg来自 https://ffmpeg.org/ 使用了官网编译好的二进制可执行文件
+FFmpeg is from https://ffmpeg.org/ using the precompiled binary executable files from the official website.
 
-如果你想自己编译项目或者修改项目，请在拉取项目以后对照<code>package.json</code>内对所需要的库进行<code>npm install</code>拉取。
+If you want to compile the project yourself or modify it, please refer to the <code>package.json</code> file for the required libraries and run <code>npm install</code> after pulling the project.
 
-### macOS用户请注意，直接运行程序会提示已损坏，请在终端输入sudo xattr -dr com.apple.quarantine 程序.app的运行路径（可以从访达拖放），输入密码以后就能正常打开了
-<img width="800" alt="image" src="https://github.com/MCDFsteve/Kurisu/assets/71605531/4ee5bab1-84c2-4609-bf66-d4c2a19447af">
-
-
+### macOS users, please note that directly running the program will prompt that it is damaged. Please enter the following in the terminal: sudo xattr -dr com.apple.quarantine [path to the app] (you can drag and drop from Finder), then enter your password and you should be able to open it normally.
+<img width="800" alt="image" src="https://github.com/user-attachments/assets/7005dd5e-6c91-4b5b-96ff-19378b13190e">
 
