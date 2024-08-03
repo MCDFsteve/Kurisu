@@ -14,7 +14,7 @@ Please give it a try.
 
 ### This software supports the following languages: Simplified Chinese, Traditional Chinese, Japanese, Korean, English, and Russian.
 
-### ChatGPT uses GPT-4, which is provided for free. If you would like to sponsor, you can go to https://store.steampowered.com/app/3034460/ to purchase the Steam version of this software, where you can enjoy the Workshop feature, community, and automatic updates.
+### ChatGPT uses GPT-4o, which is provided for free. If you would like to sponsor, you can go to https://store.steampowered.com/app/3034460/ to purchase the Steam version of this software, where you can enjoy the Workshop feature, community, and automatic updates.
 
 FFmpeg is from https://ffmpeg.org/ using the precompiled binary executable files from the official website.
 
