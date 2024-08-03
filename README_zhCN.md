@@ -10,7 +10,7 @@
 运用了ChatGPT和FFmpeg的对接。
 请多多尝试。
 
-# [下载](https://www.github.com/mcdfsteve/kurisu).支持 Windows、Linux、macOS
+# [下载](https://www.github.com/mcdfsteve/kurisu/releases).支持 Windows、Linux、macOS
 
 ### 本软件支持以下语言：简体中文，繁体中文，日语，韩语，英语，俄语
 ### ChatGPT使用了4o，它是免费提供使用的。如果您想进行赞助，可以前往 https://store.steampowered.com/app/3034460/ 购买此软件的Steam版本，此版本可以享受到创意工坊功能，社区以及自动更新。
