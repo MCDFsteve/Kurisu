@@ -1,5 +1,5 @@
 # Kurisu
-[简体中文](https://github.com/MCDFsteve/Kurisu/README_zhCN.md)   [English](https://github.com/MCDFsteve/Kurisu/README.md)   [日本語](https://github.com/MCDFsteve/Kurisu/README_jp.md)
+[简体中文](https://github.com/MCDFsteve/Kurisu/blob/main/README_zhCN.md)   [English](https://github.com/MCDFsteve/Kurisu/blob/main/README.md)   [日本語](https://github.com/MCDFsteve/Kurisu/blob/main/README_jp.md)
 ## A Program for Converting File Formats by Verbal Description
 ### Literally, just by talking.
 For example, you drag or upload an mp4 file, and then you simply describe what you want to do in the input box.
