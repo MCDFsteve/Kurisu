@@ -7,6 +7,8 @@
 运用了ChatGPT和FFmpeg的对接。
 请多多尝试。
 
+### ChatGPT使用了4o，它是免费提供使用的。如果您想进行赞助，可以前往 https://store.steampowered.com/app/3034460/ 购买此软件的Steam版本，此版本可以享受到创意工坊功能，社区以及自动更新。
+
 FFmpeg来自 https://ffmpeg.org/ 使用了官网编译好的二进制可执行文件
 
 如果你想自己编译项目或者修改项目，请在拉取项目以后对照<code>package.json</code>内对所需要的库进行<code>npm install</code>拉取。
