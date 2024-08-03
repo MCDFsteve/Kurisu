@@ -1,4 +1,6 @@
 # Kurisu
+<img src="http://counter.seku.su/cmoe?name=mcdfsteve/kurisu&theme=moebooru" />
+
 [简体中文](https://github.com/MCDFsteve/Kurisu/blob/main/README_zhCN.md)   [English](https://github.com/MCDFsteve/Kurisu/blob/main/README.md)   [日本語](https://github.com/MCDFsteve/Kurisu/blob/main/README_jp.md)
 ## 口頭での説明を使用してファイル形式を変換するプログラム
 ### 文字通り、口述です。
