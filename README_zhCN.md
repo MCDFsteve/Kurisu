@@ -19,3 +19,7 @@ FFmpeg来自 https://ffmpeg.org/ 使用了官网编译好的二进制可执行�
 
 ### macOS用户请注意，直接运行程序会提示已损坏，请在终端输入sudo xattr -dr com.apple.quarantine 程序.app的运行路径（可以从访达拖放），输入密码以后就能正常打开了
 <img width="800" alt="image" src="https://github.com/user-attachments/assets/fb546e19-c892-4d08-b4b3-242289441abe">
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MCDFsteve/Kurisu&type=Date)](https://star-history.com/#MCDFsteve/Kurisu&Date)
