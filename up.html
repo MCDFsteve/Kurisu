@@ -3,11 +3,11 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>设置</title>
+    <title>上传预设</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="window.css">
+    <link rel="stylesheet" href="up.css">
 </head>
-
 <body>
     <div class="windowbutton">
         <div id="close-button" style="display: none;"></div>
@@ -17,10 +17,17 @@
     </div>
     <div class="drag-area"></div>
     <pre id="settingsui"></pre>
-    <h1 id="title">预设管理</h1>
-    <div class="divider"></div>
-    <h3 id="family"></h3>
-    <script src="plugins.js"></script>
+    <h1 id="title">上传预设</h1>
+    <div class="fixed-header">
+        <h1 id="title">上传预设</h1>
+        <div class="divider"></div>
+    </div>
+    <!-- 滚动内容的容器 -->
+    <div class="scrollable-content">
+        <div id="subscribed-items"></div>
+    </div>
+
+    <script src="up.js"></script>
     <script src="button.js"></script>
 </body>
 

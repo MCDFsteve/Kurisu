@@ -1,0 +1,92 @@
+body,
+    html {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+    }
+
+    .fixed-header {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        background-color: none;
+        z-index: 1000;
+    }
+
+    .scrollable-content {
+        margin-top: 0px;
+        /* Adjust this value based on the height of the fixed header */
+        height: calc(100% - 100px);
+        /* Adjust this value based on the height of the fixed header */
+        overflow-y: auto;
+        padding-top: 20px;
+        padding-left: 20px;
+        padding-right: 40px;
+    }
+
+    /* 其他样式 */
+
+    #subscribed-items {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .item {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 10px;
+        width: 100%;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        gap: 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .item img {
+        width: 150px;
+        height: auto;
+        margin-right: 10px;
+    }
+
+    .item-content {
+        width: 50%;
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        gap: 10px;
+        /* Ensure equal spacing between title and description */
+    }
+
+    .item-content h3 {
+        font-size: 1.2em;
+        max-width: 100%;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .item-content p {
+        font-size: 0.9em;
+        color: #666;
+        margin: 0;
+        max-width: 100%;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        /* Show 3 lines */
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .item-content-wrapper {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+        justify-content: space-between;
+    }

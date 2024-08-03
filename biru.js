@@ -11,12 +11,19 @@ const kurisuPath = path.join(downloadsPath, 'kurisu');
 const configFilePath = path.join(kurisuPath, 'kirusu-config.json');
 // 获取所有需要在系统默认浏览器中打开的超链接
 const externalLinks = document.querySelectorAll('.externalLink');
-// 覆盖console.log
-const originalLog = console.log;
-console.log = function (...args) {
-    ipcRenderer.send('console-log', args);
-    originalLog.apply(console, args);
-};
+const buttonName = 'biru';
+const styleName = '#biruui';
+window.onload=function(){
+    const links = document.querySelectorAll('a[href]');
+    links.forEach(link => {
+        link.addEventListener('click', e => {
+            const url = link.getAttribute('href');
+            e.preventDefault();
+            const { shell } = require('electron');
+            shell.openExternal(url);
+        });
+    });
+}
 // 为每个超链接添加点击事件处理程序
 externalLinks.forEach(link => {
     link.addEventListener('click', (event) => {
@@ -25,9 +32,6 @@ externalLinks.forEach(link => {
         const href = link.getAttribute('href');
         shell.openExternal(href); // 在系统默认浏览器中打开链接
     });
-});
-ipcRenderer.on('language-update', (event) => {
-    LanguageUp();
 });
 function LanguageUp() {
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
@@ -110,78 +114,6 @@ function LanguageUp() {
         Log110.innerHTML = `·프리셋 관리 화면이 추가되었습니다. 모듈화된 프리셋 표시를 켜고 끌 수 있습니다.`;
     }
 }
-function isMacOS() {
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-}
 document.addEventListener('DOMContentLoaded', () => {
     LanguageUp();
 });
-if (isMacOS()) {
-    document.body.style.backgroundColor = "transparent";
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = `
-                #biruui {
-            background-color: initial !important;
-        }
-        @media (prefers-color-scheme: dark) {
-            #biruui {
-            background-color: initial !important;
-        }
-    }
-      `;
-    document.head.appendChild(styleSheet);
-}
-function isMacOS() {
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-}
-ipcRenderer.on('full-progress', (event) => {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    fullscreenButton.style.display = 'none';
-    restoreButton.style.display = 'block';
-});
-ipcRenderer.on('restore-progress', (event) => {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    fullscreenButton.style.display = 'block';
-    restoreButton.style.display = 'none';
-});
-if (isMacOS()) {
-    console.log('mac');
-} else {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    closeButton.classList.add('close-button-other');
-    closeButton.style.display = 'block';
-    closeButton.addEventListener('click', () => {
-        console.log('nipa');
-        ipcRenderer.send('close-biru-window');
-    });
-    fullscreenButton.classList.add('fullscreen-button-other');
-    fullscreenButton.style.display = 'block';
-    fullscreenButton.addEventListener('click', () => {
-        console.log('nipa');
-        fullscreenButton.style.display = 'none';
-        restoreButton.style.display = 'block';
-        ipcRenderer.send('fullscreen-biru-window');
-    });
-    restoreButton.classList.add('restore-button-other');
-    restoreButton.addEventListener('click', () => {
-        console.log('nipa');
-        fullscreenButton.style.display = 'block';
-        restoreButton.style.display = 'none';
-        ipcRenderer.send('restore-biru-window');
-    });
-    miniButton.classList.add('minimize-button-other');
-    miniButton.style.display = 'block';
-    miniButton.addEventListener('click', () => {
-        console.log('nipa');
-        ipcRenderer.send('minimize-biru-window');
-    });
-}

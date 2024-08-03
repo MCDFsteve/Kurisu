@@ -36,6 +36,10 @@ const https = require('https');
 const Steamworks = require('steamworks.js');
 let steamClient;
 let previousSubscribedItems = new Set();
+let fetch;
+const API_KEY = 'C723F6C25B3B7F9FF8B6A7B8CCFFBEEE';
+const MAX_RETRIES = 3; // 最大重试次数
+const RETRY_DELAY = 1000; // 重试延迟时间，单位为毫秒
 const ItemState = {
     None: 0,
     Subscribed: 1 << 0,
@@ -84,6 +88,7 @@ app.whenReady().then(() => {
     createBiruWindow();
     createSettingsWindow();
     createPluginsWindow();
+    createUpWindow();
     createWindow();
     MenuLang();
     syncMessagesWithDefault();
@@ -101,6 +106,90 @@ app.on('activate', () => {
         createWindow();
     }
 });
+(async () => {
+    fetch = (await import('node-fetch')).default;
+
+    ipcMain.handle('get-subscribed-items', async () => {
+        try {
+            const subscribedItems = await getSubscribedItems();
+            console.log('Subscribed Items:', subscribedItems);
+
+            if (!Array.isArray(subscribedItems)) {
+                throw new Error("Invalid subscribed items array");
+            }
+
+            // 确保所有项目ID转换为字符串
+            const stringItems = subscribedItems.map(item => item.toString());
+            const itemsDetails = await Promise.all(stringItems.map(async itemId => {
+                const details = await getItemDetailsWithRetry(itemId, MAX_RETRIES);
+                return details;
+            }));
+            console.log('Items Details:', itemsDetails);
+            return itemsDetails;
+        } catch (error) {
+            console.error("Error getting subscribed items:", error);
+            return [];
+        }
+    });
+
+    async function getItemDetailsWithRetry(itemId, retries) {
+        for (let attempt = 1; attempt <= retries; attempt++) {
+            try {
+                const details = await getItemDetails(itemId);
+                return details;
+            } catch (error) {
+                if (attempt < retries) {
+                    console.warn(`Attempt ${attempt} failed for ${itemId}, retrying...`);
+                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                } else {
+                    console.error(`Failed to get item details for ${itemId} after ${retries} attempts:`, error);
+                    return {
+                        id: itemId,
+                        title: 'No Title',
+                        description: 'No Description',
+                        previewUrl: 'default-image.png'
+                    };
+                }
+            }
+        }
+    }
+    async function getItemDetails(itemId) {
+        const url = `https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/`;
+        const params = `key=${API_KEY}&itemcount=1&publishedfileids[0]=${itemId}`;
+
+        console.log('Request Params:', params.toString()); // 输出请求参数
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: params
+            });
+
+            console.log('Response Status:', response.status);
+            const responseText = await response.text();
+            console.log('Response Text:', responseText);
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch item details: ${response.statusText}`);
+            }
+
+            const data = JSON.parse(responseText);
+            const item = data.response.publishedfiledetails[0];
+            console.log('Item Details:', item);
+
+            return {
+                id: itemId,
+                title: item.title,
+                description: item.description,
+                previewUrl: item.preview_url
+            };
+        } catch (error) {
+            console.error(`Error processing item details for ${itemId}:`, error);
+            throw new Error(`Failed to get item details for ${itemId}: ${error.message}`);
+        }
+    }
+})();
 ipcMain.on('open-terminal-window', () => {
     showOutputWindow(); // 调用函数来创建窗口
 });
@@ -109,6 +198,9 @@ ipcMain.on('open-settings-window', () => {
 });
 ipcMain.on('open-plugins-window', () => {
     showPluginsWindow(); // 调用函数来创建窗口
+});
+ipcMain.on('open-up-window', () => {
+    showUpWindow(); // 调用函数来创建窗口
 });
 ipcMain.on('open-biru-window', () => {
     showBiruWindow(); // 调用函数来创建窗口
@@ -183,19 +275,19 @@ ipcMain.on('close-main-window', () => {
         app.quit();
     }
 });
-ipcMain.on('fullscreen-window', (event) => {
+ipcMain.on('fullscreen-main-window', (event) => {
     if (mainWindow) {
         const window = BrowserWindow.fromWebContents(event.sender);
         window.maximize();
     }
 });
-ipcMain.on('restore-window', (event) => {
+ipcMain.on('restore-main-window', (event) => {
     if (mainWindow) {
         const window = BrowserWindow.fromWebContents(event.sender);
         window.unmaximize();
     }
 });
-ipcMain.on('minimize-window', (event) => {
+ipcMain.on('minimize-main-window', (event) => {
     if (mainWindow) {
         const window = BrowserWindow.fromWebContents(event.sender);
         window.minimize();
@@ -221,6 +313,30 @@ ipcMain.on('restore-biru-window', (event) => {
 });
 ipcMain.on('minimize-biru-window', (event) => {
     if (biruWindow) {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.minimize();
+    }
+});
+///
+ipcMain.on('close-up-window', () => {
+    if (upWindow) {
+        upWindow.close();
+    }
+});
+ipcMain.on('fullscreen-up-window', (event) => {
+    if (upWindow) {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.maximize();
+    }
+});
+ipcMain.on('restore-up-window', (event) => {
+    if (upWindow) {
+        const window = BrowserWindow.fromWebContents(event.sender);
+        window.unmaximize();
+    }
+});
+ipcMain.on('minimize-up-window', (event) => {
+    if (upWindow) {
         const window = BrowserWindow.fromWebContents(event.sender);
         window.minimize();
     }
@@ -910,6 +1026,13 @@ function showPluginsWindow() {
     }
     pluginsWindow.show();
 }
+function showUpWindow() {
+    if (upWindow === null) { // 如果窗口不存在，则创建它
+        createUpWindow();
+        console.log('upWindow is created');
+    }
+    upWindow.show();
+}
 function showOutputWindow() {
     if (outputWindow === null) { // 如果窗口不存在，则创建它
         createOutputWindow();
@@ -956,6 +1079,8 @@ function createOutputWindow() {
     outputWindow = new BrowserWindow({
         width: 400,
         height: 300,
+        minWidth: 400,
+        minHeight: 300,
         icon: path.join(__dirname, 'window_icon.png'),
         show: false,
         vibrancy: 'sidebar',
@@ -995,6 +1120,8 @@ function createBiruWindow() {
     biruWindow = new BrowserWindow({
         width: 500,
         height: 400,
+        minWidth: 500,
+        minHeight: 400,
         icon: path.join(__dirname, 'window_icon.png'),
         show: false,
         fullscreen: false,
@@ -1021,12 +1148,44 @@ function createBiruWindow() {
         }
     });
 }
+function createUpWindow() {
+    upWindow = new BrowserWindow({
+        width: 500,
+        height: 400,
+        minWidth: 500,
+        minHeight: 400,
+        icon: path.join(__dirname, 'window_icon.png'),
+        show: false,
+        fullscreen: false,
+        alwaysOnTop: true,
+        vibrancy: 'sidebar',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        },
+        autoHideMenuBar: !isMac,
+        titleBarStyle: isMac ? 'hiddenInset' : undefined,
+        frame: isMac ? undefined : false
+    });
+    upWindow.setMenu(null);
+    upWindow.loadFile('up.html');
+    upWindow.on('close', (event) => {
+        if (app.isQuitting) {
+            // 允许窗口关闭
+            upWindow = null;
+        } else {
+            // 阻止窗口关闭，仅仅隐藏窗口
+            event.preventDefault();
+            upWindow.hide();
+        }
+    });
+}
 function createSettingsWindow() {
     settingsWindow = new BrowserWindow({
         width: 600,
         height: 800,
-        minwidth: 600,
-        minheight: 800,
+        minWidth: 600,
+        minHeight: 800,
         icon: path.join(__dirname, 'window_icon.png'),
         show: false,
         fullscreen: false,
@@ -1175,7 +1334,9 @@ function MenuLang() {
     }
     if (pluginsWindow) {
         pluginsWindow.webContents.send('language-update');
-        pluginsWindow.loadFile('plugins.html');
+    }
+    if (upWindow) {
+        upWindow.webContents.send('language-update');
     }
 }
 async function isSteamRunning() {

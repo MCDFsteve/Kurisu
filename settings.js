@@ -13,15 +13,8 @@ const downloadsPath = fileJson.downloadsPath;
 const kurisuPath = path.join(downloadsPath, 'kurisu');
 const configFilePath = path.join(kurisuPath, 'kirusu-config.json');
 const currentOutputPathDisplay = document.getElementById('currentOutputPath');
-// 覆盖console.log
-const originalLog = console.log;
-console.log = function (...args) {
-    ipcRenderer.send('console-log', args);
-    originalLog.apply(console, args);
-};
-ipcRenderer.on('language-update', (event) => {
-    LanguageUp();
-});
+const buttonName = 'settings';
+const styleName = '#settingsui';
 function LanguageUp() {
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
     const TitleLang = document.getElementById('title');
@@ -152,25 +145,6 @@ cudaSwitch.addEventListener('change', function () {
     console.log('CUDA Switch:', cuda_switch);
     ipcRenderer.send('update-cuda', cuda_switch);
 });
-function isMacOS() {
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-}
-if (isMacOS()) {
-    console.log("hello world");
-    document.body.style.backgroundColor = "transparent";
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = `
-                #settingsui {
-            background-color: initial !important;
-        }
-        @media (prefers-color-scheme: dark) {
-            #settingsui {
-            background-color: initial !important;
-        }
-    }
-      `;
-    document.head.appendChild(styleSheet);
-}
 // 当文档加载完成后，请求当前的输出路径
 document.addEventListener('DOMContentLoaded', () => {
     LanguageUp();
@@ -234,55 +208,4 @@ function updateCurrentLangRuleDisplay(langRule) {
     }else if (langRule === 'ru') {
         langRuleDisplay.textContent = 'Русский';
     }
-}
-ipcRenderer.on('full-progress', (event) => {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    fullscreenButton.style.display = 'none';
-    restoreButton.style.display = 'block';
-});
-ipcRenderer.on('restore-progress', (event) => {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    fullscreenButton.style.display = 'block';
-    restoreButton.style.display = 'none';
-});
-if (isMacOS()) {
-    console.log('mac');
-} else {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    closeButton.classList.add('close-button-other');
-    closeButton.style.display = 'block';
-    closeButton.addEventListener('click', () => {
-        console.log('nipa');
-        ipcRenderer.send('close-settings-window');
-    });
-    fullscreenButton.classList.add('fullscreen-button-other');
-    fullscreenButton.style.display = 'block';
-    fullscreenButton.addEventListener('click', () => {
-        console.log('nipa');
-        fullscreenButton.style.display = 'none';
-        restoreButton.style.display = 'block';
-        ipcRenderer.send('fullscreen-settings-window');
-    });
-    restoreButton.classList.add('restore-button-other');
-    restoreButton.addEventListener('click', () => {
-        console.log('nipa');
-        fullscreenButton.style.display = 'block';
-        restoreButton.style.display = 'none';
-        ipcRenderer.send('restore-settings-window');
-    });
-    miniButton.classList.add('minimize-button-other');
-    miniButton.style.display = 'block';
-    miniButton.addEventListener('click', () => {
-        console.log('nipa');
-        ipcRenderer.send('minimize-settings-window');
-    });
 }

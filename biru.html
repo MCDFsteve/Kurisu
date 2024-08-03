@@ -164,19 +164,7 @@
         <p id="log108">·现在上方可以按住拖动了。<br>·现在设置里新增了 CUDA加速 选项，NVIDIA显卡使用可以提高一些文件的处理速度。<br>·优化了 终止任务 的效果。</p>
     </div>
     <script src="biru.js"></script>
-    <script>
-        window.onload=function(){
-            const links = document.querySelectorAll('a[href]');
-            links.forEach(link => {
-                link.addEventListener('click', e => {
-                    const url = link.getAttribute('href');
-                    e.preventDefault();
-                    const { shell } = require('electron');
-                    shell.openExternal(url);
-                });
-            });
-        }
-    </script>
+    <script src="button.js"></script>
 </body>
 
 </html>

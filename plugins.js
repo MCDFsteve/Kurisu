@@ -10,18 +10,8 @@ const kurisuPath = path.join(downloadsPath, 'kurisu');
 const configFilePath = path.join(kurisuPath, 'kirusu-config.json');
 const messagesPath = path.join(kurisuPath, 'messages', 'message.json');
 const settingsUi = document.getElementById('family');
-
-// 覆盖console.log
-const originalLog = console.log;
-console.log = function (...args) {
-    ipcRenderer.send('console-log', args);
-    originalLog.apply(console, args);
-};
-
-ipcRenderer.on('language-update', (event) => {
-    LanguageUp();
-});
-
+const buttonName = 'plugins';
+const styleName = '#settingsui';
 function LanguageUp() {
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
     SYSlanguage = config.langRule.trim().replace(/^'+|'+$/g, '');
@@ -45,83 +35,6 @@ function LanguageUp() {
         TitleLang.textContent = '프리셋 관리';
     }
 }
-
-function isMacOS() {
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-}
-
-if (isMacOS()) {
-    console.log("hello world");
-    document.body.style.backgroundColor = "transparent";
-    const styleSheet = document.createElement('style');
-    styleSheet.textContent = `
-                #settingsui {
-            background-color: initial !important;
-        }
-        @media (prefers-color-scheme: dark) {
-            #settingsui {
-            background-color: initial !important;
-        }
-    }
-      `;
-    document.head.appendChild(styleSheet);
-}
-
-// 当文档加载完成后，请求当前的输出路径
-ipcRenderer.on('full-progress', (event) => {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    fullscreenButton.style.display = 'none';
-    restoreButton.style.display = 'block';
-});
-
-ipcRenderer.on('restore-progress', (event) => {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    fullscreenButton.style.display = 'block';
-    restoreButton.style.display = 'none';
-});
-
-if (isMacOS()) {
-    console.log('mac');
-} else {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    closeButton.classList.add('close-button-other');
-    closeButton.style.display = 'block';
-    closeButton.addEventListener('click', () => {
-        console.log('nipa');
-        ipcRenderer.send('close-plugins-window');
-    });
-    fullscreenButton.classList.add('fullscreen-button-other');
-    fullscreenButton.style.display = 'block';
-    fullscreenButton.addEventListener('click', () => {
-        console.log('nipa');
-        fullscreenButton.style.display = 'none';
-        restoreButton.style.display = 'block';
-        ipcRenderer.send('fullscreen-plugins-window');
-    });
-    restoreButton.classList.add('restore-button-other');
-    restoreButton.addEventListener('click', () => {
-        console.log('nipa');
-        fullscreenButton.style.display = 'block';
-        restoreButton.style.display = 'none';
-        ipcRenderer.send('restore-plugins-window');
-    });
-    miniButton.classList.add('minimize-button-other');
-    miniButton.style.display = 'block';
-    miniButton.addEventListener('click', () => {
-        console.log('nipa');
-        ipcRenderer.send('minimize-plugins-window');
-    });
-}
-
 // 读取 messages.json 文件并生成复选框
 function createFamilyCheckboxes() {
     if (fs.existsSync(messagesPath)) {

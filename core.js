@@ -24,12 +24,13 @@ const configFilePath = path.join(kurisuPath, 'kirusu-config.json');
 const messagesFolderPath = path.join(kurisuPath, 'messages');
 const filePath = path.join(messagesFolderPath, 'message.json');
 // 覆盖console.log
-const originalLog = console.log;
 const axios = require('axios');
 const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, 'package.json'), 'utf8'));
 const appVersion = packageJson.version;
 // 更新版本号
 const versionText = document.getElementById('version-text');
+const buttonName = 'main';
+const styleName = '.left-panel';
 versionText.textContent = `ver${appVersion}`;
 function checkInternetConnection() {
     return axios.get('https://www.baidu.com', {
@@ -38,14 +39,6 @@ function checkInternetConnection() {
         .then(response => true)  // 网络正常
         .catch(error => false);  // 网络连接失败
 }
-
-console.log = function (...args) {
-    ipcRenderer.send('console-log', args);
-    originalLog.apply(console, args);
-};
-ipcRenderer.on('language-update', (event) => {
-    LanguageUp();
-});
 function LanguageUp() {
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));  // 从配置文件读取最新的配置
     const fileLabel = document.getElementById('fileLabel');
@@ -435,33 +428,12 @@ function watchFileChanges() {
         }
     });
 }
-document.addEventListener('DOMContentLoaded', () => {
-    loadMessages(); // 初始加载消息
-    watchFileChanges(); // 开始监视文件变化
-});
-
 function openOutputDir() {
     ipcRenderer.send('open-output-directory');
 }
 // 获取文件输入元素和文本元素
 var fileInput = document.getElementById('fileInput');
 var uploadButtonText = document.getElementById('uploadButtonText');
-ipcRenderer.on('platform-info', (event, { isMac }) => {
-    if (isMac) {
-        const styleSheet = document.createElement('style');
-        styleSheet.textContent = `
-        .left-panel {
-          background-color: initial !important;
-        }
-        @media (prefers-color-scheme: dark) {
-          .left-panel {
-            background-color: initial !important;
-          }
-        }
-      `;
-        document.head.appendChild(styleSheet);
-    }
-});
 // 监听文件选择的变化
 fileInput.addEventListener('change', function () {
     // 检查是否选择了文件
@@ -523,9 +495,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 document.addEventListener('DOMContentLoaded', function () {
-    const terminalButton = document.querySelector('img[id="pluginsbutton"]'); // 通过 alt 文本选择 terminal 按钮
-    if (terminalButton) {
-        terminalButton.addEventListener('click', function () {
+    const pluginsButton = document.querySelector('img[id="pluginsbutton"]'); // 通过 alt 文本选择 terminal 按钮
+    if (pluginsButton) {
+        pluginsButton.addEventListener('click', function () {
             ipcRenderer.send('open-plugins-window'); // 发送事件到主进程
         });
     }
@@ -535,6 +507,14 @@ document.addEventListener('DOMContentLoaded', function () {
     if (biruButton) {
         biruButton.addEventListener('click', function () {
             ipcRenderer.send('open-biru-window'); // 发送事件到主进程
+        });
+    }
+});
+document.addEventListener('DOMContentLoaded', function () {
+    const upButton = document.querySelector('img[id="upbutton"]'); // 通过 alt 文本选择 terminal 按钮
+    if (upButton) {
+        upButton.addEventListener('click', function () {
+            ipcRenderer.send('open-up-window'); // 发送事件到主进程
         });
     }
 });
@@ -809,57 +789,3 @@ document.addEventListener('keydown', function (event) {
 // 在页面加载和窗口大小变化时调整输入框高度
 window.onload = adjustInputHeight;
 window.onresize = adjustInputHeight;
-function isMacOS() {
-    return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-}
-ipcRenderer.on('full-progress', (event) => {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    fullscreenButton.style.display = 'none';
-    restoreButton.style.display = 'block';
-});
-ipcRenderer.on('restore-progress', (event) => {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    fullscreenButton.style.display = 'block';
-    restoreButton.style.display = 'none';
-});
-if (isMacOS()) {
-    console.log('mac');
-} else {
-    const closeButton = document.getElementById('close-button');
-    const miniButton = document.getElementById('minimize-button');
-    const fullscreenButton = document.getElementById('fullscreen-button');
-    const restoreButton = document.getElementById('restore-button');
-    closeButton.classList.add('close-button-other');
-    closeButton.style.display = 'block';
-    closeButton.addEventListener('click', () => {
-        console.log('nipa');
-        ipcRenderer.send('close-main-window');
-    });
-    fullscreenButton.classList.add('fullscreen-button-other');
-    fullscreenButton.style.display = 'block';
-    fullscreenButton.addEventListener('click', () => {
-        console.log('nipa');
-        fullscreenButton.style.display = 'none';
-        restoreButton.style.display = 'block';
-        ipcRenderer.send('fullscreen-window');
-    });
-    restoreButton.classList.add('restore-button-other');
-    restoreButton.addEventListener('click', () => {
-        console.log('nipa');
-        fullscreenButton.style.display = 'block';
-        restoreButton.style.display = 'none';
-        ipcRenderer.send('restore-window');
-    });
-    miniButton.classList.add('minimize-button-other');
-    miniButton.style.display = 'block';
-    miniButton.addEventListener('click', () => {
-        console.log('nipa');
-        ipcRenderer.send('minimize-window');
-    });
-}
