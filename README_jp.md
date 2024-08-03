@@ -18,3 +18,7 @@ FFmpegはhttps://ffmpeg.org/ から入手し、公式サイトでコンパイル
 
 ### macOSユーザーへの注意事項：プログラムを直接実行すると「破損しています」と表示されることがあります。ターミナルでsudo xattr -dr com.apple.quarantine プログラム.appの実行パス（ファインダーからドラッグ＆ドロップ可能）を入力し、パスワードを入力すると正常に開けるようになります。
 <img width="800" alt="image" src="https://github.com/user-attachments/assets/3dcdb8f3-de2a-4603-8480-0109e4c7325e">
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MCDFsteve/Kurisu&type=Date)](https://star-history.com/#MCDFsteve/Kurisu&Date)
