@@ -1,5 +1,5 @@
 # Kurisu
-[简体中文](https://github.com/MCDFsteve/Kurisu/edit/main/README_zhCN.md)   [English](https://github.com/MCDFsteve/Kurisu/edit/main/README.md)   [日本語](https://github.com/MCDFsteve/Kurisu/edit/main/README_jp.md)
+[简体中文](https://github.com/MCDFsteve/Kurisu/blob/main/README_zhCN.md)   [English](https://github.com/MCDFsteve/Kurisu/blob/main/README.md)   [日本語](https://github.com/MCDFsteve/Kurisu/blob/main/README_jp.md)
 ## 口頭での説明を使用してファイル形式を変換するプログラム
 ### 文字通り、口述です。
 例えば、mp4ファイルをドラッグまたはアップロードし、入力ボックスにやりたいことを説明します。
