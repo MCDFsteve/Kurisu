@@ -20,3 +20,7 @@ If you want to compile the project yourself or modify it, please refer to the <c
 ### macOS users, please note that directly running the program will prompt that it is damaged. Please enter the following in the terminal: sudo xattr -dr com.apple.quarantine [path to the app] (you can drag and drop from Finder), then enter your password and you should be able to open it normally.
 <img width="800" alt="image" src="https://github.com/user-attachments/assets/7005dd5e-6c91-4b5b-96ff-19378b13190e">
 
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MCDFsteve/Kurisu&type=Date)](https://star-history.com/#MCDFsteve/Kurisu&Date)
+
