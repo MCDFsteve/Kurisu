@@ -512,6 +512,9 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 document.addEventListener('DOMContentLoaded', function () {
     const upButton = document.querySelector('img[id="upbutton"]'); // 通过 alt 文本选择 terminal 按钮
+    ipcRenderer.on('view-on', (event) => {
+        upButton.style.visibility = 'visible';
+    });
     if (upButton) {
         upButton.addEventListener('click', function () {
             ipcRenderer.send('open-up-window'); // 发送事件到主进程

@@ -38,8 +38,6 @@ let steamClient;
 let previousSubscribedItems = new Set();
 let fetch;
 const API_KEY = 'C723F6C25B3B7F9FF8B6A7B8CCFFBEEE';
-const MAX_RETRIES = 3; // 最大重试次数
-const RETRY_DELAY = 1000; // 重试延迟时间，单位为毫秒
 const ItemState = {
     None: 0,
     Subscribed: 1 << 0,
@@ -106,90 +104,138 @@ app.on('activate', () => {
         createWindow();
     }
 });
-(async () => {
-    fetch = (await import('node-fetch')).default;
-
-    ipcMain.handle('get-subscribed-items', async () => {
-        try {
-            const subscribedItems = await getSubscribedItems();
-            console.log('Subscribed Items:', subscribedItems);
-
-            if (!Array.isArray(subscribedItems)) {
-                throw new Error("Invalid subscribed items array");
-            }
-
-            // 确保所有项目ID转换为字符串
-            const stringItems = subscribedItems.map(item => item.toString());
-            const itemsDetails = await Promise.all(stringItems.map(async itemId => {
-                const details = await getItemDetailsWithRetry(itemId, MAX_RETRIES);
-                return details;
-            }));
-            console.log('Items Details:', itemsDetails);
-            return itemsDetails;
-        } catch (error) {
-            console.error("Error getting subscribed items:", error);
+ipcMain.on('open-url', (event, url) => {
+    shell.openExternal(url);
+});
+ipcMain.handle('get-subscribed-items', async () => {
+    try {
+        const isRunning = await isSteamRunning();
+        if (!isRunning) {
+            console.log('Steam is not running.');
             return [];
         }
-    });
 
-    async function getItemDetailsWithRetry(itemId, retries) {
-        for (let attempt = 1; attempt <= retries; attempt++) {
-            try {
-                const details = await getItemDetails(itemId);
-                return details;
-            } catch (error) {
-                if (attempt < retries) {
-                    console.warn(`Attempt ${attempt} failed for ${itemId}, retrying...`);
-                    await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
-                } else {
-                    console.error(`Failed to get item details for ${itemId} after ${retries} attempts:`, error);
-                    return {
-                        id: itemId,
-                        title: 'No Title',
-                        description: 'No Description',
-                        previewUrl: 'default-image.png'
-                    };
-                }
+        const uploadedItems = await getUploadedItems();
+        console.log('Uploaded Items:', uploadedItems);
+
+        if (!Array.isArray(uploadedItems)) {
+            throw new Error("Invalid uploaded items array");
+        }
+
+        // 并行处理所有项目ID
+        const itemsDetails = await Promise.all(uploadedItems.map(itemId => getItemDetailsWithCurl(itemId)));
+        console.log('Items Details:', itemsDetails);
+        
+        return itemsDetails;
+    } catch (error) {
+        console.error("Error getting uploaded items:", error);
+        return [];
+    }
+});
+async function getUploadedItems() {
+    try {
+        const steamIdObject = steamClient.localplayer.getSteamId(); // 获取当前用户的 Steam ID 对象
+
+        console.log('Steam ID Object:', steamIdObject); // 仅打印 Steam ID 对象
+
+        const steamID = steamIdObject.steamId64.toString(); // 将 BigInt 转换为字符串
+
+        const url = `https://api.steampowered.com/IPublishedFileService/QueryFiles/v1/?key=${API_KEY}&query_type=3&numperpage=10&creator_appid=3034460&appid=3034460&steamid=${steamID}`;
+
+        const result = await executeCurlCommand(url);
+        const uploadedItems = extractPublishedFileIds(result);
+        return uploadedItems;
+    } catch (error) {
+        console.error("Error getting uploaded items:", error);
+        return [];
+    }
+}
+
+function executeCurlCommand(url) {
+    return new Promise((resolve, reject) => {
+        exec(`curl -X GET "${url}"`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error executing curl command: ${error.message}`);
+                return reject(error);
             }
+            if (stderr) {
+                console.error(`stderr from curl command: ${stderr}`);
+            }
+            resolve(stdout);
+        });
+    });
+}
+
+function extractPublishedFileIds(data) {
+    let publishedFileIds = [];
+    try {
+        const response = JSON.parse(data);
+        if (response.response && response.response.publishedfiledetails) {
+            publishedFileIds = response.response.publishedfiledetails.map(item => item.publishedfileid);
+        }
+    } catch (error) {
+        // 如果 JSON 解析失败，假设是 HTML 响应并提取 `publishedfileid`
+        const regex = /"publishedfileid":"(\d+)"/g;
+        let match;
+        while ((match = regex.exec(data)) !== null) {
+            publishedFileIds.push(match[1]);
         }
     }
-    async function getItemDetails(itemId) {
-        const url = `https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/`;
-        const params = `key=${API_KEY}&itemcount=1&publishedfileids[0]=${itemId}`;
+    return publishedFileIds;
+}
 
-        console.log('Request Params:', params.toString()); // 输出请求参数
+async function getItemDetailsWithCurl(itemId) {
+    const url = 'https://api.steampowered.com/ISteamRemoteStorage/GetPublishedFileDetails/v1/';
+    const postData = `key=${API_KEY}&itemcount=1&publishedfileids[0]=${itemId}`;
 
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: params
-            });
-
-            console.log('Response Status:', response.status);
-            const responseText = await response.text();
-            console.log('Response Text:', responseText);
-
-            if (!response.ok) {
-                throw new Error(`Failed to fetch item details: ${response.statusText}`);
+    return new Promise((resolve, reject) => {
+        exec(`curl -X POST -d "${postData}" "${url}"`, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`Error executing curl command: ${error.message}`);
+                return reject(error);
             }
+            if (stderr) {
+                console.error(`stderr from curl command: ${stderr}`);
+            }
+            try {
+                const itemDetails = extractItemDetails(stdout);
+                resolve(itemDetails);
 
-            const data = JSON.parse(responseText);
-            const item = data.response.publishedfiledetails[0];
-            console.log('Item Details:', item);
+                // 发送 'view-on' 消息给渲染进程
+                mainWindow.webContents.send('view-on');
+            } catch (error) {
+                reject(error);
+            }
+        });
+    });
+}
 
+function extractItemDetails(data) {
+    try {
+        const response = JSON.parse(data);
+        if (response.response && response.response.publishedfiledetails) {
+            const item = response.response.publishedfiledetails[0];
             return {
-                id: itemId,
+                id: item.publishedfileid,
                 title: item.title,
                 description: item.description,
                 previewUrl: item.preview_url
             };
-        } catch (error) {
-            console.error(`Error processing item details for ${itemId}:`, error);
-            throw new Error(`Failed to get item details for ${itemId}: ${error.message}`);
         }
+    } catch (error) {
+        // 如果 JSON 解析失败，假设是 HTML 响应并提取项目详情
+        const titleMatch = data.match(/<title>(.*?)<\/title>/);
+        const descriptionMatch = data.match(/<meta name="description" content="(.*?)"/);
+        const previewUrlMatch = data.match(/<img src="(.*?)" class="preview_img"/);
+
+        return {
+            id: 'Unknown',
+            title: titleMatch ? titleMatch[1] : 'No Title',
+            description: descriptionMatch ? descriptionMatch[1] : 'No Description',
+            previewUrl: previewUrlMatch ? previewUrlMatch[1] : 'default-image.png'
+        };
     }
-})();
+}
 ipcMain.on('open-terminal-window', () => {
     showOutputWindow(); // 调用函数来创建窗口
 });

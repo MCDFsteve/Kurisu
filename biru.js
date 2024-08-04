@@ -16,23 +16,13 @@ const styleName = '#biruui';
 window.onload=function(){
     const links = document.querySelectorAll('a[href]');
     links.forEach(link => {
-        link.addEventListener('click', e => {
+        link.addEventListener('click', (event) => {
+            event.preventDefault(); // 阻止默认行为
             const url = link.getAttribute('href');
-            e.preventDefault();
-            const { shell } = require('electron');
-            shell.openExternal(url);
+            ipcRenderer.send('open-url', url);
         });
     });
 }
-// 为每个超链接添加点击事件处理程序
-externalLinks.forEach(link => {
-    link.addEventListener('click', (event) => {
-        event.preventDefault(); // 阻止默认行为
-
-        const href = link.getAttribute('href');
-        shell.openExternal(href); // 在系统默认浏览器中打开链接
-    });
-});
 function LanguageUp() {
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
     const GPL3 = document.getElementById('gpl3');

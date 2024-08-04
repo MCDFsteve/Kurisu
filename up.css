@@ -34,10 +34,11 @@ body,
     }
 
     .item {
+        cursor: pointer;
         position: relative;
         display: flex;
         align-items: flex-start;
-        border: 1px solid #ddd;
+        border: 1px solid #1d1d1d;
         border-radius: 8px;
         padding: 10px;
         width: 100%;
@@ -46,7 +47,11 @@ body,
         overflow: hidden;
         text-overflow: ellipsis;
     }
-
+    @media (prefers-color-scheme: dark) {
+        .item {
+            border: 1px solid #ddd;
+        }
+    }
     .item img {
         width: 150px;
         height: auto;
