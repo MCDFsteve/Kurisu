@@ -11,6 +11,7 @@ let menuTemplate;
 let menu;
 let durationMatch;
 let cuda_switch;
+let copy_switch;
 const { app, BrowserWindow, ipcMain, shell, screen, Menu, globalShortcut, dialog, } = require('electron');
 const axios = require('axios');
 const fs = require('fs-extra');
@@ -104,8 +105,92 @@ app.on('activate', () => {
         createWindow();
     }
 });
+ipcMain.on(
+    'workshop:upload',
+    async (event, filePath, workshopIdNumber, workshopImage, workshopTitle, workshopDescription) => {
+        try {
+            const contentPath = resolvePath(filePath);
+            const previewPath = resolvePath(workshopImage);
+
+            console.log('内容文件路径:', contentPath);
+            console.log('预览图片路径:', previewPath);
+
+            if (!fs.existsSync(contentPath)) {
+                throw new Error(`内容文件不存在: ${contentPath}`);
+            }
+            if (!fs.existsSync(previewPath)) {
+                throw new Error(`预览图片不存在: ${previewPath}`);
+            }
+
+            console.log('准备上传文件到创意工坊...');
+            console.log(`文件路径: ${contentPath}`);
+            console.log(`图片路径: ${previewPath}`);
+            console.log(`标题: ${workshopTitle}`);
+            console.log(`描述: ${workshopDescription}`);
+
+            let itemId = workshopIdNumber === 0 ? 0n : BigInt(workshopIdNumber);
+
+            if (itemId === 0n) {
+                const createResult = await steamClient.workshop.createItem();
+                console.log('创建项目返回结果:', createResult);
+
+                if (!createResult.itemId) {
+                    throw new Error('创意工坊项目创建失败：未返回有效的 itemId');
+                }
+
+                itemId = createResult.itemId;
+                console.log(`新创意工坊项目创建成功，ID: ${itemId}`);
+
+                if (createResult.needsToAcceptAgreement) {
+                    throw new Error('需要在 Steam 客户端中接受创意工坊协议才能完成上传');
+                }
+            }
+
+            console.log(`itemId 类型: ${typeof itemId}, 值: ${itemId}`);
+            if (typeof itemId !== 'bigint') {
+                throw new Error(`itemId 必须是 BigInt 类型，但实际是 ${typeof itemId}`);
+            }
+
+            const minimalParameters = { itemId: BigInt(itemId) };
+            console.log('最小化参数测试:', minimalParameters);
+
+            // 测试最小参数
+            const updateResult = await steamClient.workshop.updateItem(minimalParameters);
+            console.log('最小化参数测试结果:', updateResult);
+
+            // 提交完整更新
+            const submitResult = await steamClient.workshop.submitItemUpdate(itemId, {
+                title: String(workshopTitle || '未设置标题'),
+                description: String(workshopDescription || '未设置介绍'),
+                contentPath: String(contentPath),
+                previewPath: String(previewPath),
+                visibility: Number(steamClient.workshop.UgcItemVisibility.Public),
+            }, "Updated item");
+
+            console.log('提交更新结果:', submitResult);
+
+            if (!submitResult.success) {
+                throw new Error('物品更新提交失败');
+            }
+
+            console.log('创意工坊内容上传成功');
+            event.reply('workshop:upload:result', { 
+                success: true, 
+                workshopId: itemId.toString(),
+                details: submitResult,
+            });
+        } catch (error) {
+            console.error('上传过程中发生错误:', error);
+            event.reply('workshop:upload:result', { success: false, error: error.message });
+        }
+    }
+);
 ipcMain.on('open-url', (event, url) => {
     shell.openExternal(url);
+});
+ipcMain.handle('dialog:openFile', async (event, options) => {
+    const result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), options);
+    return result;
 });
 ipcMain.handle('get-subscribed-items', async () => {
     try {
@@ -165,7 +250,16 @@ function executeCurlCommand(url) {
         });
     });
 }
-
+// 监听渲染进程的上传请求
+function resolvePath(inputPath) {
+    if (inputPath.startsWith('file://')) {
+        inputPath = decodeURIComponent(inputPath.replace('file://', ''));
+    }
+    if (path.isAbsolute(inputPath)) {
+        return inputPath;
+    }
+    return path.resolve(app.getAppPath(), inputPath);
+}
 function extractPublishedFileIds(data) {
     let publishedFileIds = [];
     try {
@@ -209,7 +303,16 @@ async function getItemDetailsWithCurl(itemId) {
         });
     });
 }
-
+function convertFileUriToPath(fileUri) {
+    if (fileUri.startsWith('file:///')) {
+        // 移除 file:/// 前缀
+        let decodedPath = decodeURIComponent(fileUri.replace('file:///', ''));
+        // 替换 / 为平台相关的路径分隔符
+        decodedPath = decodedPath.replace(/\//g, path.sep);
+        return decodedPath;
+    }
+    return fileUri;
+}
 function extractItemDetails(data) {
     try {
         const response = JSON.parse(data);
@@ -305,6 +408,12 @@ ipcMain.on('update-cuda', (event, cuda) => {
     const config = getConfig();
     config.cuda_switch = cuda;
     console.log("传输时的cuda状态：", cuda);
+    updateConfigFile(config);
+});
+ipcMain.on('update-copy', (event, copy) => {
+    const config = getConfig();
+    config.copy_switch = copy;
+    console.log("传输时的copy状态：", copy);
     updateConfigFile(config);
 });
 ipcMain.on('request-settings', (event) => {
@@ -518,6 +627,7 @@ function createOutputDirectory() {
     let namingRule = 'timestamp';
     let langRule = getSystemLangRule();
     let cuda_switch = false; // 根据系统语言环境动态设置 langRule
+    let copy_switch = false; // 根据系统语言环境动态设置 langRule
 
     // 尝试从配置文件读取输出目录
     if (fs.existsSync(configFilePath)) {
@@ -541,6 +651,11 @@ function createOutputDirectory() {
             config.cuda_switch = cuda_switch;
         } else {
             cuda_switch = config.cuda_switch;  // 使用配置文件中的值
+        }
+        if (!config.copy_switch) {
+            config.copy_switch = copy_switch;
+        } else {
+            copy_switch = config.copy_switch;  // 使用配置文件中的值
         }
 
         // 更新配置文件以确保默认值被写入
@@ -747,6 +862,7 @@ function getConfig() {
             namingRule: 'timestamp',
             langRule: 'en',// 默认命名规则
             cuda_switch: false,// 是否使用CUDA加速
+            copy_switch: false,// 是否仅重命名
         };
         updateConfigFile(defaultConfig); // 创建配置文件
         return defaultConfig;
@@ -843,21 +959,27 @@ async function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
         userCommand = "转成mp4";
     }
     let cuda;
+    let copy;
     console.log("关键词前的cuda状态：", config.cuda_switch);
     if (config.cuda_switch) {
         cuda = "使用cuda加速"
     } else {
         cuda = ""
     }
+    if (config.copy_switch) {
+        copy = "使用参数  -c copy"
+    } else {
+        copy = ""
+    }
     const message1 = "从现在开始直到对话结束,你来扮演一个只会输出ffmpeg命令的终端（由于是终端所以只会输出命令,输出命令以外的任何你的话都会失去角色扮演属性。命令也不要拿代码框包裹而是直接打出来.扮演从现在就已经开始了，你不需要回复收到而是直接进入角色，将我输入给你的内容处理成可用的ffmpeg命令。因此请务必在最开头写上ffmpeg,我会在句首给出";
-    const message2 = "输入和输出的文件路径都请完整保留原貌，不管怎么样都不许随意更改增减。如果文件夹名字是 影，那不要改成 影下。那如果没说是视频还是音频，那你直接看输入文件的后缀名是什么，是视频的话涉及到倍速，倒放什么的功能请连带音频一起处理。命令中请加入-y参数并放在-i之前。更改视频宽度和高度请确认为偶数，若为积数请px+1。如果遇到了使用-vf命令的情况则请用引号包裹-vf参数，-ss命令则请将-ss参数放在-i之前。只回复ffmpeg命令不回复除此之外的任何东西。";
+    const message2 = "输入和输出的文件路径都请完整保留原貌，不管怎么样都不许随意更改增减。如果文件夹名字是 影，那不要改成 影下。如果要求包含“从...到...“ 那请理解成只需要这两个时间之间的部分。那如果没说是视频还是音频，那你直接看输入文件的后缀名是什么，是视频的话涉及到倍速，倒放什么的功能请连带音频一起处理。命令中请加入-y参数并放在-i之前。更改视频宽度和高度请确认为偶数，若为积数请px+1。如果遇到了使用-vf命令的情况则请用引号包裹-vf参数，-ss命令则请将-ss参数放在-i之前。只回复ffmpeg命令不回复除此之外的任何东西。";
     let content;
     console.log('filePaths:', filePaths);
     if (filePaths.length > 1) {
         console.log('多个文件');
-        content = `${message1}多个输入文件的路径（逗号隔开）,输入输出文件路径用双引号括起来，请按顺序生成多个ffmpeg命令并使用 || 符号分隔给出，同时输出的文件名字请继承输入的文件名字。默认的输出文件请放在${outputPath}下。${message2} "${filePath}" ${userCommand}${cuda}`;
+        content = `${message1}多个输入文件的路径（逗号隔开）,输入输出文件路径用双引号括起来，请按顺序生成多个ffmpeg命令并使用 || 符号分隔给出，同时输出的文件名字请继承输入的文件名字。默认的输出文件请放在${outputPath}下。${message2} "${filePath}" ${userCommand}${copy}${cuda}`;
     } else {
-        content = `${message1}输入文件的路径,输入输出文件路径用双引号括起来。默认的输出文件请放在${outputPath}下，、输出文件命名为${generateFileName(originalFileName)}（如果在描述里手动指定了新的路径则请使用指定的命名）。没指定输出文件的后缀名的情况则和输入文件一样。${message2} "${filePath}" ${userCommand}${cuda}`;
+        content = `${message1}输入文件的路径,输入输出文件路径用双引号括起来。默认的输出文件请放在${outputPath}下，、输出文件命名为${generateFileName(originalFileName)}（如果在描述里手动指定了新的路径则请使用指定的命名）。没指定输出文件的后缀名的情况则和输入文件一样。${message2} "${filePath}" ${userCommand}${copy}${cuda}`;
     }
 
     const postData = JSON.stringify({
@@ -1304,8 +1426,9 @@ function MenuLang() {
     let menuTmux;
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
     cuda_switch = config.cuda_switch;
+    copy_switch = config.copy_switch;
     SYSlanguage = config.langRule.trim().replace(/^'+|'+$/g, '');
-    console.log('SYSlanguage and cuda:', SYSlanguage, cuda_switch);
+    console.log('SYSlanguage and cuda and copy:', SYSlanguage, cuda_switch,copy_switch);
     if (SYSlanguage === 'en') {
         menuBiru = "Changelog";
         menuMenu = 'Menu';

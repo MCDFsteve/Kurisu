@@ -15,6 +15,7 @@ const baseFiles = [
   "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
   "!**/node_modules/*.d.ts",
   "!**/node_modules/.bin",
+  "!**/pkg/**",
   "!**/*.{o,hprof,orig,pyc,pyo,rbc}",
   "!**/._*",
   "!**/electron-builder.yml",

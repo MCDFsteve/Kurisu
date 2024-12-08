@@ -7,6 +7,7 @@ let TimeText;
 let OriginText;
 // 初始化cuda_switch变量
 let cuda_switch;
+let copy_switch;
 const kurisucachePath = path.join(__dirname, 'kurisu.json');
 const fileJson = JSON.parse(fs.readFileSync(path.join(kurisucachePath), 'utf8'));
 const downloadsPath = fileJson.downloadsPath;
@@ -22,6 +23,7 @@ function LanguageUp() {
     const outputLang = document.getElementById('outputLang');
     const OtherLang = document.getElementById('otherlang');
     const CudaText = document.getElementById('cudatext');
+    const CopyText = document.getElementById('copytext');
     const nameLang = document.getElementById('nameLang');
     const timeLang = document.getElementById('timeLang');
     const originLang = document.getElementById('originLang');
@@ -32,6 +34,7 @@ function LanguageUp() {
     const resetToDefault = document.getElementById('resetToDefault');
     SYSlanguage = config.langRule.trim().replace(/^'+|'+$/g, '');
     cuda_switch = config.cuda_switch;
+    copy_switch = config.copy_switch;
     console.log('SYSlanguage by Core:', SYSlanguage);
     if (SYSlanguage === 'en') {
         TitleLang.textContent = 'Settings';
@@ -49,6 +52,7 @@ function LanguageUp() {
         OriginText = 'Keep Original Name';
         OtherLang.textContent = 'Other';
         CudaText.textContent = 'Enable CUDA acceleration (turn off if problems occur)';
+        CopyText.textContent = 'Copy only (suitable for renaming operations only, speeds up the process)';
     } else if (SYSlanguage === 'zh_cn') {
         TitleLang.textContent = '设置';
         TitleLang2.textContent = '输出文件位置';
@@ -65,6 +69,7 @@ function LanguageUp() {
         OriginText = '保持原名';
         OtherLang.textContent = '其他';
         CudaText.textContent = '启用CUDA加速（出现问题请关掉）';
+        CopyText.textContent = '仅复制（适用于仅重命名操作，加快速度）';
     }
     else if (SYSlanguage === 'jp') {
         TitleLang.textContent = '設定';
@@ -82,6 +87,7 @@ function LanguageUp() {
         OriginText = '元の名前を保持';
         OtherLang.textContent = 'その他';
         CudaText.textContent = 'CUDA加速を有効にする（問題が発生したらオフにしてください）';
+        CopyText.textContent = 'コピーのみ（名前変更操作に適用、速度が向上します）';
     }
     else if (SYSlanguage === 'zh_tw') {
         TitleLang.textContent = '設定';
@@ -99,6 +105,7 @@ function LanguageUp() {
         OriginText = '保持原始名稱';
         OtherLang.textContent = '其他';
         CudaText.textContent = '啟用 CUDA 加速（若發生問題請關閉）';
+        CopyText.textContent = '僅複製（適用於僅重命名操作，加快速度）';
     }
     else if (SYSlanguage === 'ru') {
         TitleLang.textContent = 'Настройки';
@@ -116,6 +123,7 @@ function LanguageUp() {
         OriginText = 'Сохранить оригинальное имя';
         OtherLang.textContent = 'Другие';
         CudaText.textContent = 'Включить ускорение CUDA (выключите, если возникнут проблемы)';
+        CopyText.textContent = 'Только копирование (подходит только для операций переименования, ускоряет процесс)';
     }
     else if (SYSlanguage === 'ko') {
         TitleLang.textContent = '설정';
@@ -133,23 +141,30 @@ function LanguageUp() {
         OriginText = '원래 이름 유지';
         OtherLang.textContent = '기타';
         CudaText.textContent = 'CUDA 가속 활성화 (문제가 발생하면 끄세요)';
+        CopyText.textContent = '복사만 (이름 변경 작업에 적합, 속도 향상)';
     }
 }
 
 // 获取勾选框元素
 const cudaSwitch = document.getElementById('cudaSwitch');
-
+const copySwitch = document.getElementById('copySwitch');
 // 添加事件监听器，检测用户手动勾选操作
 cudaSwitch.addEventListener('change', function () {
     cuda_switch = this.checked;
     console.log('CUDA Switch:', cuda_switch);
     ipcRenderer.send('update-cuda', cuda_switch);
 });
+copySwitch.addEventListener('change', function () {
+    copy_switch = this.checked;
+    console.log('COPY Switch:', copy_switch);
+    ipcRenderer.send('update-copy', copy_switch);
+});
 // 当文档加载完成后，请求当前的输出路径
 document.addEventListener('DOMContentLoaded', () => {
     LanguageUp();
     // 根据cuda_switch变量设置勾选框的状态
     cudaSwitch.checked = cuda_switch;
+    copySwitch.checked = copy_switch;
     ipcRenderer.send('request-current-output-path');
 });
 document.getElementById('resetToDefault').addEventListener('click', () => {
