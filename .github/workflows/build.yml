@@ -33,6 +33,7 @@ jobs:
         run: npm install
 
       - name: Build Electron App
+        shell: bash
         run: |
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             npm run win
