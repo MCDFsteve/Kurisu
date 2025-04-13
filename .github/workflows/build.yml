@@ -1,4 +1,4 @@
-name: Build Release
+name: Build and Deploy to Steam
 
 on:
   push:
@@ -31,4 +31,17 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: build-output
-        path: dist/ 
+        path: dist/
+    
+    - name: Setup Steam CLI
+      run: |
+        mkdir -p ~/steamcmd
+        curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_osx.tar.gz" | tar zxvf - -C ~/steamcmd
+    
+    - name: Deploy to Steam
+      env:
+        STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+        STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+        STEAM_GUARD_CODE: ${{ secrets.STEAM_GUARD_CODE }}
+      run: |
+        ~/steamcmd/steamcmd.sh +login $STEAM_USERNAME $STEAM_PASSWORD $STEAM_GUARD_CODE +run_app_build ../steam/app_build3.vdf +quit 
