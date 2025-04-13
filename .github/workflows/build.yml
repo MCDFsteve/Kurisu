@@ -22,11 +22,25 @@ jobs:
         with:
           node-version: 18
 
+      - name: Install Wine (Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo dpkg --add-architecture i386
+          sudo apt-get update
+          sudo apt-get install -y wine64 wine32
+
       - name: Install Dependencies
         run: npm install
 
       - name: Build Electron App
-        run: npm run build
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            npm run win
+          elif [ "${{ matrix.os }}" = "macos-latest" ]; then
+            npm run mac
+          else
+            npm run linux
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           CSC_IDENTITY_AUTO_DISCOVERY: false
