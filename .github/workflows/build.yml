@@ -29,6 +29,7 @@ jobs:
         run: npm run build
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Build/Release Electron app
         uses: samuelmeuli/action-electron-builder@v1
@@ -39,6 +40,8 @@ jobs:
           mac_certs_password: ${{ secrets.mac_certs_password }}
           windows_certs: ${{ secrets.windows_certs }}
           windows_certs_password: ${{ secrets.windows_certs_password }}
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
