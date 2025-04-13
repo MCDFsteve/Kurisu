@@ -576,6 +576,25 @@ async function sendRequest() {
 
     const filePaths = Array.from(fileInput.files).map(file => file.path);
     const filePathsString = filePaths.join(', ');
+    
+    // 获取文件信息并添加到用户输入中
+    let enhancedInput = userInput.value;
+    if (window.fileInfos) {
+        const fileInfoDescriptions = window.fileInfos.map(info => {
+            let description = `文件：${info.name}（${(info.size / 1024 / 1024).toFixed(2)}MB）`;
+            if (info.type.startsWith('image/')) {
+                description += `，分辨率：${info.width}x${info.height}`;
+            } else if (info.type.startsWith('video/')) {
+                description += `，分辨率：${info.width}x${info.height}，时长：${Math.floor(info.duration)}秒`;
+            } else if (info.type.startsWith('audio/')) {
+                description += `，时长：${Math.floor(info.duration)}秒`;
+            }
+            return description;
+        }).join('；');
+        
+        enhancedInput = `[文件信息：${fileInfoDescriptions}] ${userInput.value}`;
+    }
+
     if (!isConnected) {
         progressText.textContent = `${WebWarnText}`;
         progressBar.style.backgroundColor = 'rgb(211, 105, 105)'; // 红色进度条
@@ -606,7 +625,7 @@ async function sendRequest() {
         confirmButton.style.display = 'block';
         stopButton.style.display = 'none';
     }, 60000); // 20秒超时
-    const userCommand = userInput.value;
+    const userCommand = enhancedInput; // 使用增强后的输入
     ipcRenderer.on('update-progress', (event, progress) => {
         if (progress < 0) {
             Loadatext = Load2text;
@@ -615,7 +634,7 @@ async function sendRequest() {
         }
         else if (progress > 0) {
             clearInterval(dotsInterval);
-            updateProgress(progress);  // 取消“连接中”动画
+            updateProgress(progress);  // 取消"连接中"动画
         } // 使用新函数来更新进度条
         if (progress === 100) {
             Loadatext = LoadText;
@@ -647,44 +666,84 @@ async function sendRequest() {
         }, 500);
     });
     ipcRenderer.invoke('generate-ffmpeg-command', filePathsString, userCommand)
-        .then(command => {
-            console.log("Received ffmpeg command:", command); // Debug: 打印接收到的命令
+        .then(commands => {
+            console.log("Received ffmpeg commands:", commands); // Debug: 打印接收到的命令
             clearTimeout(timeoutId);  // 取消超时处理
-            const commands = command.split('||'); // 使用新的分隔符拆分命令
-            console.log("Split commands:", commands); // Debug: 打印拆分后的命令
-            executeCommandsSequentially(commands, 0);
+
+            // 创建一个函数来按顺序执行命令
+            async function executeCommandsInSequence(commands, currentIndex = 0) {
+                if (currentIndex >= commands.length) {
+                    return; // 所有命令执行完毕
+                }
+
+                const command = commands[currentIndex];
+                console.log(`Executing command ${currentIndex + 1}/${commands.length}:`, command);
+
+                try {
+                    // 发送当前进度
+                    const baseProgress = (currentIndex / commands.length) * 100;
+                    const progressStep = 100 / commands.length;
+
+                    // 设置进度监听器
+                    const progressHandler = (event, progress) => {
+                        if (progress > 0) {
+                            const actualProgress = baseProgress + (progress * progressStep / 100);
+                            updateProgress(actualProgress);
+                        }
+                    };
+
+                    // 添加进度监听器
+                    ipcRenderer.on('update-progress', progressHandler);
+
+                    // 执行当前命令
+                    await new Promise((resolve, reject) => {
+                        ipcRenderer.invoke('execute-ffmpeg', command)
+                            .then(() => {
+                                // 移除进度监听器
+                                ipcRenderer.removeListener('update-progress', progressHandler);
+                                resolve();
+                            })
+                            .catch(error => {
+                                // 移除进度监听器
+                                ipcRenderer.removeListener('update-progress', progressHandler);
+                                reject(error);
+                            });
+                    });
+
+                    // 执行下一个命令
+                    await executeCommandsInSequence(commands, currentIndex + 1);
+                } catch (error) {
+                    console.error(`Error executing command ${currentIndex + 1}:`, error);
+                    progressText.textContent = `${NoText}${error}${ConsoleText}`;
+                    progressLine.style.backgroundColor = 'rgb(211, 105, 105)';
+                    progressBar.style.width = '100%';
+                    confirmButton.disabled = false;
+                    confirmButton.style.display = 'block';
+                    stopButton.style.display = 'none';
+                }
+            }
+
+            // 开始执行命令序列
+            executeCommandsInSequence(commands)
+                .then(() => {
+                    progressText.textContent = `${YesText}`;
+                    progressLine.style.backgroundColor = 'rgb(105, 179, 211)'; 
+                    progressBar.style.width = '100%';
+                    confirmButton.style.display = 'block';
+                    stopButton.style.display = 'none';
+                    confirmButton.disabled = false;
+                    confirmButton.style.opacity = 1;
+                });
         })
         .catch(error => {
             console.error('Error:', error);
-            clearTimeout(timeoutId);  // 取消超时处理
+            clearTimeout(timeoutId);
             confirmButton.disabled = false;
             confirmButton.style.display = 'block';
             stopButton.style.display = 'none';
         });
 }
 
-function executeCommandsSequentially(commands, index) {
-    if (index >= commands.length) {
-        return; // 所有命令执行完毕
-    }
-    const confirmButton = document.getElementById('confirmButton');
-    const stopButton = document.getElementById('stopButton');
-    const command = commands[index].trim(); // 清除可能的空白字符
-    console.log(`Executing command ${index + 1}:`, command); // Debug: 打印正在执行的命令
-    executeFFmpegCommand(command).then(() => {
-        const progress = ((index + 1) / commands.length) * 100;
-        progress.value = progress;
-        progress.textContent = `${progress.toFixed(0)}%`;
-        if (index === commands.length - 1) {
-            statusText.innerText = '处理完成';
-            confirmButton.disabled = false;
-            confirmButton.style.display = 'block';
-            stopButton.style.display = 'none';
-        } else {
-            executeCommandsSequentially(commands, index + 1); // 执行下一命令
-        }
-    });
-}
 function simulateProgress(startProgress) {
     let progress = Math.max(startProgress, progress.value);
     const intervalId = setInterval(() => {

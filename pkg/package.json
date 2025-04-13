@@ -1,0 +1,11 @@
+{
+  "name": "kurisu-launcher",
+  "version": "1.0.0",
+  "main": "start_kurisu.js",
+  "scripts": {
+    "build": "npk build start_kurisu.js --output kurisu-launcher"
+  },
+  "devDependencies": {
+    "node-packer": "^1.0.0"
+  }
+}
