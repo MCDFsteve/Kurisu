@@ -1093,9 +1093,16 @@ ${message2} 输入文件列表: "${filePath}" ${userCommand}${copy}${cuda}`;
                             const firstFileExtension = path.extname(filePaths[0]);
                             currentCommand = currentCommand.replace(new RegExp(`"input${firstFileExtension}"`, 'g'), `"${fp}"`);
                             
-                            // Replace output placeholder
-                            const outputPlaceholder = path.join(outputPath, 'output' + outputExtension);
-                            currentCommand = currentCommand.replace(new RegExp(outputPlaceholder.replace(/\\/g, '\\\\'), 'g'), finalOutputPath);
+                            // Replace output placeholder with the actual output path
+                            if (config.namingRule === 'original') {
+                                // 如果是original命名规则，直接使用原始文件名
+                                currentCommand = currentCommand.replace(/output\.[^"\s]+/g, originalBaseName + outputExtension);
+                                currentCommand = currentCommand.replace(/output/g, originalBaseName);
+                            } else {
+                                // 如果是timestamp命名规则，使用生成的文件名
+                                currentCommand = currentCommand.replace(/output\.[^"\s]+/g, finalOutputName);
+                                currentCommand = currentCommand.replace(/output/g, finalOutputName);
+                            }
                             
                             // Replace ffmpeg executable path
                             const ffmpegExecutablePath = getFFmpegPath();
