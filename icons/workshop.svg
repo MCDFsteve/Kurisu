@@ -1,0 +1,27 @@
+<svg width="64" height="64" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- 背景圆形 -->
+  <circle cx="32" cy="32" r="30" fill="#4a90e2" stroke="#2c5aa0" stroke-width="2"/>
+  
+  <!-- 齿轮图标 -->
+  <g transform="translate(32,32)">
+    <!-- 外齿轮 -->
+    <path d="M-12,-2 L-14,-2 L-14,-6 L-10,-6 L-10,6 L-14,6 L-14,2 L-12,2 
+             L-12,4 L-8,4 L-8,8 L-4,8 L-4,12 L-2,12 L-2,14 L2,14 L2,12 L4,12 
+             L4,8 L8,8 L8,4 L12,4 L12,2 L14,2 L14,-2 L12,-2 L12,-4 L8,-4 
+             L8,-8 L4,-8 L4,-12 L2,-12 L2,-14 L-2,-14 L-2,-12 L-4,-12 L-4,-8 
+             L-8,-8 L-8,-4 L-12,-4 Z" 
+          fill="#ffffff" opacity="0.9"/>
+    
+    <!-- 内圆 -->
+    <circle cx="0" cy="0" r="6" fill="#4a90e2"/>
+    
+    <!-- 小齿轮 -->
+    <circle cx="0" cy="0" r="3" fill="#ffffff"/>
+  </g>
+  
+  <!-- 小星星装饰 -->
+  <g fill="#ffffff" opacity="0.7">
+    <polygon points="50,15 52,19 56,19 53,22 54,26 50,24 46,26 47,22 44,19 48,19" transform="scale(0.6)"/>
+    <polygon points="18,50 20,54 24,54 21,57 22,61 18,59 14,61 15,57 12,54 16,54" transform="scale(0.4)"/>
+  </g>
+</svg> 

@@ -4,6 +4,7 @@ let outputWindow;
 let biruWindow;
 let settingsWindow;
 let pluginsWindow;
+let workshopWindow;
 let totalDuration; // 假设视频总时长是600秒
 let mainWindow = null;
 let ffmpegcode = 0;
@@ -12,7 +13,8 @@ let menu;
 let durationMatch;
 let cuda_switch;
 let copy_switch;
-const { app, BrowserWindow, ipcMain, shell, screen, Menu, globalShortcut, dialog, } = require('electron');
+const { app, BrowserWindow, ipcMain, shell, screen, Menu, globalShortcut, dialog, Tray, nativeImage } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const axios = require('axios');
 const fs = require('fs-extra');
 const path = require('path');
@@ -20,7 +22,8 @@ const exec = require('child_process').exec;
 const os = require('os');
 // 定义原始 messages 文件夹的路径
 const originalMessagesPath = path.join(__dirname, 'messages');
-const shareFolderPath = path.join(originalMessagesPath, 'share');
+// 修复：shareFolderPath应该指向用户数据目录，而不是开发目录
+// const shareFolderPath = path.join(originalMessagesPath, 'share');
 const originaldefaultPath = path.join(__dirname, 'messages', 'default.json');
 // 定义目标路径，即用户下载文件夹下的 kurisu 文件夹
 const downloadsPath = app.getPath('userData');
@@ -29,6 +32,8 @@ const messagesFolderPath = path.join(kurisuPath, 'messages');
 const messagesPath = path.join(messagesFolderPath, 'message.json');
 const defaultPath = path.join(messagesFolderPath, 'default.json');
 const targetMessagesPath = path.join(kurisuPath, 'messages');
+// 修复：正确的shareFolderPath应该指向用户数据目录
+const shareFolderPath = path.join(targetMessagesPath, 'share');
 const ffmpegmac = path.join(__dirname, 'ffmpeg', 'ffmpeg_mac');
 const ffmpeglinux64 = path.join(__dirname, 'ffmpeg', 'ffmpeg_linux64');
 const ffmpeglinuxarm = path.join(__dirname, 'ffmpeg', 'ffmpeg_linuxarm');
@@ -53,6 +58,56 @@ const configFilePath = path.join(kurisuPath, 'kirusu-config.json');
 const WorkFilePath = path.join(kurisuPath, 'kirusu-work.json');
 // 忽略证书错误
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+// 自动更新配置
+autoUpdater.checkForUpdatesAndNotify();
+
+// 自动更新事件处理
+autoUpdater.on('checking-for-update', () => {
+    console.log('Checking for update...');
+});
+
+autoUpdater.on('update-available', (info) => {
+    console.log('Update available.', info);
+    if (mainWindow) {
+        mainWindow.webContents.send('update-available', info);
+    }
+});
+
+autoUpdater.on('update-not-available', (info) => {
+    console.log('Update not available.', info);
+});
+
+autoUpdater.on('error', (err) => {
+    console.log('Error in auto-updater. ' + err);
+});
+
+autoUpdater.on('download-progress', (progressObj) => {
+    let log_message = "Download speed: " + progressObj.bytesPerSecond;
+    log_message = log_message + ' - Downloaded ' + progressObj.percent + '%';
+    log_message = log_message + ' (' + progressObj.transferred + "/" + progressObj.total + ')';
+    console.log(log_message);
+    if (mainWindow) {
+        mainWindow.webContents.send('download-progress', progressObj);
+    }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    console.log('Update downloaded');
+    if (mainWindow) {
+        mainWindow.webContents.send('update-downloaded', info);
+    }
+});
+
+// IPC处理更新相关消息
+ipcMain.on('restart-app', () => {
+    autoUpdater.quitAndInstall();
+});
+
+ipcMain.on('check-for-updates', () => {
+    autoUpdater.checkForUpdatesAndNotify();
+});
+
 // 确保关闭窗口时清理引用
 app.on('window-all-closed', () => {
     if (steamClient) {
@@ -87,7 +142,7 @@ app.whenReady().then(() => {
     createBiruWindow();
     createSettingsWindow();
     createPluginsWindow();
-    createUpWindow();
+    createWorkshopWindow();
     createWindow();
     MenuLang();
     syncMessagesWithDefault();
@@ -158,26 +213,30 @@ ipcMain.on(
             const updateResult = await steamClient.workshop.updateItem(minimalParameters);
             console.log('最小化参数测试结果:', updateResult);
 
-            // 提交完整更新
-            const submitResult = await steamClient.workshop.submitItemUpdate(itemId, {
+            // 更新完整参数
+            const fullUpdateResult = await steamClient.workshop.updateItem(itemId, {
                 title: String(workshopTitle || '未设置标题'),
                 description: String(workshopDescription || '未设置介绍'),
                 contentPath: String(contentPath),
                 previewPath: String(previewPath),
                 visibility: Number(steamClient.workshop.UgcItemVisibility.Public),
-            }, "Updated item");
+            });
 
-            console.log('提交更新结果:', submitResult);
+            console.log('完整更新结果:', fullUpdateResult);
 
-            if (!submitResult.success) {
-                throw new Error('物品更新提交失败');
+            if (!fullUpdateResult || fullUpdateResult.needsToAcceptAgreement) {
+                if (fullUpdateResult && fullUpdateResult.needsToAcceptAgreement) {
+                    throw new Error('需要在 Steam 客户端中接受创意工坊协议才能完成上传');
+                } else {
+                    throw new Error('物品更新失败，请检查网络连接或稍后重试');
+                }
             }
 
             console.log('创意工坊内容上传成功');
             event.reply('workshop:upload:result', { 
                 success: true, 
                 workshopId: itemId.toString(),
-                details: submitResult,
+                details: fullUpdateResult,
             });
         } catch (error) {
             console.error('上传过程中发生错误:', error);
@@ -210,6 +269,17 @@ ipcMain.handle('get-subscribed-items', async () => {
         // 并行处理所有项目ID
         const itemsDetails = await Promise.all(uploadedItems.map(itemId => getItemDetailsWithCurl(itemId)));
         console.log('Items Details:', itemsDetails);
+        
+        // 存储工坊详情映射
+        itemsDetails.forEach(detail => {
+            if (detail && detail.id) {
+                workshopDetailsMapping[detail.id] = detail;
+            }
+        });
+        
+        // 工坊详情获取完成后，重新扫描share文件夹建立文件名到标题的映射
+        console.log('工坊详情获取完成，开始建立文件映射...');
+        rebuildWorkshopTitleMapping();
         
         return itemsDetails;
     } catch (error) {
@@ -348,11 +418,11 @@ ipcMain.on('open-settings-window', () => {
 ipcMain.on('open-plugins-window', () => {
     showPluginsWindow(); // 调用函数来创建窗口
 });
-ipcMain.on('open-up-window', () => {
-    showUpWindow(); // 调用函数来创建窗口
-});
 ipcMain.on('open-biru-window', () => {
     showBiruWindow(); // 调用函数来创建窗口
+});
+ipcMain.on('open-workshop-window', () => {
+    showWorkshopWindow(); // 调用函数来创建创意工坊窗口
 });
 ipcMain.handle('generate-ffmpeg-command', async (event, filePathsString, userCommand) => {
     const ffmpegPath = getFFmpegPath();
@@ -462,30 +532,6 @@ ipcMain.on('restore-biru-window', (event) => {
 });
 ipcMain.on('minimize-biru-window', (event) => {
     if (biruWindow) {
-        const window = BrowserWindow.fromWebContents(event.sender);
-        window.minimize();
-    }
-});
-///
-ipcMain.on('close-up-window', () => {
-    if (upWindow) {
-        upWindow.close();
-    }
-});
-ipcMain.on('fullscreen-up-window', (event) => {
-    if (upWindow) {
-        const window = BrowserWindow.fromWebContents(event.sender);
-        window.maximize();
-    }
-});
-ipcMain.on('restore-up-window', (event) => {
-    if (upWindow) {
-        const window = BrowserWindow.fromWebContents(event.sender);
-        window.unmaximize();
-    }
-});
-ipcMain.on('minimize-up-window', (event) => {
-    if (upWindow) {
         const window = BrowserWindow.fromWebContents(event.sender);
         window.minimize();
     }
@@ -768,6 +814,27 @@ function syncMessagesWithDefault() {
             try {
                 const fileData = fs.readFileSync(filePath, 'utf8');
                 const additionalMessages = JSON.parse(fileData);
+                
+                // 检查是否是数组格式（消息文件），如果不是则尝试处理单个配置对象
+                if (!Array.isArray(additionalMessages)) {
+                    // 检查是否是单个配置对象（工坊配置文件）
+                    if (typeof additionalMessages === 'object' && additionalMessages !== null && additionalMessages.id) {
+                        console.log(`处理单个配置对象文件: ${jsonFile}`);
+                        // 将单个配置对象转换为数组格式
+                        const singleConfigAsArray = [additionalMessages];
+                        singleConfigAsArray.forEach(config => {
+                            // 使用工坊标题而不是文件名作为family（如果有映射的话）
+                            const workshopTitle = workshopTitleMapping[jsonFile];
+                            config.family = workshopTitle || path.basename(jsonFile, '.json'); // 优先使用工坊标题，否则使用文件名
+                            console.log(`设置配置family: ${config.family} (来源: ${workshopTitle ? '工坊标题' : '文件名'})`);
+                            updateOrAddMessage(config);
+                        });
+                    } else {
+                        console.log(`跳过非消息数组文件: ${jsonFile}`);
+                    }
+                    return;
+                }
+                
                 additionalMessages.forEach(additionalMessage => {
                     additionalMessage.family = path.basename(jsonFile, '.json'); // 添加 family 参数，并去掉 .json 后缀名
                     updateOrAddMessage(additionalMessage);
@@ -786,9 +853,24 @@ function syncMessagesWithDefault() {
         const existsInDefault = fs.existsSync(defaultPath) && JSON.parse(fs.readFileSync(defaultPath, 'utf8')).some(def => def.id === message.id);
         const existsInShare = fs.existsSync(shareFolderPath) && fs.readdirSync(shareFolderPath).filter(file => path.extname(file).toLowerCase() === '.json').some(jsonFile => {
             const filePath = path.join(shareFolderPath, jsonFile);
-            const fileData = fs.readFileSync(filePath, 'utf8');
-            const additionalMessages = JSON.parse(fileData);
-            return additionalMessages.some(additionalMessage => additionalMessage.id === message.id);
+            try {
+                const fileData = fs.readFileSync(filePath, 'utf8');
+                const additionalMessages = JSON.parse(fileData);
+                
+                // 如果不是数组格式，检查是否是单个配置对象
+                if (!Array.isArray(additionalMessages)) {
+                    // 如果是单个配置对象且有对应ID，返回true
+                    if (typeof additionalMessages === 'object' && additionalMessages !== null && additionalMessages.id === message.id) {
+                        return true;
+                    }
+                    return false;
+                }
+                
+                return additionalMessages.some(additionalMessage => additionalMessage.id === message.id);
+            } catch (error) {
+                console.error(`检查文件 ${jsonFile} 时出错:`, error);
+                return false;
+            }
         });
 
         if (!existsInDefault && !existsInShare) {
@@ -893,39 +975,6 @@ function getFFmpegPath() {
     }
 }
 
-// Helper function to call the switch service
-async function checkSwitchService(userCommand) {
-    return new Promise((resolve, reject) => {
-        const postData = JSON.stringify({ text: userCommand });
-        const options = {
-            hostname: 'ffmpeg.dfsteve.top',
-            path: '/switch.php',
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Content-Length': Buffer.byteLength(postData)
-            }
-        };
-
-        const req = https.request(options, (res) => {
-            let data = '';
-            res.on('data', (chunk) => { data += chunk; });
-            res.on('end', () => {
-                console.log('Switch service response:', data);
-                resolve(data.trim() === 'true');
-            });
-        });
-
-        req.on('error', (error) => {
-            console.error('Error calling switch service:', error);
-            resolve(false);
-        });
-
-        req.write(postData);
-        req.end();
-    });
-}
-
 async function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
     const originalFileName = path.basename(filePath, path.extname(filePath));
     const config = JSON.parse(fs.readFileSync(configFilePath, 'utf8'));
@@ -993,28 +1042,15 @@ async function generateFFmpegCommand(filePath, userCommand, ffmpegPath) {
     const message1 = "从现在开始直到对话结束,你来扮演一个只会输出ffmpeg命令的终端（由于是终端所以只会输出命令,输出命令以外的任何你的话都会失去角色扮演属性。命令也不要拿代码框包裹而是直接打出来.扮演从现在就已经开始了，你不需要回复收到而是直接进入角色，将我输入给你的内容处理成可用的ffmpeg命令。因此请务必在最开头写上ffmpeg,我会在句首给出";
     const message2 = "输入和输出的文件路径都请完整保留原貌，不管怎么样都不许随意更改增减。如果文件夹名字是 影，那不要改成 影下。如果要求包含'从...到...'那请理解成只需要这两个时间之间的部分。那如果没说是视频还是音频，那你直接看输入文件的后缀名是什么，是视频的话涉及到倍速，倒放什么的功能请连带音频一起处理。命令中请加入-y参数并放在-i之前。更改视频宽度和高度请确认为偶数，若为积数请px+1。如果遇到了使用-vf命令的情况则请用引号包裹-vf参数，-ss命令则请将-ss参数放在-i之前。只回复ffmpeg命令不回复除此之外的任何东西。";
     let content;
-    let useTemplateLogic = false;
 
     if (filePaths.length > 1) {
-        console.log('Multiple files detected. Checking switch service...');
-        useTemplateLogic = await checkSwitchService(userCommand);
-        console.log(`Switch service returned: ${useTemplateLogic}. Using ${useTemplateLogic ? 'template' : 'flexible AI'} logic.`);
-
-        if (useTemplateLogic) {
-            // --- Template Logic (True% case) ---
-            // Use single-file prompt with placeholders
-            const firstFileExtension = path.extname(filePaths[0]);
-            content = `${message1}输入文件的路径,输入输出文件路径用双引号括起来。默认的输出文件请放在${outputPath}下、输出文件命名为output（如果在描述里手动指定了新的路径则请使用指定的命名）。没指定输出文件的后缀名的情况则和输入文件一样。${message2} "input${firstFileExtension}" ${userCommand}${copy}${cuda}`;
-            console.log('Using template logic prompt for AI.');
-        } else {
-            // --- Flexible AI Logic (False% case) ---
-            // New prompt for AI to decide single vs multiple commands
-             content = `${message1}多个输入文件的路径（逗号隔开的列表）,输入输出文件路径用双引号括起来。请分析用户指令 "${userCommand}"。
+        // --- Flexible AI Logic (Multiple Files) ---
+        // New prompt for AI to decide single vs multiple commands
+        content = `${message1}多个输入文件的路径（逗号隔开的列表）,输入输出文件路径用双引号括起来。请分析用户指令 "${userCommand}"。
 如果指令意图是将所有输入文件合并或处理成**一个**输出文件（例如拼接、合并音轨），请生成**一个**ffmpeg命令，并将输出文件放在 "${outputPath}" 目录下，命名为 "output"（除非指令另有指定）。
 如果指令意图是为**每个**输入文件单独执行操作（例如格式转换、滤镜应用），请为每个输入文件生成一个独立的ffmpeg命令，并将它们用 " || " 符号连接起来。每个输出文件应放在 "${outputPath}" 目录下，并根据对应的输入文件名使用 \`generateFileName\` 规则生成（保留原始扩展名）。
 ${message2} 输入文件列表: "${filePath}" ${userCommand}${copy}${cuda}`;
-             console.log('Using flexible AI logic prompt.');
-        }
+        console.log('Using flexible AI logic prompt for multiple files.');
     } else {
         // --- Single File Logic ---
         content = `${message1}输入文件的路径,输入输出文件路径用双引号括起来。默认的输出文件请放在${outputPath}下、输出文件命名为${generateFileName(originalFileName)}（如果在描述里手动指定了新的路径则请使用指定的命名）。没指定输出文件的后缀名的情况则和输入文件一样。${message2} "${filePath}" ${userCommand}${copy}${cuda}`;
@@ -1060,68 +1096,11 @@ ${message2} 输入文件列表: "${filePath}" ${userCommand}${copy}${cuda}`;
 
                     console.log('Cleaned AI command before processing:', command);
 
-
-                    if (useTemplateLogic && filePaths.length > 1) {
-                        // --- Post-process Template Command ---
-                        console.log('Processing template command:', command);
-                        const commandTemplate = command; // The single command returned by AI
-
-                        let finalCommands = [];
-                        filePaths.forEach((fp, index) => {
-                            let currentCommand = commandTemplate;
-                            const originalBaseName = path.basename(fp, path.extname(fp));
-                            let baseOutputName = generateFileName(originalBaseName, index);
-                            
-                            // 获取输入文件的后缀名
-                            const inputExtension = path.extname(fp);
-                            
-                            // 尝试从命令中提取输出文件的后缀名
-                            let outputExtension = inputExtension; // 默认使用输入文件的后缀名
-                            const outputPathMatch = currentCommand.match(/"([^"]+)"\s*$/);
-                            if (outputPathMatch) {
-                                const outputPath = outputPathMatch[1];
-                                const extMatch = outputPath.match(/\.(\w+)$/);
-                                if (extMatch) {
-                                    outputExtension = '.' + extMatch[1];
-                                }
-                            }
-
-                            const finalOutputName = baseOutputName + outputExtension;
-                            const finalOutputPath = path.join(outputPath, finalOutputName);
-
-                            // Replace input placeholder with actual file path
-                            const firstFileExtension = path.extname(filePaths[0]);
-                            currentCommand = currentCommand.replace(new RegExp(`"input${firstFileExtension}"`, 'g'), `"${fp}"`);
-                            
-                            // Replace output placeholder with the actual output path
-                            if (config.namingRule === 'original') {
-                                // 如果是original命名规则，直接使用原始文件名
-                                currentCommand = currentCommand.replace(/output\.[^"\s]+/g, originalBaseName + outputExtension);
-                                currentCommand = currentCommand.replace(/output/g, originalBaseName);
-                            } else {
-                                // 如果是timestamp命名规则，使用生成的文件名
-                                currentCommand = currentCommand.replace(/output\.[^"\s]+/g, finalOutputName);
-                                currentCommand = currentCommand.replace(/output/g, finalOutputName);
-                            }
-                            
-                            // Replace ffmpeg executable path
-                            const ffmpegExecutablePath = getFFmpegPath();
-                            currentCommand = currentCommand.replace(/ffmpeg/g, `"${ffmpegExecutablePath}"`);
-
-                            finalCommands.push(currentCommand);
-                        });
-                        command = finalCommands.join(' || ');
-                        console.log('Final templated commands:', command);
-                    } else {
-                         // --- Standard Processing (Single file or Flexible AI) ---
-                         // Just replace the ffmpeg executable path
-                        const ffmpegExecutablePath = getFFmpegPath();
-                        command = command.replace(/ffmpeg/g, `"${ffmpegExecutablePath}"`);
-                         // Remove any remaining backslashes from path normalization ONLY IF NEEDED
-                        // command = command.replace(/\\\\/g, "\\"); // Use cautiously
-                         console.log('Final single/flexible AI command:', command);
-                    }
-
+                    // --- Standard Processing ---
+                    // Just replace the ffmpeg executable path
+                    const ffmpegExecutablePath = getFFmpegPath();
+                    command = command.replace(/ffmpeg/g, `"${ffmpegExecutablePath}"`);
+                    console.log('Final AI command:', command);
 
                     if (outputWindow) {
                         outputWindow.webContents.send('ffmpeg-output', 'Received ffmpeg command: ' + command);
@@ -1310,12 +1289,12 @@ function showPluginsWindow() {
     }
     pluginsWindow.show();
 }
-function showUpWindow() {
-    if (upWindow === null) { // 如果窗口不存在，则创建它
-        createUpWindow();
-        console.log('upWindow is created');
+function showWorkshopWindow() {
+    if (workshopWindow === null) { // 如果窗口不存在，则创建它
+        createWorkshopWindow();
+        console.log('workshopWindow is created');
     }
-    upWindow.show();
+    workshopWindow.show();
 }
 function showOutputWindow() {
     if (outputWindow === null) { // 如果窗口不存在，则创建它
@@ -1432,38 +1411,6 @@ function createBiruWindow() {
         }
     });
 }
-function createUpWindow() {
-    upWindow = new BrowserWindow({
-        width: 500,
-        height: 400,
-        minWidth: 500,
-        minHeight: 400,
-        icon: path.join(__dirname, 'window_icon.png'),
-        show: false,
-        fullscreen: false,
-        alwaysOnTop: true,
-        vibrancy: 'sidebar',
-        webPreferences: {
-            nodeIntegration: true,
-            contextIsolation: false
-        },
-        autoHideMenuBar: !isMac,
-        titleBarStyle: isMac ? 'hiddenInset' : undefined,
-        frame: isMac ? undefined : false
-    });
-    upWindow.setMenu(null);
-    upWindow.loadFile('up.html');
-    upWindow.on('close', (event) => {
-        if (app.isQuitting) {
-            // 允许窗口关闭
-            upWindow = null;
-        } else {
-            // 阻止窗口关闭，仅仅隐藏窗口
-            event.preventDefault();
-            upWindow.hide();
-        }
-    });
-}
 function createSettingsWindow() {
     settingsWindow = new BrowserWindow({
         width: 600,
@@ -1533,6 +1480,43 @@ function createPluginsWindow() {
             // 阻止窗口关闭，仅仅隐藏窗口
             event.preventDefault();
             pluginsWindow.hide();
+        }
+    });
+}
+function createWorkshopWindow() {
+    workshopWindow = new BrowserWindow({
+        width: 600,
+        height: 800,
+        minWidth: 600,
+        minHeight: 800,
+        icon: path.join(__dirname, 'window_icon.png'),
+        show: false,
+        fullscreen: false,
+        vibrancy: 'sidebar',
+        webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false
+        },
+        autoHideMenuBar: !isMac,
+        titleBarStyle: isMac ? 'hiddenInset' : undefined,
+        frame: isMac ? undefined : false
+    });
+    workshopWindow.on('maximize', (e) => {
+        workshopWindow.webContents.send('full-progress');
+    })
+    workshopWindow.on('unmaximize', (e) => {
+        workshopWindow.webContents.send('restore-progress');
+    })
+    workshopWindow.setMenu(null);
+    workshopWindow.loadFile('workshop.html');
+    workshopWindow.on('close', (event) => {
+        if (app.isQuitting) {
+            // 允许窗口关闭
+            workshopWindow = null;
+        } else {
+            // 阻止窗口关闭，仅仅隐藏窗口
+            event.preventDefault();
+            workshopWindow.hide();
         }
     });
 }
@@ -1620,25 +1604,44 @@ function MenuLang() {
     if (pluginsWindow) {
         pluginsWindow.webContents.send('language-update');
     }
-    if (upWindow) {
-        upWindow.webContents.send('language-update');
+    if (workshopWindow) {
+        workshopWindow.webContents.send('language-update');
+        workshopWindow.loadFile('workshop.html');
     }
-}
+    }
 async function isSteamRunning() {
     try {
+        // 如果steamClient已经存在且可用，直接返回true
+        if (steamClient && steamClient.workshop) {
+            console.log("Steam client is already initialized and running.");
+            return true;
+        }
+        
+        // 尝试初始化Steam客户端
         steamClient = Steamworks.init(3034460); // 使用你的应用程序ID
         if (steamClient && steamClient.workshop) {
             console.log("Steam client is running and Steamworks Workshop API initialized successfully.");
             return true;
         } else {
             console.error("Failed to initialize Steamworks Workshop API. steamClient.workshop is undefined.");
+            steamClient = null; // 清理无效的客户端
             return false;
         }
     } catch (error) {
         console.error("Steam is not running or Steam client install directory could not be determined:", error);
+        steamClient = null; // 清理无效的客户端
         return false;
     }
 }
+
+// 添加检查Steam状态的IPC处理程序
+ipcMain.handle('check-steam-status', async () => {
+    const isRunning = await isSteamRunning();
+    return {
+        isRunning: isRunning,
+        hasWorkshopAPI: steamClient && steamClient.workshop ? true : false
+    };
+});
 
 async function initializeSteamWorkshop() {
     try {
@@ -1660,26 +1663,55 @@ async function getSubscribedItems() {
 }
 
 async function downloadSubscribedItems() {
-    const subscribedItems = await getSubscribedItems();
-    for (const itemId of subscribedItems) {
-        try {
-            await steamClient.workshop.download(itemId, true);
-        } catch (error) {
-            console.error("Error downloading item:", itemId, error);
+    try {
+        const subscribedItems = await getSubscribedItems();
+        console.log('开始检查订阅的创意工坊项目...');
+        
+        for (const itemId of subscribedItems) {
+            try {
+                console.log(`检查项目 ${itemId} 的状态...`);
+                
+                // 使用正确的API方法名
+                const installInfo = await steamClient.workshop.installInfo(itemId);
+                
+                if (installInfo && installInfo.folder && fs.existsSync(installInfo.folder)) {
+                    console.log(`项目 ${itemId} 已安装，安装信息:`, installInfo);
+                    console.log(`移动文件从 ${installInfo.folder} 到 share 文件夹...`);
+                    moveWorkshopFilesToShareFolder(installInfo.folder, itemId);
+                } else {
+                    console.log(`项目 ${itemId} 未安装或文件夹不存在`);
+                    // 可以在这里添加下载逻辑，但暂时跳过以避免复杂性
+                }
+            } catch (error) {
+                console.error(`处理项目 ${itemId} 时出错:`, error.message);
+            }
         }
+        
+        console.log('项目检查完成');
+    } catch (error) {
+        console.error('检查订阅项目时出错:', error);
     }
 }
 
 function startDownloadCheckLoop() {
+    console.log('下载检查循环已暂时禁用以避免无限循环');
+    
+    // 暂时注释掉定时器，避免无限循环
+    /*
     setInterval(async () => {
         try {
+            console.log('开始检查订阅项目...');
             const subscribedItems = await getSubscribedItems();
+            console.log('当前订阅的项目:', subscribedItems);
             const currentSubscribedItems = new Set(subscribedItems);
 
             // 找出被取消订阅的项目
             const unsubscribedItems = [...previousSubscribedItems].filter(itemId => !currentSubscribedItems.has(itemId));
-            for (const itemId of unsubscribedItems) {
-                await removeWorkshopFiles(itemId);
+            if (unsubscribedItems.length > 0) {
+                console.log('检测到取消订阅的项目:', unsubscribedItems);
+                for (const itemId of unsubscribedItems) {
+                    await removeWorkshopFiles(itemId);
+                }
             }
 
             // 更新当前订阅项目列表
@@ -1687,37 +1719,155 @@ function startDownloadCheckLoop() {
 
             // 处理当前订阅的项目
             for (const itemId of subscribedItems) {
+                console.log(`检查项目 ${itemId} 的状态...`);
                 const itemState = await steamClient.workshop.state(itemId);
+                console.log(`项目 ${itemId} 状态: ${itemState}, 已安装检查: ${itemState & ItemState.Installed}`);
+                
                 if (itemState & ItemState.Installed) {
+                    console.log(`项目 ${itemId} 已安装，获取安装信息...`);
                     const itemInstallInfo = await steamClient.workshop.installInfo(itemId);
+                    console.log(`项目 ${itemId} 安装信息:`, itemInstallInfo);
+                    
                     if (itemInstallInfo) {
                         const { folder } = itemInstallInfo;
+                        console.log(`移动文件从 ${folder} 到 share 文件夹...`);
                         moveWorkshopFilesToShareFolder(folder, itemId);
 
                         // 更新文件状态并通知 Steam 客户端
                         await steamClient.workshop.downloadInfo(itemId, true);
+                    } else {
+                        console.log(`项目 ${itemId} 安装信息为空`);
                     }
+                } else if (itemState & ItemState.Downloading) {
+                    console.log(`项目 ${itemId} 正在下载中...`);
+                } else if (itemState & ItemState.DownloadPending) {
+                    console.log(`项目 ${itemId} 下载等待中...`);
+                } else {
+                    console.log(`项目 ${itemId} 状态未知或未下载`);
                 }
             }
+            console.log('下载检查循环完成');
         } catch (error) {
             console.error("Error in download check loop:", error);
         }
-    }, 3000); // 每10秒检查一次
+    }, 5000); // 改为5秒检查一次，便于调试
+    */
 }
 
 function moveWorkshopFilesToShareFolder(workshopFolder, itemId) {
+    console.log(`开始复制工坊文件，来源: ${workshopFolder}, 项目ID: ${itemId}`);
+    
     if (!fs.existsSync(shareFolderPath)) {
-        fs.mkdirSync(shareFolderPath);
+        console.log(`创建share文件夹: ${shareFolderPath}`);
+        fs.mkdirSync(shareFolderPath, { recursive: true });
     }
 
-    const files = fs.readdirSync(workshopFolder);
-    files.forEach(file => {
-        const srcPath = path.join(workshopFolder, file);
-        const destPath = path.join(shareFolderPath, file);
-        fs.renameSync(srcPath, destPath);
-        // 记录 itemId 和文件路径的映射关系
-        recordFileMapping(itemId, destPath);
-    });
+    if (!fs.existsSync(workshopFolder)) {
+        console.log(`警告：工坊文件夹不存在: ${workshopFolder}`);
+        return;
+    }
+
+    // 递归搜索所有文件，包括子文件夹
+    function getAllFiles(dir) {
+        let results = [];
+        try {
+            const list = fs.readdirSync(dir);
+            list.forEach(file => {
+                const filePath = path.join(dir, file);
+                const stat = fs.statSync(filePath);
+                if (stat && stat.isDirectory()) {
+                    results = results.concat(getAllFiles(filePath));
+                } else {
+                    results.push(filePath);
+                }
+            });
+        } catch (error) {
+            console.error(`读取文件夹 ${dir} 时出错:`, error);
+        }
+        return results;
+    }
+
+    const allFiles = getAllFiles(workshopFolder);
+    console.log(`在工坊文件夹中找到 ${allFiles.length} 个文件:`, allFiles);
+    
+    if (allFiles.length === 0) {
+        console.log(`工坊文件夹为空: ${workshopFolder}`);
+        // 尝试等待一下再检查，可能文件还在下载中
+        setTimeout(() => {
+            const retryFiles = getAllFiles(workshopFolder);
+            console.log(`延迟检查后找到 ${retryFiles.length} 个文件:`, retryFiles);
+            if (retryFiles.length > 0) {
+                processFiles(retryFiles, itemId);
+            }
+        }, 5000); // 等待5秒
+        return;
+    }
+
+    processFiles(allFiles, itemId);
+
+    function processFiles(files, itemId) {
+        let copiedFiles = [];
+        files.forEach(filePath => {
+            const fileName = path.basename(filePath);
+            
+            // 跳过系统文件
+            if (fileName === '.DS_Store' || fileName.startsWith('.')) {
+                console.log(`跳过系统文件: ${fileName}`);
+                return;
+            }
+
+            const destPath = path.join(shareFolderPath, fileName);
+            
+            console.log(`复制文件: ${filePath} -> ${destPath}`);
+            
+            try {
+                // 检查文件是否已经存在且内容相同
+                if (fs.existsSync(destPath)) {
+                    const existingContent = fs.readFileSync(destPath, 'utf8');
+                    const newContent = fs.readFileSync(filePath, 'utf8');
+                    if (existingContent === newContent) {
+                        console.log(`文件内容相同，跳过复制: ${fileName}`);
+                        
+                        // 即使跳过复制，也要建立映射（如果是JSON文件且有工坊详情）
+                        if (path.extname(fileName).toLowerCase() === '.json') {
+                            console.log(`调试映射检查: ${fileName}, itemId: ${itemId}`);
+                            console.log(`workshopDetailsMapping[${itemId}]:`, workshopDetailsMapping[itemId]);
+                            console.log(`workshopDetailsMapping 全部内容:`, Object.keys(workshopDetailsMapping));
+                            
+                            if (workshopDetailsMapping[itemId]) {
+                                const workshopTitle = workshopDetailsMapping[itemId].title;
+                                workshopTitleMapping[fileName] = workshopTitle;
+                                console.log(`建立文件映射(跳过复制): ${fileName} -> ${workshopTitle}`);
+                            } else {
+                                console.log(`没有找到项目 ${itemId} 的工坊详情`);
+                            }
+                        }
+                        
+                        return;
+                    }
+                }
+
+                // 复制文件而不是移动 - 这是关键修改！
+                fs.copyFileSync(filePath, destPath);
+                console.log(`文件复制成功: ${fileName}`);
+                copiedFiles.push(fileName);
+                
+                // 如果是JSON文件且有工坊详情，建立文件名到标题的映射
+                if (path.extname(fileName).toLowerCase() === '.json' && workshopDetailsMapping[itemId]) {
+                    const workshopTitle = workshopDetailsMapping[itemId].title;
+                    workshopTitleMapping[fileName] = workshopTitle;
+                    console.log(`建立文件映射(新复制): ${fileName} -> ${workshopTitle}`);
+                }
+                
+                // 记录 itemId 和文件路径的映射关系
+                recordFileMapping(itemId, destPath);
+            } catch (error) {
+                console.error(`复制文件失败 ${fileName}:`, error);
+            }
+        });
+        
+        console.log(`工坊文件复制完成，项目ID: ${itemId}, 复制了 ${copiedFiles.length} 个文件:`, copiedFiles);
+    }
 }
 
 function recordFileMapping(itemId, filePath) {
@@ -1771,3 +1921,171 @@ ipcMain.handle('execute-ffmpeg', async (event, command) => {
             .catch(error => reject(error));
     });
 });
+
+// 添加创意工坊功能所需的IPC处理程序
+ipcMain.handle('show-open-dialog', async (event, options) => {
+    const result = await dialog.showOpenDialog(BrowserWindow.getFocusedWindow(), options);
+    return result;
+});
+
+ipcMain.handle('show-save-dialog', async (event, options) => {
+    const result = await dialog.showSaveDialog(BrowserWindow.getFocusedWindow(), options);
+    return result;
+});
+
+ipcMain.handle('upload-to-workshop', async (event, uploadData) => {
+    try {
+        console.log('收到创意工坊上传请求:', uploadData);
+        
+        // 更详细的Steam状态检测
+        const steamStatus = await isSteamRunning();
+        if (!steamStatus) {
+            throw new Error('Steam未运行，请启动Steam客户端后重试');
+        }
+
+        if (!steamClient) {
+            throw new Error('Steam客户端未初始化，请重启应用后重试');
+        }
+
+        if (!steamClient.workshop) {
+            throw new Error('Steam创意工坊API不可用，请确保Steam正常运行');
+        }
+
+        // 验证必要的文件是否存在
+        if (!fs.existsSync(uploadData.contentPath)) {
+            throw new Error(`内容文件夹不存在: ${uploadData.contentPath}`);
+        }
+
+        if (uploadData.previewImage && !fs.existsSync(uploadData.previewImage)) {
+            throw new Error(`预览图片不存在: ${uploadData.previewImage}`);
+        }
+
+        console.log('准备上传到创意工坊...');
+        console.log(`内容路径: ${uploadData.contentPath}`);
+        console.log(`预览图片: ${uploadData.previewImage || '无'}`);
+        console.log(`标题: ${uploadData.title}`);
+        console.log(`描述: ${uploadData.description}`);
+
+        // 创建新的创意工坊项目
+        const createResult = await steamClient.workshop.createItem();
+        console.log('创建项目返回结果:', createResult);
+
+        if (!createResult.itemId) {
+            throw new Error('创意工坊项目创建失败：未返回有效的 itemId');
+        }
+
+        const itemId = createResult.itemId;
+        console.log(`新创意工坊项目创建成功，ID: ${itemId}`);
+
+        if (createResult.needsToAcceptAgreement) {
+            throw new Error('需要在 Steam 客户端中接受创意工坊协议才能完成上传');
+        }
+
+        // 准备更新参数
+        const updateParams = {
+            title: String(uploadData.title),
+            description: String(uploadData.description),
+            contentPath: String(uploadData.contentPath),
+            visibility: Number(uploadData.visibility) || 0, // 默认公开
+        };
+
+        // 如果有预览图片，添加到参数中
+        if (uploadData.previewImage) {
+            updateParams.previewPath = String(uploadData.previewImage);
+        }
+
+        // 如果有标签，添加到参数中
+        if (uploadData.tags && uploadData.tags.length > 0) {
+            updateParams.tags = uploadData.tags;
+        }
+
+        console.log('更新参数:', updateParams);
+        console.log('itemId类型和值:', typeof itemId, itemId);
+
+        // 更新创意工坊项目 - 使用正确的参数结构
+        const updateResult = await steamClient.workshop.updateItem(itemId, updateParams);
+
+        console.log('更新结果:', updateResult);
+
+        if (!updateResult || updateResult.needsToAcceptAgreement) {
+            if (updateResult && updateResult.needsToAcceptAgreement) {
+                throw new Error('需要在 Steam 客户端中接受创意工坊协议才能完成上传');
+            } else {
+                throw new Error('物品更新失败，请检查网络连接或稍后重试');
+            }
+        }
+
+        console.log('创意工坊内容上传成功');
+        return { 
+            success: true, 
+            publishedFileId: itemId.toString(),
+            details: updateResult
+        };
+
+    } catch (error) {
+        console.error('创意工坊上传失败:', error);
+        return { 
+            success: false, 
+            error: error.message 
+        };
+    }
+});
+
+// 添加获取用户数据路径的处理器
+ipcMain.handle('get-user-data-path', async (event) => {
+    return app.getPath('userData');
+});
+
+// 全局变量存储工坊标题映射: {filename: title}
+let workshopTitleMapping = {};
+// 全局变量存储工坊详情映射: {itemId: {id, title, description, previewUrl}}  
+let workshopDetailsMapping = {};
+
+// 重新扫描share文件夹，建立文件名到工坊标题的映射
+function rebuildWorkshopTitleMapping() {
+    try {
+        if (!fs.existsSync(shareFolderPath)) {
+            console.log('share文件夹不存在，跳过重建映射');
+            return;
+        }
+        
+        console.log('扫描share文件夹重建映射...');
+        const files = fs.readdirSync(shareFolderPath);
+        
+        // 读取文件映射，找出每个文件对应的itemId
+        let fileToItemMapping = {};
+        if (fs.existsSync(WorkFilePath)) {
+            const mapping = JSON.parse(fs.readFileSync(WorkFilePath, 'utf-8'));
+            // 反向映射：从文件路径找到itemId
+            for (const [itemId, filePaths] of Object.entries(mapping)) {
+                filePaths.forEach(filePath => {
+                    const fileName = path.basename(filePath);
+                    fileToItemMapping[fileName] = itemId;
+                });
+            }
+        }
+        
+        let mappingCount = 0;
+        files.forEach(fileName => {
+            if (path.extname(fileName).toLowerCase() === '.json') {
+                const itemId = fileToItemMapping[fileName];
+                if (itemId && workshopDetailsMapping[itemId]) {
+                    const workshopTitle = workshopDetailsMapping[itemId].title;
+                    workshopTitleMapping[fileName] = workshopTitle;
+                    console.log(`重建映射: ${fileName} -> ${workshopTitle}`);
+                    mappingCount++;
+                } else {
+                    console.log(`无法为文件 ${fileName} 找到对应的工坊详情 (itemId: ${itemId})`);
+                }
+            }
+        });
+        
+        console.log(`映射重建完成，成功建立 ${mappingCount} 个映射`);
+        
+        // 重新同步消息，让UI显示更新
+        syncMessagesWithDefault();
+        
+    } catch (error) {
+        console.error('重建映射失败:', error);
+    }
+}

@@ -160,6 +160,48 @@ document.addEventListener('DOMContentLoaded', function () {
             ipcRenderer.send('stop-ffmpeg');  // 发送停止 FFmpeg 的事件
         });
     }
+    
+    // 自动更新相关事件监听
+    ipcRenderer.on('update-available', (event, info) => {
+        const updateNotification = document.createElement('div');
+        updateNotification.id = 'update-notification';
+        updateNotification.innerHTML = `
+            <div style="position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.9); color: white; padding: 15px; border-radius: 8px; z-index: 1000; max-width: 300px;">
+                <h4>发现新版本</h4>
+                <p>版本 ${info.version} 可用</p>
+                <p>正在下载更新...</p>
+                <div id="download-progress" style="width: 100%; height: 4px; background: #333; border-radius: 2px; margin: 10px 0;">
+                    <div id="progress-bar" style="width: 0%; height: 100%; background: #4CAF50; border-radius: 2px; transition: width 0.3s;"></div>
+                </div>
+                <button onclick="this.parentElement.parentElement.remove()" style="background: #666; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer;">关闭</button>
+            </div>
+        `;
+        document.body.appendChild(updateNotification);
+    });
+
+    ipcRenderer.on('download-progress', (event, progressObj) => {
+        const progressBar = document.getElementById('progress-bar');
+        if (progressBar) {
+            progressBar.style.width = progressObj.percent + '%';
+        }
+    });
+
+    ipcRenderer.on('update-downloaded', (event, info) => {
+        const updateNotification = document.getElementById('update-notification');
+        if (updateNotification) {
+            updateNotification.innerHTML = `
+                <div style="position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.9); color: white; padding: 15px; border-radius: 8px; z-index: 1000; max-width: 300px;">
+                    <h4>更新已下载</h4>
+                    <p>版本 ${info.version} 已准备就绪</p>
+                    <p>重启应用以应用更新</p>
+                    <div style="margin-top: 10px;">
+                        <button onclick="ipcRenderer.send('restart-app')" style="background: #4CAF50; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-right: 10px;">立即重启</button>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" style="background: #666; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">稍后</button>
+                    </div>
+                </div>
+            `;
+        }
+    });
 });
 
 // 可以对console.error, console.warn等进行类似的覆盖
@@ -511,13 +553,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 document.addEventListener('DOMContentLoaded', function () {
-    const upButton = document.querySelector('img[id="upbutton"]'); // 通过 alt 文本选择 terminal 按钮
-    ipcRenderer.on('view-on', (event) => {
-        upButton.style.visibility = 'visible';
-    });
-    if (upButton) {
-        upButton.addEventListener('click', function () {
-            ipcRenderer.send('open-up-window'); // 发送事件到主进程
+    const workshopButton = document.querySelector('img[id="workshopbutton"]'); // 创意工坊按钮
+    if (workshopButton) {
+        workshopButton.addEventListener('click', function () {
+            ipcRenderer.send('open-workshop-window'); // 发送事件到主进程
         });
     }
 });

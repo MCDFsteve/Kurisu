@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <title id="pageTitle">创意工坊</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="window.css">
+    <link rel="stylesheet" href="message.css">
+    <style>
+        /* 多命令管理界面样式 */
+        .command-list-container {
+            margin: 15px 0;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: #2a2a2a;
+            padding: 15px;
+        }
+        
+        .command-list-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .add-command-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .add-command-btn:hover {
+            background: #45a049;
+        }
+        
+        .command-list {
+            min-height: 100px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .command-item {
+            background: #333;
+            border: 1px solid #555;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            padding: 12px;
+            position: relative;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        
+        .command-item:hover {
+            background: #3a3a3a;
+            border-color: #666;
+        }
+        
+        .command-item.selected {
+            border-color: #4CAF50;
+            background: #2a4a2a;
+        }
+        
+        .command-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .command-item-name {
+            font-weight: bold;
+            color: #fff;
+            font-size: 16px;
+        }
+        
+        .command-item-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .command-item-btn {
+            background: transparent;
+            border: 1px solid #666;
+            color: #ccc;
+            padding: 4px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+        
+        .command-item-btn:hover {
+            border-color: #888;
+            color: #fff;
+        }
+        
+        .command-item-btn.edit:hover {
+            border-color: #4CAF50;
+            color: #4CAF50;
+        }
+        
+        .command-item-btn.delete:hover {
+            border-color: #f44336;
+            color: #f44336;
+        }
+        
+        .command-item-description {
+            color: #bbb;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .command-item-command {
+            background: #1a1a1a;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #fff;
+            word-break: break-all;
+            max-height: 60px;
+            overflow: hidden;
+        }
+        
+        .current-command-editor {
+            margin: 15px 0;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            background: #2a2a2a;
+            padding: 20px;
+        }
+        
+        .current-command-editor h5 {
+            color: #4CAF50;
+            margin: 0 0 15px 0;
+            font-size: 18px;
+        }
+        
+        .command-editor-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .save-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .save-btn:hover {
+            background: #45a049;
+        }
+        
+        .cancel-btn {
+            background: #757575;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .cancel-btn:hover {
+            background: #666;
+        }
+        
+        .delete-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .delete-btn:hover {
+            background: #d32f2f;
+        }
+        
+        .command-templates {
+            margin-top: 20px;
+            padding: 15px;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 8px;
+        }
+        
+        .command-templates h5 {
+            color: #fff;
+            margin: 0 0 10px 0;
+        }
+        
+        .template-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .template-btn {
+            background: #3f51b5;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background-color 0.3s;
+        }
+        
+        .template-btn:hover {
+            background: #303f9f;
+        }
+        
+        .empty-command-list {
+            text-align: center;
+            color: #888;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .command-item-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            
+            .template-buttons {
+                flex-direction: column;
+            }
+            
+            .command-editor-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="windowbutton">
+        <div id="close-button" style="display: none;"></div>
+        <div id="fullscreen-button" style="display: none;"></div>
+        <div id="restore-button" style="display: none;"></div>
+        <div id="minimize-button" style="display: none;"></div>
+    </div>
+    <div class="drag-area"></div>
+    <pre id="workshopui"></pre>
+    <h1 id="title">创意工坊</h1>
+    
+    <div id="statusMessage" class="status-message" style="display: none;"></div>
+    
+    <!-- 可视化JSON参数编辑界面 -->
+    <h3 id="jsonTitle">参数配置</h3>
+    <div class="divider"></div>
+    <div class="settings-container">
+        <div class="visual-editor-container">
+            <!-- 基本信息 -->
+            <div class="visual-section">
+                <h4 id="basicInfoTitle">基本信息</h4>
+                <div class="input-group">
+                    <label for="visualId" id="idLabel">ID:</label>
+                    <input type="number" id="visualId" placeholder="配置ID (例如: 1001)" value="1001" min="1000" max="9999">
+                </div>
+                <div class="input-group">
+                    <label for="visualName" id="nameLabel">名称:</label>
+                    <input type="text" id="visualName" placeholder="配置名称" value="示例FFmpeg配置">
+                </div>
+                <div class="input-group">
+                    <label for="visualFamily" id="categoryLabel">类别:</label>
+                    <select id="visualFamily">
+                        <option value="workshop" id="workshopOption">创意工坊</option>
+                        <option value="default" id="defaultOption">默认</option>
+                        <option value="custom" id="customOption">自定义</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="visualAbout" id="aboutLabel">关于:</label>
+                    <input type="text" id="visualAbout" placeholder="配置说明" value="创意工坊示例配置文件">
+                </div>
+                <div class="input-group">
+                    <label for="visualSee" id="visibilityLabel">可见性:</label>
+                    <select id="visualSee">
+                        <option value="yes" id="yesOption">是</option>
+                        <option value="no" id="noOption">否</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 配色选择 -->
+            <div class="visual-section">
+                <h4 id="themeColorTitle">主题配色</h4>
+                <div class="color-picker-container">
+                    <div class="color-options">
+                        <div class="color-option class-0" data-color="0" title="红色主题">
+                            <span id="redColor">红</span>
+                        </div>
+                        <div class="color-option class-1" data-color="1" title="橙色主题">
+                            <span id="orangeColor">橙</span>
+                        </div>
+                        <div class="color-option class-2" data-color="2" title="黄色主题">
+                            <span id="yellowColor">黄</span>
+                        </div>
+                        <div class="color-option class-3" data-color="3" title="绿色主题">
+                            <span id="greenColor">绿</span>
+                        </div>
+                        <div class="color-option class-4" data-color="4" title="蓝色主题">
+                            <span id="blueColor">蓝</span>
+                        </div>
+                        <div class="color-option class-5" data-color="5" title="indigoColor主题">
+                            <span id="indigoColor">靛</span>
+                        </div>
+                        <div class="color-option class-6" data-color="6" title="紫色主题">
+                            <span id="purpleColor">紫</span>
+                        </div>
+                        <div class="color-option class-7" data-color="7" title="粉色主题">
+                            <span id="pinkColor">粉</span>
+                        </div>
+                        <div class="color-option class-8" data-color="8" title="香草青主题">
+                            <span id="cyanColor">青</span>
+                        </div>
+                        <div class="color-option class-9" data-color="9" title="石榴红主题">
+                            <span id="pomegranateColor">石榴红</span>
+                        </div>
+                    </div>
+                    <p class="color-hint" id="colorHint">选择的配色将自动根据ID末位数字应用</p>
+                </div>
+            </div>
+
+            <!-- 多语言消息 -->
+            <div class="visual-section">
+                <h4 id="multiLangTitle">多语言消息</h4>
+                <div class="language-tabs">
+                    <button class="lang-tab active" data-lang="zh_cn">中文</button>
+                    <button class="lang-tab" data-lang="en">English</button>
+                    <button class="lang-tab" data-lang="jp">日本語</button>
+                    <button class="lang-tab" data-lang="zh_tw">繁體中文</button>
+                    <button class="lang-tab" data-lang="ru">Русский</button>
+                    <button class="lang-tab" data-lang="ko">한국어</button>
+                </div>
+                <div class="language-content">
+                    <div class="lang-content active" data-lang="zh_cn">
+                        <div class="input-group">
+                            <label for="messageZhCn">消息:</label>
+                            <input type="text" id="messageZhCn" placeholder="中文消息" value="转换为h264编码的mp4">
+                        </div>
+                        <div class="input-group">
+                            <label for="tipsZhCn">提示:</label>
+                            <input type="text" id="tipsZhCn" placeholder="中文提示" value="将视频转换为标准h264编码的mp4格式，兼容性最佳">
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="en">
+                        <div class="input-group">
+                            <label for="messageEn">Message:</label>
+                            <input type="text" id="messageEn" placeholder="English message" value="Convert to H264 encoded MP4">
+                        </div>
+                        <div class="input-group">
+                            <label for="tipsEn">Tips:</label>
+                            <input type="text" id="tipsEn" placeholder="English tips" value="Convert video to standard H264 encoded MP4 format with best compatibility">
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="jp">
+                        <div class="input-group">
+                            <label for="messageJp">メッセージ:</label>
+                            <input type="text" id="messageJp" placeholder="日本語メッセージ" value="h264エンコードのmp4に変換する">
+                        </div>
+                        <div class="input-group">
+                            <label for="tipsJp">ヒント:</label>
+                            <input type="text" id="tipsJp" placeholder="日本語ヒント" value="ビデオを標準的なh264エンコードのmp4形式に変換し、互換性が最高">
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="zh_tw">
+                        <div class="input-group">
+                            <label for="messageZhTw">訊息:</label>
+                            <input type="text" id="messageZhTw" placeholder="繁體中文訊息" value="轉換為h264編碼的mp4">
+                        </div>
+                        <div class="input-group">
+                            <label for="tipsZhTw">提示:</label>
+                            <input type="text" id="tipsZhTw" placeholder="繁體中文提示" value="將視頻轉換為標準h264編碼的mp4格式，兼容性最佳">
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="ru">
+                        <div class="input-group">
+                            <label for="messageRu">Сообщение:</label>
+                            <input type="text" id="messageRu" placeholder="Русское сообщение" value="Конвертировать в MP4 с кодировкой H264">
+                        </div>
+                        <div class="input-group">
+                            <label for="tipsRu">Советы:</label>
+                            <input type="text" id="tipsRu" placeholder="Русские советы" value="Преобразование видео в стандартный формат MP4 с кодировкой H264 и лучшей совместимостью">
+                        </div>
+                    </div>
+                    <div class="lang-content" data-lang="ko">
+                        <div class="input-group">
+                            <label for="messageKo">메시지:</label>
+                            <input type="text" id="messageKo" placeholder="한국어 메시지" value="H264 인코딩 MP4로 변환">
+                        </div>
+                        <div class="input-group">
+                            <label for="tipsKo">팁:</label>
+                            <input type="text" id="tipsKo" placeholder="한국어 팁" value="최고의 호환성을 갖춘 표준 H264 인코딩 MP4 형식으로 비디오를 변환합니다">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FFmpeg命令 -->
+            <div class="visual-section">
+                <h4 id="ffmpegConfigTitle">FFmpeg命令配置</h4>
+                
+                <!-- 命令列表管理 -->
+                <div class="command-list-container">
+                    <div class="command-list-header">
+                        <span id="commandListTitle">命令列表</span>
+                        <button id="addNewCommand" class="add-command-btn" data-text="+ 添加新命令">+ 添加新命令</button>
+                    </div>
+                    <div id="commandList" class="command-list">
+                        <!-- 动态生成的命令项将在这里显示 -->
+                    </div>
+                </div>
+                
+                <!-- 当前编辑的命令 -->
+                <div class="current-command-editor" id="currentCommandEditor" style="display: none;">
+                    <h5 id="currentCommandTitle">编辑命令</h5>
+                    <div class="input-group">
+                        <label for="currentCommandName" id="commandNameLabel">命令名称:</label>
+                        <input type="text" id="currentCommandName" placeholder="例如: H264转换" />
+                    </div>
+                    <div class="input-group">
+                        <label for="currentCommandText" id="ffmpegCommandLabel">FFmpeg命令:</label>
+                        <textarea id="currentCommandText" placeholder="FFmpeg命令" rows="3"></textarea>
+                    </div>
+                    <div class="input-group">
+                        <label for="currentCommandDescription" id="commandDescLabel">命令说明:</label>
+                        <input type="text" id="currentCommandDescription" placeholder="简短描述这个命令的作用" />
+                    </div>
+                    <div class="command-editor-actions">
+                        <button id="saveCurrentCommand" class="save-btn" data-text="保存命令">保存命令</button>
+                        <button id="cancelEditCommand" class="cancel-btn" data-text="取消">取消</button>
+                        <button id="deleteCurrentCommand" class="delete-btn" style="display: none;" data-text="删除命令">删除命令</button>
+                    </div>
+                </div>
+                
+                <!-- 快速添加常用命令模板 -->
+                <div class="command-templates">
+                    <h5 id="commandTemplatesTitle">常用命令模板</h5>
+                    <div class="template-buttons">
+                        <button class="template-btn" data-template="h264" data-text="H264转换">H264转换</button>
+                        <button class="template-btn" data-template="compress" data-text="视频压缩">视频压缩</button>
+                        <button class="template-btn" data-template="audio_extract" data-text="提取音频">提取音频</button>
+                        <button class="template-btn" data-template="gif_convert" data-text="转换GIF">转换GIF</button>
+                        <button class="template-btn" data-template="trim" data-text="视频剪切">视频剪切</button>
+                        <button class="template-btn" data-template="scale" data-text="调整分辨率">调整分辨率</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="visual-actions">
+                <button id="updateFromVisual" data-text="更新JSON">更新JSON</button>
+                <button id="loadTemplate" data-text="加载模板">加载模板</button>
+                <button id="toggleJsonCode" data-text="显示/隐藏JSON代码">显示/隐藏JSON代码</button>
+            </div>
+        </div>
+        
+        <!-- JSON代码编辑器 (默认折叠) -->
+        <div class="json-code-container" id="jsonCodeContainer" style="display: none;">
+            <h4 id="jsonCodeTitle">JSON代码 <span class="collapse-hint" id="advancedUserHint">(高级用户)</span></h4>
+            <textarea id="jsonEditor" style="width: 100%; height: 200px; background: #1a1a1a; border: 1px solid #444; border-radius: 4px; padding: 10px; color: #fff; font-family: 'Courier New', monospace; font-size: 14px; resize: vertical;" placeholder="在此输入或编辑JSON参数...">{
+  "id": 1001,
+  "name": "示例FFmpeg配置",
+  "family": "workshop",
+  "about": "创意工坊示例配置文件",
+  "message": "转换为h264编码的mp4",
+  "see": "yes",
+  "tips": "将视频转换为标准h264编码的mp4格式，兼容性最佳",
+  "message_jp": "h264エンコードのmp4に変換する",
+  "tips_jp": "ビデオを標準的なh264エンコードのmp4形式に変換し、互換性が最高",
+  "command": "ffmpeg -i ${filePath} -y -c:v libx264 ${outputPath}${.mp4}",
+  "message_en": "Convert to H264 encoded MP4",
+  "tips_en": "Convert video to standard H264 encoded MP4 format with best compatibility",
+  "message_zh_tw": "轉換為h264編碼的mp4",
+  "tips_zh_tw": "將視頻轉換為標準h264編碼的mp4格式，兼容性最佳",
+  "message_ru": "Конвертировать в MP4 с кодировкой H264",
+  "tips_ru": "Преобразование видео в стандартный формат MP4 с кодировкой H264 и лучшей совместимостью",
+  "message_ko": "H264 인코딩 MP4로 변환",
+  "tips_ko": "최고의 호환성을 갖춘 표준 H264 인코딩 MP4 형식으로 비디오를 변환합니다"
+}</textarea>
+            <div style="margin-top: 10px;">
+                <button id="validateJson" data-text="验证JSON">验证JSON</button>
+                <button id="formatJson" data-text="格式化">格式化</button>
+                <button id="syncFromJson" data-text="从JSON同步到可视化界面">从JSON同步到可视化界面</button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="divider"></div>
+    <h3 id="fileTitle">文件保存设置</h3>
+    <div class="divider"></div>
+    <div class="settings-container">
+        <p id="saveLocationText">保存位置: <span id="savePath">未选择保存位置</span></p>
+        <button id="chooseSavePath" data-text="选择位置">选择位置</button>
+        <p style="margin-top: 10px;" id="fileNameText">文件名:</p>
+        <input type="text" id="fileName" placeholder="留空自动生成UUID" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #444; border-radius: 4px; background: #2a2a2a; color: #fff;">
+        <div style="margin-top: 10px;">
+            <button id="saveFile" data-text="保存文件">保存文件</button>
+            <button id="loadFile" data-text="加载文件">加载文件</button>
+        </div>
+    </div>
+    
+    <div class="divider"></div>
+    <h3 id="workshopTitle">Steam创意工坊上传</h3>
+    <div class="divider"></div>
+    <div class="settings-container">
+        <p id="workshopIdText">创意工坊ID <span style="color: #666; font-size: 12px;" id="workshopIdHint">(可选，用于更新现有物品)</span>:</p>
+        <input type="text" id="workshopItemId" placeholder="输入现有工坊物品ID进行更新，留空则创建新物品" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #444; border-radius: 4px; background: #2a2a2a; color: #fff;">
+        
+        <p style="margin-top: 15px;" id="titleText">标题:</p>
+        <input type="text" id="workshopTitleInput" placeholder="输入创意工坊物品标题" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #444; border-radius: 4px; background: #2a2a2a; color: #fff;">
+        
+        <p style="margin-top: 15px;" id="descriptionText">简介:</p>
+        <textarea id="workshopDescription" placeholder="输入创意工坊物品描述" style="width: 100%; height: 80px; padding: 8px; margin-top: 5px; border: 1px solid #444; border-radius: 4px; background: #2a2a2a; color: #fff; resize: vertical;"></textarea>
+        
+        <p style="margin-top: 15px;" id="previewImageText">预览图: <span id="previewImagePath">未选择预览图</span></p>
+        <button id="choosePreviewImage" data-text="选择图片">选择图片</button>
+        <img id="previewImageDisplay" style="display: none; max-width: 200px; max-height: 150px; border-radius: 4px; margin-top: 10px;">
+        
+        <!-- VDF文件管理 -->
+        <div style="margin-top: 20px; padding: 15px; background: #2a2a2a; border: 1px solid #444; border-radius: 8px;">
+            <h5 style="color: #fff; margin: 0 0 10px 0;" id="vdfManagementTitle">VDF文件管理 <span style="color: #888; font-size: 12px;" id="vdfOptionalHint">(可选)</span></h5>
+            <p style="color: #ccc; font-size: 14px; margin-bottom: 15px;" id="vdfDescription">
+                如果您有多个VDF配置文件，可以选择它们进行合并，简化上传流程
+            </p>
+            
+            <div id="vdfFileList" style="margin-bottom: 15px;">
+                <div class="vdf-file-slot" data-index="0">
+                    <label id="vdfFile1Label">VDF文件1: <span class="vdf-path" id="vdfPath1">未选择</span></label>
+                    <button class="choose-vdf-btn" onclick="window.workshopManager.chooseVdfFile(0)" data-text="选择文件">选择文件</button>
+                    <button class="remove-vdf-btn" onclick="window.workshopManager.removeVdfFile(0)" style="display: none;" data-text="移除">移除</button>
+                </div>
+                <div class="vdf-file-slot" data-index="1">
+                    <label id="vdfFile2Label">VDF文件2: <span class="vdf-path" id="vdfPath2">未选择</span></label>
+                    <button class="choose-vdf-btn" onclick="window.workshopManager.chooseVdfFile(1)" data-text="选择文件">选择文件</button>
+                    <button class="remove-vdf-btn" onclick="window.workshopManager.removeVdfFile(1)" style="display: none;" data-text="移除">移除</button>
+                </div>
+                <div class="vdf-file-slot" data-index="2">
+                    <label id="vdfFile3Label">VDF文件3: <span class="vdf-path" id="vdfPath3">未选择</span></label>
+                    <button class="choose-vdf-btn" onclick="window.workshopManager.chooseVdfFile(2)" data-text="选择文件">选择文件</button>
+                    <button class="remove-vdf-btn" onclick="window.workshopManager.removeVdfFile(2)" style="display: none;" data-text="移除">移除</button>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                <button id="mergeVdfFiles" onclick="window.workshopManager.mergeVdfFiles()" disabled data-text="合并VDF文件">合并VDF文件</button>
+                <button id="previewMergedVdf" onclick="window.workshopManager.previewMergedVdf()" disabled data-text="预览合并结果">预览合并结果</button>
+                <button id="clearVdfFiles" onclick="window.workshopManager.clearAllVdfFiles()" data-text="清空所有">清空所有</button>
+            </div>
+            
+            <div id="vdfStatus" style="color: #888; font-size: 12px;"></div>
+        </div>
+        
+        <p style="margin-top: 15px;" id="tagsText">标签:</p>
+        <input type="text" id="workshopTags" placeholder="输入标签，用逗号分隔" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #444; border-radius: 4px; background: #2a2a2a; color: #fff;">
+        
+        <p style="margin-top: 15px;" id="visibilityText">可见性:</p>
+        <select id="workshopVisibility" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #444; border-radius: 4px; background: #2a2a2a; color: #fff;">
+            <option value="0" id="publicOption">公开</option>
+            <option value="1" id="friendsOnlyOption">仅好友可见</option>
+            <option value="2" id="privateOption">私人</option>
+        </select>
+        
+        <div style="margin-top: 15px;">
+            <button id="uploadToWorkshop" data-text="上传到创意工坊">上传到创意工坊</button>
+            <button id="previewWorkshop" data-text="预览">预览</button>
+        </div>
+    </div>
+    
+    <div class="divider"></div>
+    <h3 id="previewTitle">预览</h3>
+    <div class="divider"></div>
+    <div class="settings-container">
+        <p><strong id="operationTypeLabel">操作类型:</strong> <span id="previewOperationType">创建新物品</span></p>
+        <p><strong id="fileNameLabel2">文件名:</strong> <span id="previewFileName">未设置</span></p>
+        <p><strong id="savePathLabel">保存路径:</strong> <span id="previewSavePath">未设置</span></p>
+        <p><strong id="workshopTitleLabel">创意工坊标题:</strong> <span id="previewTitleText">未设置</span></p>
+        <p><strong id="jsonValidityLabel">JSON有效性:</strong> <span id="previewJsonValid">未验证</span></p>
+        <div id="previewColorDisplay" class="preview-color-display">
+            <p><strong id="colorPreviewLabel">配色预览:</strong></p>
+            <div id="previewColorBox" class="preview-color-box class-1">
+                <span id="sampleButtonText">示例按钮样式</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 定义变量供button.js使用
+        const buttonName = 'workshop';
+        const styleName = '#workshopui';
+    </script>
+    <script src="workshop.js"></script>
+    <script src="button.js"></script>
+</body>
+
+</html> 

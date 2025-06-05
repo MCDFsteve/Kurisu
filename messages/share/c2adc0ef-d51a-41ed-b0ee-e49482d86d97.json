@@ -1,0 +1,20 @@
+{
+  "id": 1001,
+  "name": "示例FFmpeg配置",
+  "family": "workshop",
+  "about": "创意工坊示例配置文件",
+  "see": "yes",
+  "command": "ffmpeg -i ${filePath} -y -c:v libx264 ${outputPath}${.mp4}",
+  "message": "转换为h264编码的mp4",
+  "tips": "将视频转换为标准h264编码的mp4格式，兼容性最佳",
+  "message_en": "Convert to H264 encoded MP4",
+  "tips_en": "Convert video to standard H264 encoded MP4 format with best compatibility",
+  "message_jp": "h264エンコードのmp4に変換する",
+  "tips_jp": "ビデオを標準的なh264エンコードのmp4形式に変換し、互換性が最高",
+  "message_zh_tw": "轉換為h264編碼的mp4",
+  "tips_zh_tw": "將視頻轉換為標準h264編碼的mp4格式，兼容性最佳",
+  "message_ru": "Конвертировать в MP4 с кодировкой H264",
+  "tips_ru": "Преобразование видео в стандартный формат MP4 с кодировкой H264 и лучшей совместимостью",
+  "message_ko": "H264 인코딩 MP4로 변환",
+  "tips_ko": "최고의 호환성을 갖춘 표준 H264 인코딩 MP4 형식으로 비디오를 변환합니다"
+}

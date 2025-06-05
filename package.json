@@ -1,7 +1,7 @@
 {
   "name": "kurisu",
   "productName": "Kurisu",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "助手～",
   "main": "main.js",
   "dependencies": {
@@ -9,6 +9,7 @@
     "asar": "^3.2.0",
     "async-retry": "^1.3.3",
     "axios": "^1.6.8",
+    "electron-updater": "^6.6.2",
     "ffmpeg": "^0.0.4",
     "fs-extra": "^11.2.0",
     "got": "^14.2.1",
@@ -17,6 +18,8 @@
   },
   "scripts": {
     "start": "electron .",
+    "dev": "concurrently \"nodemon --exec electron . --watch ./ --ext js,html,css\" \"echo 'Hot reload enabled'\"",
+    "dev:simple": "nodemon --exec electron . --watch ./ --ext js,html,css,json",
     "prebuild:mac": "node scripts/prebuild.js mac",
     "prebuild:win": "node scripts/prebuild.js win",
     "prebuild:linux": "node scripts/prebuild.js linux",
@@ -33,6 +36,13 @@
   "build": {
     "appId": "com.dfsteve.kurisu",
     "asar": false,
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "DFsteve",
+        "repo": "KurisuJyosyu"
+      }
+    ],
     "files": [
       "**/*",
       "!**/*.ts",
@@ -49,7 +59,7 @@
       "!**/.DS_Store",
       "!**/*.bak",
       "!**/ffmpeg/ffmpeg_mac",
-      "!**/ffmpeg/ffmpeg_linux64",
+      "!**/ffmpeg/ffmpeg_win",
       "!**/ffmpeg/ffmpeg_linuxarm"
     ],
     "mac": {
@@ -102,9 +112,12 @@
   "author": "DFsteve",
   "license": "GPLv3",
   "devDependencies": {
+    "concurrently": "^9.1.2",
     "electron": "^29.3.0",
     "electron-builder": "^24.13.3",
     "electron-packager": "^17.1.2",
-    "electron-reloader": "^1.2.3"
+    "electron-reload": "^2.0.0-alpha.1",
+    "electron-reloader": "^1.2.3",
+    "nodemon": "^3.1.10"
   }
 }

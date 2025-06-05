@@ -1,0 +1,22 @@
+"AppBuild"
+{
+    "AppID" "3034460" // 您的 AppID
+    "Desc" "mac." // 此生成版本的内部描述
+
+    "ContentRoot" "../dist/mac-universal/" // 相对于此文件位置的根内容文件夹
+    "BuildOutput" "../output/" // 生成版本日志和生成版本缓存文件的生成版本输出文件夹
+
+    "Depots"
+    {
+        "3034461" // 您的 DepotID
+        {
+            "oslist" "macos"
+            "FileMapping"
+            {
+                "LocalPath" "*" // 来自内容根文件夹的所有文件
+                "DepotPath" "." // 映射到 depot 的根目录
+                "recursive" "1" // 包含所有子文件夹
+            }
+        }
+    }
+}

@@ -1,0 +1,265 @@
+[2025-06-06 02:43:53]: Starting build for depot 3034461, content path is "/Library/Afolder/Development/KurisuJyosyu/dist/mac-universal/", build flags 0x0
+[2025-06-06 02:43:53]: Building file listing for depot 3034461 ...
+[2025-06-06 02:43:53]: Found 1269 files for mapping: /Library/Afolder/Development/KurisuJyosyu/dist/mac-universal * -> .
+[2025-06-06 02:43:53]: Found 1269 files (497 MB) for depot 3034461
+[2025-06-06 02:43:56]: Building depot 3034461, baseline manifest 1184677653632349107 (1033 files)
+[2025-06-06 02:43:57]: Found 1297 new chunks ( 1121 used previously ) for depot 3034461, took 0 minutes, 0 seconds
+[2025-06-06 02:43:57]: Changes to baseline manifest 1184677653632349107 :
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Frameworks\Kurisu Helper (GPU).app\Contents\Info.plist" 2 KB size, 2 KB changed 
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Frameworks\Kurisu Helper (Plugin).app\Contents\Info.plist" 2 KB size, 2 KB changed 
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Frameworks\Kurisu Helper (Renderer).app\Contents\Info.plist" 2 KB size, 2 KB changed 
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Frameworks\Kurisu Helper.app\Contents\Info.plist" 2 KB size, 2 KB changed 
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Info.plist" 4 KB size, 4 KB changed 
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Resources\app-update.yml" 1 KB size, 1 KB changed 
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Resources\app\core.js" 38 KB size, 38 KB changed 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\icons\workshop.png" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\icons\workshop.svg" 2 KB 
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Resources\app\index.html" 4 KB size, 4 KB changed 
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Resources\app\main.js" 79 KB size, 79 KB changed 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\messages\share\c2adc0ef-d51a-41ed-b0ee-e49482d86d97.json" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\messages\share\db656f31-68a6-4d36-b935-cf91814309d7.json" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\argparse" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\argparse\argparse.js" 127 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\argparse\lib" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\argparse\lib\sub.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\argparse\lib\textwrap.js" 17 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\argparse\LICENSE" 13 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\argparse\package.json" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\debug" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\debug\LICENSE" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\debug\package.json" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\debug\src" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\debug\src\browser.js" 6 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\debug\src\common.js" 7 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\debug\src\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\debug\src\node.js" 5 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\LICENSE" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\LICENSE" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\blockMapApi.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\CancellationToken.js" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\error.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\httpExecutor.js" 18 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\index.js" 5 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\MemoLazy.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\ProgressCallbackTransform.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\publishOptions.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\retry.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\rfc2253Parser.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\updateInfo.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\uuid.js" 7 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\out\xml.js" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\builder-util-runtime\package.json" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\copy" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\copy\copy-sync.js" 6 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\copy\copy.js" 8 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\copy\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\empty" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\empty\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\ensure" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\ensure\file.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\ensure\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\ensure\link.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\ensure\symlink-paths.js" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\ensure\symlink-type.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\ensure\symlink.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\fs" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\fs\index.js" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\json" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\json\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\json\jsonfile.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\json\output-json-sync.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\json\output-json.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\mkdirs" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\mkdirs\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\mkdirs\make-dir.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\mkdirs\utils.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\move" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\move\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\move\move-sync.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\move\move.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\output-file" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\output-file\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\path-exists" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\path-exists\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\remove" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\remove\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\remove\rimraf.js" 8 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\util" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\util\stat.js" 6 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\lib\util\utimes.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\LICENSE" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\fs-extra\package.json" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\bin" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\bin\semver.js" 5 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\classes" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\classes\comparator.js" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\classes\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\classes\range.js" 15 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\classes\semver.js" 10 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\clean.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\cmp.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\coerce.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\compare-build.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\compare-loose.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\compare.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\diff.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\eq.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\gt.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\gte.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\inc.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\lt.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\lte.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\major.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\minor.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\neq.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\parse.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\patch.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\prerelease.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\rcompare.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\rsort.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\satisfies.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\sort.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\functions\valid.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\index.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\internal" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\internal\constants.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\internal\debug.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\internal\identifiers.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\internal\lrucache.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\internal\parse-options.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\internal\re.js" 8 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\LICENSE" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\package.json" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\preload.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\range.bnf" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges\gtr.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges\intersects.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges\ltr.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges\max-satisfying.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges\min-satisfying.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges\min-version.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges\outside.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges\simplify.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges\subset.js" 8 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges\to-comparators.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\node_modules\semver\ranges\valid.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\AppAdapter.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\AppImageUpdater.js" 6 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\AppUpdater.js" 30 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\BaseUpdater.js" 6 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\DebUpdater.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\differentialDownloader" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\differentialDownloader\DataSplitter.js" 8 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\differentialDownloader\DifferentialDownloader.js" 13 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\differentialDownloader\downloadPlanBuilder.js" 6 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\differentialDownloader\FileWithEmbeddedBlockMapDifferentialDownloader.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\differentialDownloader\GenericDifferentialDownloader.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\differentialDownloader\multipleRangeDownloader.js" 5 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\differentialDownloader\ProgressDifferentialDownloadCallbackTransform.js" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\DownloadedUpdateHelper.js" 7 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\ElectronAppAdapter.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\electronHttpExecutor.js" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\MacUpdater.js" 13 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\main.js" 5 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\NsisUpdater.js" 10 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\PacmanUpdater.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\providerFactory.js" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\providers" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\providers\BitbucketProvider.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\providers\GenericProvider.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\providers\GitHubProvider.js" 10 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\providers\KeygenProvider.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\providers\PrivateGitHubProvider.js" 5 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\providers\Provider.js" 5 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\RpmUpdater.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\types.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\util.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\out\windowsExecutableCodeSignatureVerifier.js" 8 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\electron-updater\package.json" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\bin" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\bin\js-yaml.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\dist" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\dist\js-yaml.js" 112 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\dist\js-yaml.min.js" 39 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\dist\js-yaml.mjs" 106 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\index.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\common.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\dumper.js" 32 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\exception.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\loader.js" 47 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\schema" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\schema.js" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\schema\core.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\schema\default.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\schema\failsafe.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\schema\json.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\snippet.js" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\binary.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\bool.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\float.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\int.js" 4 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\map.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\merge.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\null.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\omap.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\pairs.js" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\seq.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\set.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\str.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\lib\type\timestamp.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\LICENSE" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\js-yaml\package.json" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lazy-val" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lazy-val\out" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lazy-val\out\main.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lazy-val\package.json" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lodash.escaperegexp" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lodash.escaperegexp\index.js" 5 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lodash.escaperegexp\LICENSE" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lodash.escaperegexp\package.json" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lodash.isequal" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lodash.isequal\index.js" 49 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lodash.isequal\LICENSE" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\lodash.isequal\package.json" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\ms" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\ms\index.js" 3 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\ms\license.md" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\ms\package.json" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\sax" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\sax\lib" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\sax\lib\sax.js" 43 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\sax\LICENSE" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\sax\package.json" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\tiny-typed-emitter" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\tiny-typed-emitter\lib" 0 KB ,Flags: 64
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\tiny-typed-emitter\lib\index.js" 1 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\tiny-typed-emitter\LICENSE" 2 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\node_modules\tiny-typed-emitter\package.json" 1 KB 
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Resources\app\others\sidebar.bmp" 151 KB size, 151 KB changed 
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Resources\app\package.json" 1 KB size, 1 KB changed 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\steam\app_build_unified.vdf" 2 KB 
+[2025-06-06 02:43:57]: Changed: "Kurisu.app\Contents\Resources\app\style.css" 20 KB size, 20 KB changed 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\workshop.html" 30 KB 
+[2025-06-06 02:43:57]: Added  : "Kurisu.app\Contents\Resources\app\workshop.js" 103 KB 
+[2025-06-06 02:43:57]: Removed: Kurisu.app\Contents\Resources\app\up.css (4 KB)
+[2025-06-06 02:43:57]: Removed: Kurisu.app\Contents\Resources\app\up.html (2 KB)
+[2025-06-06 02:43:57]: Removed: Kurisu.app\Contents\Resources\app\up.js (9 KB)
+[2025-06-06 02:43:57]: Summary: 239 files added (1.10 MB), 12 files changed (298.78 KB), 3 files removed (13.89 KB)
+[2025-06-06 02:43:57]: Uploading new manifest to 192.69.99.15:80 (handle 4136137867922115154, 229507 bytes).
+[2025-06-06 02:43:59]: Uploading 191 out of 191 missing chunks.
+[2025-06-06 02:44:15]: Success! New manifestID 1991558776486822563 created and 191 new chunks uploaded.
